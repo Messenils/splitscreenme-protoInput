@@ -5,39 +5,42 @@
 namespace Proto
 {
 
-class FakeCursor
-{
-	std::mutex mutex{};
-	std::condition_variable conditionvar{};
+	class FakeCursor
+	{
+		std::mutex mutex{};
+		std::condition_variable conditionvar{};
 
-	HWND pointerWindow = nullptr;
-	HDC hdc;
-	HBRUSH transparencyBrush;
-	HCURSOR hCursor;
-	static constexpr auto transparencyKey = RGB(0, 0, 1);
-	
-	int oldX, oldY;
-	bool oldHadShowCursor = true;
-	//TODO: width/height probably needs to change
+		HWND pointerWindow = nullptr;
+		HDC hdc;
+		HBRUSH transparencyBrush;
+		HCURSOR hCursor;
+
+		static constexpr auto transparencyKey = RGB(0, 0, 1);
+
+		int oldX, oldY;
+		bool oldHadShowCursor = true;
+		//TODO: width/height probably needs to change
 
 
-	// DrawFakeCursorFix. cursor offset scan and cursor size fix
-	int cursoroffsetx, cursoroffsety; 
-	int offsetSET; //0:sizing 1:offset 2:done
-	int cursorWidth = 40;
-	int cursorHeight = 40;
+		// DrawFakeCursorFix. cursor offset scan and cursor size fix
+		int cursoroffsetx, cursoroffsety;
+		int offsetSET = 0; //0:sizing 1:scanning 2:done, only drawing until cursor change, or nochange
+		int cursorWidth = 40; //was constant
+		int cursorHeight = 40;//was constant
+		bool nochange = false; //if normal offset was found at first then assume all cursors got same offset
+		HCURSOR oldhCursor = NULL;
 
-	// This is either on or off for a given game (ie. it doesn't change)
-	bool drawingEnabled = false;
+		// This is either on or off for a given game (ie. it doesn't change)
+		bool drawingEnabled = false;
 
-	// This changes when the hook detects SetCursor/ShowCursor
-	bool showCursor = true;
+		// This changes when the hook detects SetCursor/ShowCursor
+		bool showCursor = true;
 
-	bool toggleVisilbityShorcutEnabled = false;
-	unsigned int toggleVisibilityVkey = VK_HOME;
-	
-	void DrawCursor();
-	
+		bool toggleVisilbityShorcutEnabled = false;
+		unsigned int toggleVisibilityVkey = VK_HOME;
+
+		void DrawCursor();
+
 public:
 	static FakeCursor state;
 	bool DrawFakeCursorFix;

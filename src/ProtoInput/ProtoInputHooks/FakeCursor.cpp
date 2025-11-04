@@ -52,7 +52,7 @@ void FakeCursor::DrawCursor()
 
     oldHadShowCursor = showCursor;
 
-    POINT pos = { FakeMouseKeyboard::GetMouseState().x,FakeMouseKeyboard::GetMouseState().y }; 
+    POINT pos = { FakeMouseKeyboard::GetMouseState().x,FakeMouseKeyboard::GetMouseState().y };
     ClientToScreen((HWND)HwndSelector::GetSelectedHwnd(), &pos);
     ScreenToClient(pointerWindow, &pos);
 
@@ -68,39 +68,77 @@ void FakeCursor::DrawCursor()
         {
             if (DrawIconEx(hdc, pos.x, pos.y, hCursor, cursorWidth, cursorHeight, 0, transparencyBrush, DI_NORMAL))
             {
+                if (hCursor != oldhCursor && offsetSET > 1 && nochange == false)
+                {
+                    offsetSET = 0;
+                }
                 if (offsetSET == 1 && hCursor != LoadCursorW(NULL, IDC_ARROW) && IsWindowVisible(pointerWindow)) //offset setting
                 {
                     HDC hdcMem = CreateCompatibleDC(hdc);
                     HBITMAP hbmScreen = CreateCompatibleBitmap(hdc, cursorWidth, cursorHeight);
                     SelectObject(hdcMem, hbmScreen);
                     BitBlt(hdcMem, 0, 0, cursorWidth, cursorHeight, hdc, pos.x, pos.y, SRCCOPY);
-                    // Scan within the cursor screenshot pixel area
                     cursoroffsetx = -1;
                     cursoroffsety = -1;
+                    int leftcursoroffsetx = 0;
+                    int leftcursoroffsety = -1;
+                    int rightcursoroffsetx = 0;
+                    // Scanning
                     for (int y = 0; y < cursorHeight; y++)
                     {
                         for (int x = 0; x < cursorWidth; x++)
                         {
-                            COLORREF pixelColor = GetPixel(hdcMem, x, y); // Get copied pixel color
+                            COLORREF pixelColor = GetPixel(hdcMem, x, y); // scan from left and find common y to use in next scan also
                             if (pixelColor != transparencyKey)
                             {
-                                cursoroffsetx = x;
-                                cursoroffsety = y;
+                                leftcursoroffsetx = x;
+                                leftcursoroffsety = y;
                                 break;
                             }
                         }
-                        if (cursoroffsetx != -1) break;
+                        if (leftcursoroffsetx != -1) break;
                     }
-                    if (cursoroffsetx < 2) cursoroffsetx = 0;
-                    if (cursoroffsety < 2) cursoroffsety = 0;
-                    offsetSET ++; //offset set to 2 should do drawing only now
+
+
+                    for (int x = cursorWidth - 1; x >= 0; x--)
+                    {
+                        COLORREF pixelColor = GetPixel(hdcMem, x, leftcursoroffsety); // scan from right
+                        if (pixelColor != transparencyKey)
+                        {
+                            rightcursoroffsetx = cursorWidth - x;
+                            break;
+                        }
+                    }
+                    //Adjusting possible here if symmetric cursor is not found
+                    if (leftcursoroffsetx == rightcursoroffsetx - 1 || leftcursoroffsetx == rightcursoroffsetx + 1 || leftcursoroffsetx == rightcursoroffsetx) //check for symmetric first only if Y offset is small
+                    {
+                        cursoroffsety = cursorHeight / 2;
+                        cursoroffsetx = cursorWidth / 2;
+                    }
+                    else if (leftcursoroffsety > 2 || leftcursoroffsetx > 2) //is there any other offsets?
+                    {
+                        cursoroffsetx = leftcursoroffsetx;
+                        cursoroffsety = leftcursoroffsety;
+                        nochange = true;
+                    }
+
+                    else { //no offsets
+                        cursoroffsetx = 0;
+                        cursoroffsety = 0;
+                    }
+                    offsetSET++; //offset set to 2 should do drawing only now
                     DeleteDC(hdcMem);
                     DeleteObject(hbmScreen);
+
+
+
                 }
                 if (offsetSET == 0 && hCursor != LoadCursorW(NULL, IDC_ARROW) && IsWindowVisible(pointerWindow)) //size setting
                 {
                     ICONINFO ii;
                     BITMAP bitmap;
+                    cursoroffsetx = 0;
+                    cursoroffsety = 0;
                     if (GetIconInfo(hCursor, &ii))
                     {
                         if (GetObject(ii.hbmMask, sizeof(BITMAP), &bitmap))
@@ -121,6 +159,7 @@ void FakeCursor::DrawCursor()
                     }
                     offsetSET++; //size set, doing offset next run
                 }
+                oldhCursor = hCursor;
             }
         }
     }
