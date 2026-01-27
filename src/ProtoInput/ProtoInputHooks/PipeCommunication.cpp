@@ -378,7 +378,7 @@ DWORD WINAPI PipeThread(LPVOID lpParameter)
 				XinputHook::controllerIndex4 = body->controllerIndex4;
 				if (RawInput::TranslateXinputtoMKB == true)
 				{
-					ScreenshotInput::TranslateXtoMKB::controllerID = XinputHook::controllerIndex;
+					ScreenshotInput::TranslateXtoMKB::controllerID = XinputHook::controllerIndex - 1;
 				}
 				break;
 			}
