@@ -47,6 +47,7 @@ public:
 	static RawInputState rawInputState;
 	static HWND rawInputHwnd;
 	static bool forwardRawInput;
+	static bool TranslateXinputtoMKB;
 
 	// Passes input from all devices to the game. Proto Input doesn't process anything
 	static bool rawInputBypass;

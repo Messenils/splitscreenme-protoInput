@@ -55,6 +55,10 @@ extern "C" __declspec(dllexport) ProtoInstanceHandle EasyHookInjectStartup(
 	unsigned long* outPid,
 	void* environment = nullptr);
 
+
+extern "C" __declspec(dllexport) void AddSelectedMouseHandle(ProtoInstanceHandle instanceHandle, unsigned int mouseHandle);
+extern "C" __declspec(dllexport) void AddSelectedKeyboardHandle(ProtoInstanceHandle instanceHandle, unsigned int keyboardHandle);
+extern "C" __declspec(dllexport) void SetTranslateXinputtoMKB(ProtoInstanceHandle instanceHandle, bool TranslateXinputtoMKB);
 extern "C" __declspec(dllexport) void InstallHook(ProtoInstanceHandle instanceHandle, ProtoHookIDs hookID);
 extern "C" __declspec(dllexport) void UninstallHook(ProtoInstanceHandle instanceHandle, ProtoHookIDs hookID);
 
@@ -84,8 +88,6 @@ extern "C" __declspec(dllexport) void SetDrawFakeCursorFix(ProtoInstanceHandle i
 
 extern "C" __declspec(dllexport) void SetExternalFreezeFakeInput(ProtoInstanceHandle instanceHandle, bool enableFreeze);
 
-extern "C" __declspec(dllexport) void AddSelectedMouseHandle(ProtoInstanceHandle instanceHandle, unsigned int mouseHandle);
-extern "C" __declspec(dllexport) void AddSelectedKeyboardHandle(ProtoInstanceHandle instanceHandle, unsigned int keyboardHandle);
 
 extern "C" __declspec(dllexport) void SetControllerIndex(ProtoInstanceHandle instanceHandle, unsigned int controllerIndex, unsigned int controllerIndex2 = 0, unsigned int controllerIndex3 = 0, unsigned int controllerIndex4 = 0);
 

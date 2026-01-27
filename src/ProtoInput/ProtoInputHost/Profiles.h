@@ -55,7 +55,7 @@ struct Profile
 		{ "Rename Handles", true, "Rename Handles", ProtoHookIDs::RenameHandlesHookID },
 		{ "Block Raw Input", false, "Block Raw Input", ProtoHookIDs::BlockRawInputHookID },
 		{ "Dinput Order", false, "Dinput Order", ProtoHookIDs::DinputOrderHookID },
-		{ "Xinput", false, "Xinput", ProtoHookIDs::XinputHookID }		
+		{ "Xinput", false, "Xinput", ProtoHookIDs::XinputHookID }
 	};
 
 	std::vector<ProfileOption> messageFilters
@@ -72,6 +72,7 @@ struct Profile
 
 	bool dinputToXinputRedirection = false;
 	bool useOpenXinput = false;
+	bool TranslateXinputtoMKB = false;
 
 	bool useFakeClipCursor = true;
 
@@ -114,6 +115,7 @@ struct Profile
 
 			cereal::make_nvp("dinputToXinputRedirection", dinputToXinputRedirection),
 			cereal::make_nvp("useOpenXinput", useOpenXinput),
+			cereal::make_nvp("TranslateXinputtoMKB", TranslateXinputtoMKB),
 			cereal::make_nvp("useFakeClipCursor", useFakeClipCursor),
 			cereal::make_nvp("showCursorWhenImageUpdated", showCursorWhenImageUpdated),
 

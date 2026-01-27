@@ -134,6 +134,12 @@ bool Launch()
             return false;
         };
 
+        if (instance.mouseHandle != -1)
+            AddSelectedMouseHandle(instanceHandle, instance.mouseHandle);
+
+        if (instance.keyboardHandle != -1)
+            AddSelectedKeyboardHandle(instanceHandle, instance.keyboardHandle);
+        SetTranslateXinputtoMKB(instanceHandle, currentProfile.TranslateXinputtoMKB);
         if (hookEnabled(RegisterRawInputHookID))        InstallHook(instanceHandle, RegisterRawInputHookID);
         if (hookEnabled(GetRawInputDataHookID))         InstallHook(instanceHandle, GetRawInputDataHookID);
         if (hookEnabled(MessageFilterHookID))           InstallHook(instanceHandle, MessageFilterHookID);
@@ -157,6 +163,7 @@ bool Launch()
         if (hookEnabled(BlockRawInputHookID))           InstallHook(instanceHandle, BlockRawInputHookID);
     	
         SetUseOpenXinput(instanceHandle, currentProfile.useOpenXinput);
+
         SetUseDinputRedirection(instanceHandle, currentProfile.dinputToXinputRedirection);
         if (hookEnabled(XinputHookID))                  InstallHook(instanceHandle, XinputHookID);
         
@@ -207,11 +214,6 @@ bool Launch()
         for (const auto& renameNamedPipeHandle : currentProfile.renameNamedPipeHandles)
             AddNamedPipeToRename(instanceHandle, utf8_decode(renameNamedPipeHandle).c_str());
 
-        if (instance.mouseHandle != -1)
-            AddSelectedMouseHandle(instanceHandle, instance.mouseHandle);
-
-        if (instance.keyboardHandle != -1)
-            AddSelectedKeyboardHandle(instanceHandle, instance.keyboardHandle);
 
         SetControllerIndex(instanceHandle, instance.controllerIndex);
 
@@ -671,8 +673,16 @@ void SelectedInstanceWindow()
 
     ImGui::PushID(128794);
     ImGui::Spacing();
-    ImGui::TextWrapped("Controller index");
+    ImGui::Separator();
     ImGui::SliderInt("", (int*)&instance.controllerIndex, 0, 16, "%d", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::Separator();
+    ImGui::TextWrapped("Controller index");
+    ImGui::Separator();
+    ImGui::Checkbox("Translate X to MKB", &currentProfile.TranslateXinputtoMKB); //
+    ImGui::Separator();
+    ImGui::Checkbox("Use OpenXinput", &currentProfile.useOpenXinput); //		
+    
+    
     ImGui::PopID();
 }
 
@@ -867,8 +877,6 @@ void OptionsMenu()
 
     ImGui::Checkbox("Dinput to Xinput redirection", &currentProfile.dinputToXinputRedirection);
 
-    ImGui::Checkbox("Use OpenXinput", &currentProfile.useOpenXinput);
-	
     ImGui::Checkbox("Use fake clip cursor", &currentProfile.useFakeClipCursor);
 	
     ImGui::Checkbox("Show fake cursor when image updated", &currentProfile.showCursorWhenImageUpdated);

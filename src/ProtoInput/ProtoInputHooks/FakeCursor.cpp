@@ -8,255 +8,294 @@
 namespace Proto
 {
 
-FakeCursor FakeCursor::state{};
+    FakeCursor FakeCursor::state{};
 
-LRESULT WINAPI FakeCursorWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-    switch (msg)
+    LRESULT WINAPI FakeCursorWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        return 0;
-    default:
-    	break;
+        switch (msg)
+        {
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            return 0;
+        default:
+            break;
+        }
+
+        return DefWindowProc(hWnd, msg, wParam, lParam);
     }
 
-    return DefWindowProc(hWnd, msg, wParam, lParam);
-}
+    LONG fakeCursorMinX = 0, fakeCursorMaxX = 0, fakeCursorMinY = 0, fakeCursorMaxY = 0;
 
-LONG fakeCursorMinX = 0, fakeCursorMaxX = 0, fakeCursorMinY = 0, fakeCursorMaxY = 0;
-
-BOOL CALLBACK EnumWindowsProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
-{
-    MONITORINFO info = { sizeof(info) };
-    if (GetMonitorInfo(hMonitor, &info))
+    BOOL CALLBACK EnumWindowsProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
     {
+        MONITORINFO info = { sizeof(info) };
+        if (GetMonitorInfo(hMonitor, &info))
+        {
 #undef min // Thanks Windows.h
 #undef max
-        fakeCursorMinX = std::min(fakeCursorMinX, info.rcMonitor.left);
-        fakeCursorMinY = std::min(fakeCursorMinY, info.rcMonitor.top);
-        fakeCursorMaxX = std::max(fakeCursorMaxX, info.rcMonitor.right);
-        fakeCursorMaxY = std::max(fakeCursorMaxY, info.rcMonitor.bottom);
+            fakeCursorMinX = std::min(fakeCursorMinX, info.rcMonitor.left);
+            fakeCursorMinY = std::min(fakeCursorMinY, info.rcMonitor.top);
+            fakeCursorMaxX = std::max(fakeCursorMaxX, info.rcMonitor.right);
+            fakeCursorMaxY = std::max(fakeCursorMaxY, info.rcMonitor.bottom);
+        }
+        return true;
     }
-    return true;
-}
-void FakeCursor::DrawCursor()
-{
-
-    if (oldHadShowCursor) //erase cursor
+    void FakeCursor::DrawCursor()
     {
-        RECT fill{ oldX, oldY, oldX + cursorWidth, oldY + cursorHeight };
-        FillRect(hdc, &fill, transparencyBrush); // Note: window, not screen coordinates!
 
-    }
-
-    oldHadShowCursor = showCursor;
-
-    POINT pos = { FakeMouseKeyboard::GetMouseState().x,FakeMouseKeyboard::GetMouseState().y }; 
-    ClientToScreen((HWND)HwndSelector::GetSelectedHwnd(), &pos);
-    ScreenToClient(pointerWindow, &pos);
-
-    if (DrawFakeCursorFix)
-    {
-        pos.x -= cursoroffsetx;
-        pos.y -= cursoroffsety;
-
-        if (pos.x < 0) pos.x = 0;
-        if (pos.y < 0) pos.y = 0;
-
-        if (showCursor)// && hdc && hCursor
+        if (oldHadShowCursor) //erase cursor
         {
-            if (DrawIconEx(hdc, pos.x, pos.y, hCursor, cursorWidth, cursorHeight, 0, transparencyBrush, DI_NORMAL))
+            RECT fill{ oldX, oldY, oldX + cursorWidth, oldY + cursorHeight };
+            FillRect(hdc, &fill, transparencyBrush); // Note: window, not screen coordinates!
+
+        }
+
+        oldHadShowCursor = showCursor;
+
+        POINT pos = { FakeMouseKeyboard::GetMouseState().x,FakeMouseKeyboard::GetMouseState().y };
+        ClientToScreen((HWND)HwndSelector::GetSelectedHwnd(), &pos);
+        ScreenToClient(pointerWindow, &pos);
+
+        if (DrawFakeCursorFix)
+        {
+            pos.x -= cursoroffsetx;
+            pos.y -= cursoroffsety;
+
+            if (pos.x < 0) pos.x = 0;
+            if (pos.y < 0) pos.y = 0;
+
+            if (showCursor)// && hdc && hCursor
             {
-                if (offsetSET == 1 && hCursor != LoadCursorW(NULL, IDC_ARROW) && IsWindowVisible(pointerWindow)) //offset setting
+                if (DrawIconEx(hdc, pos.x, pos.y, hCursor, cursorWidth, cursorHeight, 0, transparencyBrush, DI_NORMAL))
                 {
-                    HDC hdcMem = CreateCompatibleDC(hdc);
-                    HBITMAP hbmScreen = CreateCompatibleBitmap(hdc, cursorWidth, cursorHeight);
-                    SelectObject(hdcMem, hbmScreen);
-                    BitBlt(hdcMem, 0, 0, cursorWidth, cursorHeight, hdc, pos.x, pos.y, SRCCOPY);
-                    // Scan within the cursor screenshot pixel area
-                    cursoroffsetx = -1;
-                    cursoroffsety = -1;
-                    for (int y = 0; y < cursorHeight; y++)
+                    if (hCursor != oldhCursor && offsetSET > 1 && nochange == false)
                     {
-                        for (int x = 0; x < cursorWidth; x++)
+                        offsetSET = 0;
+                    }
+                    if (offsetSET == 1 && hCursor != LoadCursorW(NULL, IDC_ARROW) && IsWindowVisible(pointerWindow)) //offset setting
+                    {
+                        HDC hdcMem = CreateCompatibleDC(hdc);
+                        HBITMAP hbmScreen = CreateCompatibleBitmap(hdc, cursorWidth, cursorHeight);
+                        SelectObject(hdcMem, hbmScreen);
+                        BitBlt(hdcMem, 0, 0, cursorWidth, cursorHeight, hdc, pos.x, pos.y, SRCCOPY);
+                        cursoroffsetx = -1;
+                        cursoroffsety = -1;
+                        int leftcursoroffsetx = 0;
+                        int leftcursoroffsety = -1;
+                        int rightcursoroffsetx = 0;
+                        // Scanning
+                        for (int y = 0; y < cursorHeight; y++)
                         {
-                            COLORREF pixelColor = GetPixel(hdcMem, x, y); // Get copied pixel color
+                            for (int x = 0; x < cursorWidth; x++)
+                            {
+                                COLORREF pixelColor = GetPixel(hdcMem, x, y); // scan from left and find common y to use in next scan also
+                                if (pixelColor != transparencyKey)
+                                {
+                                    leftcursoroffsetx = x;
+                                    leftcursoroffsety = y;
+                                    break;
+                                }
+                            }
+                            if (leftcursoroffsetx != -1) break;
+                        }
+
+
+                        for (int x = cursorWidth - 1; x >= 0; x--)
+                        {
+                            COLORREF pixelColor = GetPixel(hdcMem, x, leftcursoroffsety); // scan from right
                             if (pixelColor != transparencyKey)
                             {
-                                cursoroffsetx = x;
-                                cursoroffsety = y;
+                                rightcursoroffsetx = cursorWidth - x;
                                 break;
                             }
                         }
-                        if (cursoroffsetx != -1) break;
-                    }
-                    if (cursoroffsetx < 2) cursoroffsetx = 0;
-                    if (cursoroffsety < 2) cursoroffsety = 0;
-                    offsetSET ++; //offset set to 2 should do drawing only now
-                    DeleteDC(hdcMem);
-                    DeleteObject(hbmScreen);
-                }
-                if (offsetSET == 0 && hCursor != LoadCursorW(NULL, IDC_ARROW) && IsWindowVisible(pointerWindow)) //size setting
-                {
-                    ICONINFO ii;
-                    BITMAP bitmap;
-                    if (GetIconInfo(hCursor, &ii))
-                    {
-                        if (GetObject(ii.hbmMask, sizeof(BITMAP), &bitmap))
+                        //Adjusting possible here if symmetric cursor is not found
+                        if (leftcursoroffsetx == rightcursoroffsetx - 1 || leftcursoroffsetx == rightcursoroffsetx + 1 || leftcursoroffsetx == rightcursoroffsetx) //check for symmetric first only if Y offset is small
                         {
-                            cursorWidth = bitmap.bmWidth;
-                            if (ii.hbmColor == NULL)
-                            {//For monochrome icons, the hbmMask is twice the height of the icon and hbmColor is NULL
-                                cursorHeight = bitmap.bmHeight / 2;
-                            }
-                            else
-                            {
-                                cursorHeight = bitmap.bmHeight;
-                            }
-                            DeleteObject(ii.hbmColor);
-                            DeleteObject(ii.hbmMask);
+                            cursoroffsety = cursorHeight / 2;
+                            cursoroffsetx = cursorWidth / 2;
+                        }
+                        else if (leftcursoroffsety > 2 || leftcursoroffsetx > 2) //is there any other offsets?
+                        {
+                            cursoroffsetx = leftcursoroffsetx;
+                            cursoroffsety = leftcursoroffsety;
+                            nochange = true;
                         }
 
+                        else { //no offsets
+                            cursoroffsetx = 0;
+                            cursoroffsety = 0;
+                        }
+                        offsetSET++; //offset set to 2 should do drawing only now
+                        DeleteDC(hdcMem);
+                        DeleteObject(hbmScreen);
+
+
+
                     }
-                    offsetSET++; //size set, doing offset next run
+                    if (offsetSET == 0 && hCursor != LoadCursorW(NULL, IDC_ARROW) && IsWindowVisible(pointerWindow)) //size setting
+                    {
+                        ICONINFO ii;
+                        BITMAP bitmap;
+                        cursoroffsetx = 0;
+                        cursoroffsety = 0;
+                        if (GetIconInfo(hCursor, &ii))
+                        {
+                            if (GetObject(ii.hbmMask, sizeof(BITMAP), &bitmap))
+                            {
+                                cursorWidth = bitmap.bmWidth;
+                                if (ii.hbmColor == NULL)
+                                {//For monochrome icons, the hbmMask is twice the height of the icon and hbmColor is NULL
+                                    cursorHeight = bitmap.bmHeight / 2;
+                                }
+                                else
+                                {
+                                    cursorHeight = bitmap.bmHeight;
+                                }
+                                DeleteObject(ii.hbmColor);
+                                DeleteObject(ii.hbmMask);
+                            }
+
+                        }
+                        offsetSET++; //size set, doing offset next run
+                    }
+                    oldhCursor = hCursor;
+                }
+            }
+        }
+        else if (showCursor)
+            DrawIcon(hdc, pos.x, pos.y, hCursor);
+        oldX = pos.x;
+        oldY = pos.y;
+    }
+
+    DWORD WINAPI FakeCursorDrawLoopThread(LPVOID lpParameter)
+    {
+        printf("Fake cursor draw loop thread start\n");
+        Proto::AddThreadToACL(GetCurrentThreadId());
+        FakeCursor::state.StartDrawLoopInternal();
+
+        return 0;
+    }
+
+    void FakeCursor::StartDrawLoopInternal()
+    {
+        int tick = 0;
+
+        while (true)
+        {
+            std::unique_lock<std::mutex> lock(mutex);
+            conditionvar.wait(lock);
+
+            DrawCursor();
+
+            //TODO: is this ok? (might eat cpu)
+            Sleep(drawingEnabled ? 12 : 500);
+
+            tick = (tick + 1) % 200;
+
+            if (tick == 0)
+                // Nucleus can put the game window above the pointer without this
+                SetWindowPos(pointerWindow, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOREDRAW | SWP_NOSIZE);
+        }
+    }
+
+    void FakeCursor::StartInternal()
+    {
+        Proto::AddThreadToACL(GetCurrentThreadId());
+
+        const auto hInstance = GetModuleHandle(NULL);
+
+        // Like a green screen
+        transparencyBrush = (HBRUSH)CreateSolidBrush(transparencyKey);
+
+        WNDCLASS wc = { 0 };
+        wc.lpfnWndProc = FakeCursorWndProc;
+        wc.hInstance = hInstance;
+        wc.hbrBackground = transparencyBrush;
+
+        std::srand(std::time(nullptr));
+        const std::wstring classNameStr = std::wstring{ L"ProtoInputPointer" } + std::to_wstring(std::rand());
+        const wchar_t* className = classNameStr.c_str();
+
+        wc.lpszClassName = className;
+        wc.style = CS_OWNDC | CS_NOCLOSE;
+
+        if (!RegisterClass(&wc))
+        {
+            fprintf(stderr, "Failed to open fake cursor window\n");
+        }
+        else
+        {
+            pointerWindow = CreateWindowExW(WS_EX_NOACTIVATE | WS_EX_NOINHERITLAYOUT | WS_EX_NOPARENTNOTIFY |
+                WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_LAYERED,
+                wc.lpszClassName, classNameStr.c_str(), 0,
+                0, 0, 200, 200,
+                nullptr, nullptr, hInstance, nullptr);
+
+            SetWindowLongW(pointerWindow, GWL_STYLE, WS_VISIBLE | WS_DISABLED);
+            SetLayeredWindowAttributes(pointerWindow, transparencyKey, 0, LWA_COLORKEY);
+
+            // Nucleus can put the game window above the pointer without this
+            SetWindowPos(pointerWindow, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOREDRAW | SWP_NOSIZE);
+
+            // ShowWindow(pointerWindow, SW_SHOWDEFAULT);
+            // UpdateWindow(pointerWindow);
+            EnableDisableFakeCursor(drawingEnabled);
+
+            // Over every screen
+            EnumDisplayMonitors(nullptr, nullptr, &EnumWindowsProc, 0);
+            MoveWindow(pointerWindow, fakeCursorMinX, fakeCursorMinY, fakeCursorMaxX - fakeCursorMinX, fakeCursorMaxY - fakeCursorMinY, TRUE);
+
+            hdc = GetDC(pointerWindow);
+
+            //TODO: configurable cursor
+            hCursor = LoadCursorW(NULL, IDC_ARROW);
+
+            const auto threadHandle = CreateThread(nullptr, 0,
+                (LPTHREAD_START_ROUTINE)FakeCursorDrawLoopThread, GetModuleHandle(0), 0, 0);
+
+            if (threadHandle != nullptr)
+                CloseHandle(threadHandle);
+
+            // Want to avoid doing anything in the message loop that might cause it to not respond, as the entire screen will say not responding...
+            MSG msg;
+            ZeroMemory(&msg, sizeof(msg));
+            while (msg.message != WM_QUIT)
+            {
+                if (GetMessageW(&msg, pointerWindow, 0U, 0U))// Blocks
+                {
+                    TranslateMessage(&msg);
+                    DispatchMessage(&msg);
+                    continue;
                 }
             }
         }
     }
-    else if (showCursor)
-        DrawIcon(hdc, pos.x, pos.y, hCursor);
-    oldX = pos.x;
-    oldY = pos.y;
-}
 
-DWORD WINAPI FakeCursorDrawLoopThread(LPVOID lpParameter)
-{
-    printf("Fake cursor draw loop thread start\n");
-    Proto::AddThreadToACL(GetCurrentThreadId());
-    FakeCursor::state.StartDrawLoopInternal();
-
-    return 0;
-}
-
-void FakeCursor::StartDrawLoopInternal()
-{
-    int tick = 0;
-
-	while (true)
-	{
-        std::unique_lock<std::mutex> lock(mutex);
-		conditionvar.wait(lock);
-
-        DrawCursor();
-
-        //TODO: is this ok? (might eat cpu)
-        Sleep(drawingEnabled ? 12 : 500);
-
-        tick = (tick + 1) % 200;
-
-        if (tick == 0)
-            // Nucleus can put the game window above the pointer without this
-            SetWindowPos(pointerWindow, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOREDRAW | SWP_NOSIZE);
-	}
-}
-
-void FakeCursor::StartInternal()
-{
-    Proto::AddThreadToACL(GetCurrentThreadId());
-
-    const auto hInstance = GetModuleHandle(NULL);
-
-    // Like a green screen
-    transparencyBrush = (HBRUSH)CreateSolidBrush(transparencyKey);
-
-    WNDCLASS wc = { 0 };
-    wc.lpfnWndProc = FakeCursorWndProc;
-    wc.hInstance = hInstance;
-    wc.hbrBackground = transparencyBrush;
-
-    std::srand(std::time(nullptr));
-    const std::wstring classNameStr = std::wstring{ L"ProtoInputPointer" } + std::to_wstring(std::rand());
-    const wchar_t* className = classNameStr.c_str();
-
-    wc.lpszClassName = className;
-    wc.style = CS_OWNDC | CS_NOCLOSE;
-
-    if (!RegisterClass(&wc))
+    DWORD WINAPI FakeCursorThreadStart(LPVOID lpParameter)
     {
-        fprintf(stderr, "Failed to open fake cursor window\n");
+        printf("Fake Cursor thread start\n");
+        FakeCursor::state.StartInternal();
+        return 0;
     }
-    else
+
+
+    void FakeCursor::EnableDisableFakeCursor(bool enable)
     {
-        pointerWindow = CreateWindowExW(WS_EX_NOACTIVATE | WS_EX_NOINHERITLAYOUT | WS_EX_NOPARENTNOTIFY |
-                                                          WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_LAYERED,
-                                                          wc.lpszClassName, classNameStr.c_str(), 0,
-                                                          0, 0, 200, 200,
-                                                          nullptr, nullptr, hInstance, nullptr);
+        state.drawingEnabled = enable;
 
-        SetWindowLongW(pointerWindow, GWL_STYLE, WS_VISIBLE | WS_DISABLED);
-        SetLayeredWindowAttributes(pointerWindow, transparencyKey, 0, LWA_COLORKEY);
+        ShowWindow(state.pointerWindow, enable ? SW_SHOWDEFAULT : SW_HIDE);
+        UpdateWindow(state.pointerWindow);
+    }
 
-        // Nucleus can put the game window above the pointer without this
-        SetWindowPos(pointerWindow, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOREDRAW | SWP_NOSIZE);
-
-        // ShowWindow(pointerWindow, SW_SHOWDEFAULT);
-        // UpdateWindow(pointerWindow);
-        EnableDisableFakeCursor(drawingEnabled);
-
-    	// Over every screen
-        EnumDisplayMonitors(nullptr, nullptr, &EnumWindowsProc, 0);
-        MoveWindow(pointerWindow, fakeCursorMinX, fakeCursorMinY, fakeCursorMaxX - fakeCursorMinX, fakeCursorMaxY - fakeCursorMinY, TRUE);
-
-        hdc = GetDC(pointerWindow);
-
-        //TODO: configurable cursor
-        hCursor = LoadCursorW(NULL, IDC_ARROW);
-
+    void FakeCursor::Initialise()
+    {
         const auto threadHandle = CreateThread(nullptr, 0,
-                              (LPTHREAD_START_ROUTINE)FakeCursorDrawLoopThread, GetModuleHandle(0), 0, 0);
+            (LPTHREAD_START_ROUTINE)FakeCursorThreadStart, GetModuleHandle(0), 0, 0);
 
         if (threadHandle != nullptr)
             CloseHandle(threadHandle);
-
-    	// Want to avoid doing anything in the message loop that might cause it to not respond, as the entire screen will say not responding...
-        MSG msg;
-        ZeroMemory(&msg, sizeof(msg));
-        while (msg.message != WM_QUIT)
-        {
-        	if (GetMessageW(&msg, pointerWindow, 0U, 0U))// Blocks
-        	{
-                TranslateMessage(&msg);
-                DispatchMessage(&msg);
-                continue;
-            }
-        }
     }
-}
-
-DWORD WINAPI FakeCursorThreadStart(LPVOID lpParameter)
-{
-    printf("Fake Cursor thread start\n");
-    FakeCursor::state.StartInternal();
-    return 0;
-}
-
-
-void FakeCursor::EnableDisableFakeCursor(bool enable)
-{
-    state.drawingEnabled = enable;
-	
-    ShowWindow(state.pointerWindow, enable ? SW_SHOWDEFAULT : SW_HIDE);
-    UpdateWindow(state.pointerWindow);
-}
-
-void FakeCursor::Initialise()
-{
-	const auto threadHandle = CreateThread(nullptr, 0,
-                 (LPTHREAD_START_ROUTINE)FakeCursorThreadStart, GetModuleHandle(0), 0, 0);
-
-    if (threadHandle != nullptr)
-        CloseHandle(threadHandle);
-}
 
 }

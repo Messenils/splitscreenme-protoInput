@@ -7,6 +7,8 @@ namespace ProtoPipe
 
 enum class PipeMessageType
 {
+	AddSelectedMouseOrKeyboard,
+	SetTranslateXinputtoMKB,
 	SetupHook,
 	WakeUpProcess,
 	SetupMessageFilter,
@@ -18,7 +20,6 @@ enum class PipeMessageType
 	SetDrawFakeCursor,
 	SetDrawFakeCursorFix,
 	SetExternalFreezeFakeInput,
-	AddSelectedMouseOrKeyboard,
 	AddHandleToRename,
 	SetControllerIndex,
 	SetUseDinput,
@@ -49,6 +50,16 @@ struct PipeMessageHeader
 {
 	PipeMessageType messageType;
 	unsigned int messageSize;
+};
+struct PipeMessageAddSelectedMouseOrKeyboard
+{
+	unsigned int mouse = -1;
+	unsigned int keyboard = -1;
+};
+
+struct PipeMessageSetTranslateXinputtoMKB
+{
+	bool TranslateXinputtoMKB;
 };
 
 struct PipeMessageSetupHook
@@ -115,11 +126,7 @@ struct PipeMessageSetExternalFreezeFakeInput
 	bool freezeEnabled;
 };
 
-struct PipeMesasgeAddSelectedMouseOrKeyboard
-{
-	unsigned int mouse = -1;
-	unsigned int keyboard = -1;
-};
+
 
 struct PipeMessageAddHandleToRename
 {

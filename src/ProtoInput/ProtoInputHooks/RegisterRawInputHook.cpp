@@ -156,22 +156,22 @@ void RegisterRawInputHook::ShowGuiStatus()
 
 void RegisterRawInputHook::InstallImpl()
 {
-	if (!installedAtLeastOnce)
-	{
-		installedAtLeastOnce = true;
-		std::bitset<9> usages{};
-		// usages[HID_USAGE_GENERIC_MOUSE] = true;
-		// usages[HID_USAGE_GENERIC_KEYBOARD] = true;
-		RawInput::SetUsageBitField(usages);
-	}
 
-	auto [status, _hookInfo] = InstallNamedHook(L"user32", "RegisterRawInputDevices", Hook_RegisterRawInputDevices);
-	this->hookInfo = _hookInfo;
+		if (!installedAtLeastOnce)
+		{
+			installedAtLeastOnce = true;
+			std::bitset<9> usages{};
+			// usages[HID_USAGE_GENERIC_MOUSE] = true;
+			// usages[HID_USAGE_GENERIC_KEYBOARD] = true;
+			RawInput::SetUsageBitField(usages);
+		}
+
+		auto [status, _hookInfo] = InstallNamedHook(L"user32", "RegisterRawInputDevices", Hook_RegisterRawInputDevices);
+		this->hookInfo = _hookInfo;
 		
-	FindAlreadySubscribedWindows();
-
-	RawInput::UnregisterGameFromRawInput();
-	RawInput::RegisterProtoForRawInput();
+		FindAlreadySubscribedWindows();
+		RawInput::UnregisterGameFromRawInput();
+		RawInput::RegisterProtoForRawInput();
 }
 
 void RegisterRawInputHook::UninstallImpl()

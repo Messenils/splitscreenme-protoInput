@@ -26,6 +26,7 @@
 #include "MoveWindowHook.h"
 #include "AdjustWindowRectHook.h"
 #include "RemoveBorderHook.h"
+#include "TranslateXtoMKB.h"
 
 namespace Proto
 {
@@ -76,6 +77,7 @@ DWORD WINAPI PipeThread(LPVOID lpParameter)
 	}
 	while (pipe == INVALID_HANDLE_VALUE);
 	
+	bool gotkeyboardmouse = false;
 	if (pipe != INVALID_HANDLE_VALUE)
 	{
 		printf("Successfully connected pipe \"%ws\"\n", pipeName.c_str());
@@ -124,17 +126,52 @@ DWORD WINAPI PipeThread(LPVOID lpParameter)
 
 			switch(msgHeader.messageType)
 			{
-			case ProtoPipe::PipeMessageType::SetupHook:
-				{
-					const auto body = reinterpret_cast<ProtoPipe::PipeMessageSetupHook*>(messageBuffer);
-					printf("Setup hook message: hook ID %d, install = %d\n", body->hookID, body->install);
-					if (body->install)
-						HookManager::InstallHook(body->hookID);
-					else
-						HookManager::UninstallHook(body->hookID);
 
-					break;
+			case ProtoPipe::PipeMessageType::AddSelectedMouseOrKeyboard:
+			{
+				const auto body = reinterpret_cast<ProtoPipe::PipeMessageAddSelectedMouseOrKeyboard*>(messageBuffer);
+
+				printf("Received message select mouse %d, keyboard %d\n", body->mouse, body->keyboard);
+
+				if (body->mouse != -1)
+				{
+					gotkeyboardmouse = true;
+					RawInput::AddSelectedMouseHandle(body->mouse);
 				}
+					
+
+				if (body->keyboard != -1)
+				{
+					gotkeyboardmouse = true;
+					RawInput::AddSelectedKeyboardHandle(body->keyboard);
+				}
+
+				break;
+			}
+			case ProtoPipe::PipeMessageType::SetTranslateXinputtoMKB:
+			{
+				const auto body = reinterpret_cast<ProtoPipe::PipeMessageSetTranslateXinputtoMKB*>(messageBuffer);
+				RawInput::TranslateXinputtoMKB = body->TranslateXinputtoMKB;
+				if (RawInput::TranslateXinputtoMKB == true)
+				{ 
+					if (gotkeyboardmouse)
+					{ 
+						RawInput::TranslateXinputtoMKB = false;
+						//MessageBoxA(NULL, "OOOhhhh, there is a mouse here. disabling", "tunell", MB_OK | MB_ICONWARNING);
+					}
+				}
+				break;
+			}
+			case ProtoPipe::PipeMessageType::SetupHook:
+			{
+				const auto body = reinterpret_cast<ProtoPipe::PipeMessageSetupHook*>(messageBuffer);
+				printf("Setup hook message: hook ID %d, install = %d\n", body->hookID, body->install);
+				if (body->install)
+					HookManager::InstallHook(body->hookID);
+				else
+					HookManager::UninstallHook(body->hookID);
+			break;
+			}
 			case ProtoPipe::PipeMessageType::SetupMessageFilter:
 				{
 					const auto body = reinterpret_cast<ProtoPipe::PipeMessageSetupMessageFilter*>(messageBuffer);
@@ -287,6 +324,10 @@ DWORD WINAPI PipeThread(LPVOID lpParameter)
 				printf("Received message to %s fake cursor\n", body->enable ? "enable" : "disable");
 
 				FakeCursor::EnableDisableFakeCursor(body->enable);
+				if (body->enable) //1 game hdc //2 partial draw //3 full draw
+					ScreenshotInput::TranslateXtoMKB::drawfakecursor = 3; 
+				else 
+					ScreenshotInput::TranslateXtoMKB::drawfakecursor = 0;
 
 				break;
 			}
@@ -295,7 +336,7 @@ DWORD WINAPI PipeThread(LPVOID lpParameter)
 				const auto body = reinterpret_cast<ProtoPipe::PipeMessageSetDrawFakeCursorFix*>(messageBuffer);
 
 				printf("Received message to %s fake cursor fix\n", body->enable ? "enable" : "disable");
-
+				 
 					// Not sure about this...
 					FakeCursor::state.DrawFakeCursorFix = body->enable;
 
@@ -311,20 +352,7 @@ DWORD WINAPI PipeThread(LPVOID lpParameter)
 				
 				break;
 			}
-			case ProtoPipe::PipeMessageType::AddSelectedMouseOrKeyboard:
-			{
-				const auto body = reinterpret_cast<ProtoPipe::PipeMesasgeAddSelectedMouseOrKeyboard*>(messageBuffer);
 
-				printf("Received message select mouse %d, keyboard %d\n", body->mouse, body->keyboard);
-
-				if (body->mouse != -1)
-					RawInput::AddSelectedMouseHandle(body->mouse);
-
-				if (body->keyboard != -1)
-					RawInput::AddSelectedKeyboardHandle(body->keyboard);
-
-				break;
-			}
 			case ProtoPipe::PipeMessageType::AddHandleToRename:
 			{
 				const auto body = reinterpret_cast<ProtoPipe::PipeMessageAddHandleToRename*>(messageBuffer);
@@ -348,7 +376,10 @@ DWORD WINAPI PipeThread(LPVOID lpParameter)
 				XinputHook::controllerIndex2 = body->controllerIndex2;
 				XinputHook::controllerIndex3 = body->controllerIndex3;
 				XinputHook::controllerIndex4 = body->controllerIndex4;
-
+				if (RawInput::TranslateXinputtoMKB == true)
+				{
+					ScreenshotInput::TranslateXtoMKB::controllerID = XinputHook::controllerIndex;
+				}
 				break;
 			}
 			case ProtoPipe::PipeMessageType::SetUseDinput:

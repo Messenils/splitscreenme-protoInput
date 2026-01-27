@@ -15,6 +15,7 @@
 #include "protoinpututil.h"
 #include "KeyboardButtonFilter.h"
 #include "MessageFilterHook.h"
+#include "TranslateXtoMKB.h"
 
 namespace Proto
 {
@@ -25,11 +26,9 @@ std::vector<HWND> RawInput::forwardingWindows{};
 bool RawInput::forwardRawInput = true;
 bool RawInput::lockInputToggleEnabled = false;
 bool RawInput::rawInputBypass = false;
-
-
 RAWINPUT RawInput::inputBuffer[RawInputBufferSize]{};
 std::vector<RAWINPUT> RawInput::rawinputs{};
-
+bool RawInput::TranslateXinputtoMKB;
 const std::vector<USAGE> RawInput::usageTypesOfInterest
 {
 		HID_USAGE_GENERIC_POINTER,
@@ -114,14 +113,20 @@ void RawInput::ProcessMouseInput(const RAWMOUSE& data, HANDLE deviceHandle)
 	// Send mouse wheel
 	if (rawInputState.sendMouseWheelMessages)
 	{
-		if((data.usButtonFlags & RI_MOUSE_WHEEL) != 0)
+		if ((data.usButtonFlags & RI_MOUSE_WHEEL) != 0)
 		{
+			//mousewheel messages use screen coordinates instead of client coordinates
+			POINT screen;
+			screen.x = FakeMouseKeyboard::GetMouseState().x;
+			screen.y = FakeMouseKeyboard::GetMouseState().y;
+			ClientToScreen((HWND)HwndSelector::GetSelectedHwnd(), &screen);
+			LPARAM newmousePoint = MAKELPARAM(screen.x, screen.y);
+
 			const unsigned int wparam = (data.usButtonData << 16)
 				| MouseWheelFilter::protoInputSignature
 				| mouseMkFlags;
-						
-			PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_MOUSEWHEEL, wparam, mousePointLparam);
 
+			PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_MOUSEWHEEL, wparam, newmousePoint);
 		}
 	}
 
@@ -439,9 +444,9 @@ DWORD WINAPI RawInputWindowThread(LPVOID lpParameter)
 	printf("Starting Raw Input window thread\n");
 
 	AddThreadToACL(GetCurrentThreadId());
-	
+
 	const auto hinstance = GetModuleHandle(nullptr);
-	
+
 	WNDCLASS wc = { 0 };
 	wc.lpfnWndProc = RawInputWindowWndProc;
 	wc.hInstance = hinstance;
@@ -477,7 +482,7 @@ DWORD WINAPI RawInputWindowThread(LPVOID lpParameter)
 		if (GetMessage(&msg, RawInput::rawInputHwnd, WM_INPUT, WM_INPUT))
 		{
 			// if (msg.message == WM_INPUT)
-			{				
+			{
 				RawInput::ProcessRawInput((HRAWINPUT)msg.lParam, GET_RAWINPUT_CODE_WPARAM(msg.wParam) == RIM_INPUT, msg);
 			}
 
@@ -501,17 +506,17 @@ void RawInput::RefreshDevices()
 
 	const auto oldKbCount = rawInputState.keyboardHandles.size();
 	const auto oldMouseCount = rawInputState.mouseHandles.size();
-	
+
 	rawInputState.keyboardHandles.clear();
 	rawInputState.mouseHandles.clear();
-	
+
 	std::cout << "Raw input devices:\n";
 	for (unsigned int i = 0; i < numDevices; ++i)
 	{
 		auto* device = &deviceArray[i];
 		std::cout << (device->dwType == RIM_TYPEHID ? "HID" : device->dwType == RIM_TYPEKEYBOARD ? "Keyboard" : "Mouse")
 			<< ": " << device->hDevice << std::endl;
-		
+
 		if (device->dwType == RIM_TYPEKEYBOARD)
 		{
 			rawInputState.keyboardHandles.push_back(device->hDevice);
@@ -555,7 +560,7 @@ void RawInput::RefreshDevices()
 		if (std::find(rawInputState.mouseHandles.begin(), rawInputState.mouseHandles.end(), rawInputState.deselectedMouseHandles[i]) == rawInputState.mouseHandles.end())
 			rawInputState.deselectedMouseHandles.erase(rawInputState.deselectedMouseHandles.begin() + i);
 	}
-	
+
 	for (int i = rawInputState.selectedKeyboardHandles.size() - 1; i >= 0; --i)
 	{
 		if (std::find(rawInputState.keyboardHandles.begin(), rawInputState.keyboardHandles.end(), rawInputState.selectedKeyboardHandles[i]) == rawInputState.keyboardHandles.end())
@@ -614,11 +619,15 @@ std::bitset<9> RawInput::GetUsageBitField()
 void RawInput::InitialiseRawInput()
 {
 	RefreshDevices();
+	if (!RawInput::TranslateXinputtoMKB)
+	{
 
-	HANDLE hThread = CreateThread(nullptr, 0,
-								  (LPTHREAD_START_ROUTINE)RawInputWindowThread, GetModuleHandle(nullptr), 0, 0);
-	if (hThread != nullptr)
-		CloseHandle(hThread);
+		HANDLE hThread = CreateThread(nullptr, 0,
+									  (LPTHREAD_START_ROUTINE)RawInputWindowThread, GetModuleHandle(nullptr), 0, 0);
+		if (hThread != nullptr)
+			CloseHandle(hThread);
+	}
+	return;
 }
 
 void RawInput::UnregisterGameFromRawInput()

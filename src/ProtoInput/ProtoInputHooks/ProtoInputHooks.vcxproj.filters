@@ -28,6 +28,9 @@
     <Filter Include="Source Files\openxinput">
       <UniqueIdentifier>{14e41680-f011-4d2c-b31b-3fd2d6ae9a52}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Hooks\TranslateXtoMKB">
+      <UniqueIdentifier>{a0d1a945-2bce-40dd-88b8-54724cf1b678}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -180,6 +183,9 @@
     <ClInclude Include="RemoveBorderHook.h">
       <Filter>Source Files\Hooks</Filter>
     </ClInclude>
+    <ClInclude Include="TranslateXtoMKB.h">
+      <Filter>Source Files\Hooks\TranslateXtoMKB</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -322,6 +328,9 @@
     </ClCompile>
     <ClCompile Include="RemoveBorderHook.cpp">
       <Filter>Source Files\Hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="TranslateXtoMKB.cpp">
+      <Filter>Source Files\Hooks\TranslateXtoMKB</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

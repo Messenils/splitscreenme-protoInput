@@ -21,6 +21,8 @@
 #include "MoveWindowHook.h"
 #include "AdjustWindowRectHook.h"
 #include "RemoveBorderHook.h"
+#include "RawInput.h"
+#include "TranslateXtoMKB.h"
 
 namespace Proto
 {
@@ -30,37 +32,59 @@ HookManager HookManager::hookManagerInstance{};
 HookManager::HookManager()
 {
 	// Do these in exactly the same order as in ProtoHookIDs
-	AddHook<RegisterRawInputHook>(ProtoHookIDs::RegisterRawInputHookID);
-	AddHook<GetRawInputDataHook>(ProtoHookIDs::GetRawInputDataHookID);
-	AddHook<MessageFilterHook>(ProtoHookIDs::MessageFilterHookID);
-	AddHook<GetCursorPosHook>(ProtoHookIDs::GetCursorPosHookID);
-	AddHook<SetCursorPosHook>(ProtoHookIDs::SetCursorPosHookID);
-	AddHook<GetKeyStateHook>(ProtoHookIDs::GetKeyStateHookID);
-	AddHook<GetAsyncKeyStateHook>(ProtoHookIDs::GetAsyncKeyStateHookID);
-	AddHook<GetKeyboardStateHook>(ProtoHookIDs::GetKeyboardStateHookID);
-	AddHook<CursorVisibilityHook>(ProtoHookIDs::CursorVisibilityStateHookID);
-	AddHook<ClipCursorHook>(ProtoHookIDs::ClipCursorHookID);
-	AddHook<FocusHook>(ProtoHookIDs::FocusHooksHookID);
-	AddHook<RenameHandlesHook>(ProtoHookIDs::RenameHandlesHookID);
-	AddHook<XinputHook>(ProtoHookIDs::XinputHookID);
-	AddHook<DinputOrderHook>(ProtoHookIDs::DinputOrderHookID);
-	AddHook<SetWindowPosHook>(ProtoHookIDs::SetWindowPosHookID);
-	AddHook<BlockRawInputHook>(ProtoHookIDs::BlockRawInputHookID);
-	AddHook<FindWindowHook>(ProtoHookIDs::FindWindowHookID);
-	AddHook<CreateSingleHIDHook>(ProtoHookIDs::CreateSingleHIDHookID);
-	AddHook<WindowStyleHook>(ProtoHookIDs::WindowStyleHookID);
-	AddHook<MoveWindowHook>(ProtoHookIDs::MoveWindowHookID);
-	AddHook<AdjustWindowRectHook>(ProtoHookIDs::AdjustWindowRectHookID);
-	AddHook<RemoveBorderHook>(ProtoHookIDs::RemoveBorderHookID);
+	AddHook<RegisterRawInputHook>(ProtoHookIDs::RegisterRawInputHookID); //0
+	AddHook<GetRawInputDataHook>(ProtoHookIDs::GetRawInputDataHookID); //1
+	AddHook<MessageFilterHook>(ProtoHookIDs::MessageFilterHookID);//2
+	AddHook<GetCursorPosHook>(ProtoHookIDs::GetCursorPosHookID);//3
+	AddHook<SetCursorPosHook>(ProtoHookIDs::SetCursorPosHookID);//4
+	AddHook<GetKeyStateHook>(ProtoHookIDs::GetKeyStateHookID);//5
+	AddHook<GetAsyncKeyStateHook>(ProtoHookIDs::GetAsyncKeyStateHookID);//6
+	AddHook<GetKeyboardStateHook>(ProtoHookIDs::GetKeyboardStateHookID);//7
+	AddHook<CursorVisibilityHook>(ProtoHookIDs::CursorVisibilityStateHookID);//8
+	AddHook<ClipCursorHook>(ProtoHookIDs::ClipCursorHookID);//9
+	AddHook<FocusHook>(ProtoHookIDs::FocusHooksHookID);//10
+	AddHook<RenameHandlesHook>(ProtoHookIDs::RenameHandlesHookID);//11
+	AddHook<XinputHook>(ProtoHookIDs::XinputHookID);//12
+	AddHook<DinputOrderHook>(ProtoHookIDs::DinputOrderHookID);//13
+	AddHook<SetWindowPosHook>(ProtoHookIDs::SetWindowPosHookID);//14
+	AddHook<BlockRawInputHook>(ProtoHookIDs::BlockRawInputHookID);//15
+	AddHook<FindWindowHook>(ProtoHookIDs::FindWindowHookID);//16
+	AddHook<CreateSingleHIDHook>(ProtoHookIDs::CreateSingleHIDHookID);//17
+	AddHook<WindowStyleHook>(ProtoHookIDs::WindowStyleHookID);//18
+	AddHook<MoveWindowHook>(ProtoHookIDs::MoveWindowHookID);//19
+	AddHook<AdjustWindowRectHook>(ProtoHookIDs::AdjustWindowRectHookID);//20
+	AddHook<RemoveBorderHook>(ProtoHookIDs::RemoveBorderHookID);//21
 }
 
 void HookManager::InstallHook(ProtoHookIDs hookID)
 {
+
 	if (hookID < 0 || hookID >= hookManagerInstance.hooks.size())
 		std::cerr << "Trying to install hook ID " << hookID << " which is out of range" << std::endl;
 	else
 	{
-		hookManagerInstance.hooks[hookID]->Install();
+		if (!RawInput::TranslateXinputtoMKB)
+			hookManagerInstance.hooks[hookID]->Install();
+		else  // skipping original protoinput hooks on experimental Xinput to MKB translation mode
+		{
+			if (hookID == 0) ScreenshotInput::TranslateXtoMKB::registerrawinputhook = 1;
+			if (hookID == 1) ScreenshotInput::TranslateXtoMKB::rawinputhook = 1;
+			if (hookID == 2) ScreenshotInput::TranslateXtoMKB::rawinputhook = 1; //messagefilter
+			if (hookID == 3) ScreenshotInput::TranslateXtoMKB::getcursorposhook = 1;
+			if (hookID == 4) ScreenshotInput::TranslateXtoMKB::setcursorposhook = 1;
+			if (hookID == 5) ScreenshotInput::TranslateXtoMKB::getkeystatehook = 1;
+			if (hookID == 6) ScreenshotInput::TranslateXtoMKB::getasynckeystatehook = 1;
+			if (hookID == 7) ScreenshotInput::TranslateXtoMKB::GetKeyboardStateHook = 1;
+			if (hookID == 8) {
+				ScreenshotInput::TranslateXtoMKB::showcursorhook = 1;
+				ScreenshotInput::TranslateXtoMKB::setcursorhook = 1;
+			}
+			if (hookID == 9) ScreenshotInput::TranslateXtoMKB::clipcursorhook = 1;
+			if (hookID > 9 && hookID != 15)  //15 is block rawinput dont want that.
+			hookManagerInstance.hooks[hookID]->Install();
+
+		}
+
 	}
 }
 
@@ -70,6 +94,9 @@ void HookManager::UninstallHook(ProtoHookIDs hookID)
 		std::cerr << "Trying to uninstall hook ID " << hookID << " which is out of range" << std::endl;
 	else
 	{
+		if (!RawInput::TranslateXinputtoMKB)
+			hookManagerInstance.hooks[hookID]->Uninstall();
+		else if (hookID > 9) // skipping original protoinput hooks on experimental Xinput to MKB translation mode
 		hookManagerInstance.hooks[hookID]->Uninstall();
 	}
 }
@@ -83,7 +110,11 @@ bool HookManager::IsInstalled(ProtoHookIDs hookID)
 	}
 	else
 	{
-		return hookManagerInstance.hooks[hookID]->IsInstalled();
+		if (!RawInput::TranslateXinputtoMKB)
+			return hookManagerInstance.hooks[hookID]->IsInstalled();
+		else if (hookID < 10) return true;
+		else return hookManagerInstance.hooks[hookID]->IsInstalled();
+		
 	}
 }
 

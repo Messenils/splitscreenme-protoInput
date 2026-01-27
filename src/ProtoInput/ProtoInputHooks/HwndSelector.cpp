@@ -2,6 +2,7 @@
 #include "HwndSelector.h"
 #include <cstdio>
 #include "FakeCursor.h"
+#include "TranslateXtoMKB.h"
 
 
 namespace Proto
@@ -24,7 +25,8 @@ BOOL IsMainWindow(HWND handle)
         IsWindowVisible(handle) &&
         handle != (HWND)Proto::ConsoleHwnd &&
         handle != Proto::ProtoGuiHwnd &&
-        handle != FakeCursor::GetPointerWindow();
+        handle != FakeCursor::GetPointerWindow() &&
+        handle != ScreenshotInput::TranslateXtoMKB::pointerWindows;
 }
 
 BOOL CALLBACK EnumWindowsCallback(HWND handle, LPARAM lParam)

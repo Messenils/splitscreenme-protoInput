@@ -46,6 +46,49 @@ bool Isx64(unsigned long pid)
 	
 	return !is32;
 }
+void AddSelectedInputHandleImpl(ProtoInstanceHandle instanceHandle, unsigned int handle, bool mouse)
+{
+	if (const auto find = Proto::instances.find(instanceHandle); find != Proto::instances.end())
+	{
+		auto& instance = find->second;
+
+		WaitClientConnect(instance);
+
+		ProtoPipe::PipeMessageAddSelectedMouseOrKeyboard message //spelling okay?
+		{
+			mouse ? handle : -1,
+			mouse ? -1 : handle
+		};
+
+		ProtoSendPipeMessage(instance.pipeHandle, ProtoPipe::PipeMessageType::AddSelectedMouseOrKeyboard, &message);
+	}
+}
+extern "C" __declspec(dllexport) void AddSelectedMouseHandle(ProtoInstanceHandle instanceHandle, unsigned int mouseHandle)
+{
+	AddSelectedInputHandleImpl(instanceHandle, mouseHandle, true);
+}
+
+extern "C" __declspec(dllexport) void AddSelectedKeyboardHandle(ProtoInstanceHandle instanceHandle, unsigned int keyboardHandle)
+{
+	AddSelectedInputHandleImpl(instanceHandle, keyboardHandle, false);
+}
+void SetTranslateXinputtoMKB(ProtoInstanceHandle instanceHandle, bool TranslateXinputtoMKB)
+{
+	if (const auto find = Proto::instances.find(instanceHandle); find != Proto::instances.end())
+	{
+		auto& instance = find->second;
+
+		WaitClientConnect(instance);
+
+		ProtoPipe::PipeMessageSetTranslateXinputtoMKB message
+		{
+			TranslateXinputtoMKB
+		};
+
+		ProtoSendPipeMessage(instance.pipeHandle, ProtoPipe::PipeMessageType::SetTranslateXinputtoMKB, &message);
+	}
+}
+
 
 extern "C" __declspec(dllexport) void StartFocusMessageLoop(ProtoInstanceHandle instanceHandle, int milliseconds,
 															bool wm_activate, bool wm_activateapp, bool wm_ncactivate, bool wm_setfocus, bool wm_mouseactivate)
@@ -138,33 +181,7 @@ extern "C" __declspec(dllexport) void SetExternalFreezeFakeInput(ProtoInstanceHa
 	}
 }
 
-void AddSelectedInputHandleImpl(ProtoInstanceHandle instanceHandle, unsigned int handle, bool mouse)
-{
-	if (const auto find = Proto::instances.find(instanceHandle); find != Proto::instances.end())
-	{
-		auto& instance = find->second;
 
-		WaitClientConnect(instance);
-
-		ProtoPipe::PipeMesasgeAddSelectedMouseOrKeyboard message //spelling okay?
-		{
-			mouse ? handle : -1,
-			mouse ? -1 : handle
-		};
-
-		ProtoSendPipeMessage(instance.pipeHandle, ProtoPipe::PipeMessageType::AddSelectedMouseOrKeyboard, &message);
-	}
-}
-
-extern "C" __declspec(dllexport) void AddSelectedMouseHandle(ProtoInstanceHandle instanceHandle, unsigned int mouseHandle)
-{
-	AddSelectedInputHandleImpl(instanceHandle, mouseHandle, true);
-}
-
-extern "C" __declspec(dllexport) void AddSelectedKeyboardHandle(ProtoInstanceHandle instanceHandle, unsigned int keyboardHandle)
-{
-	AddSelectedInputHandleImpl(instanceHandle, keyboardHandle, false);
-}
 
 extern "C" __declspec(dllexport) void SetControllerIndex(ProtoInstanceHandle instanceHandle, unsigned int controllerIndex, unsigned int controllerIndex2, unsigned int controllerIndex3, unsigned int controllerIndex4)
 {
