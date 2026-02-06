@@ -324,10 +324,6 @@ DWORD WINAPI PipeThread(LPVOID lpParameter)
 				printf("Received message to %s fake cursor\n", body->enable ? "enable" : "disable");
 
 				FakeCursor::EnableDisableFakeCursor(body->enable);
-				if (body->enable) //1 game hdc //2 partial draw //3 full draw
-					ScreenshotInput::TranslateXtoMKB::drawfakecursor = 3; 
-				else 
-					ScreenshotInput::TranslateXtoMKB::drawfakecursor = 0;
 
 				break;
 			}

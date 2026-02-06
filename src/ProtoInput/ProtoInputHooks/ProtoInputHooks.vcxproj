@@ -209,6 +209,8 @@
     <ClInclude Include="GetKeyboardStateHook.h" />
     <ClInclude Include="GetKeyStateHook.h" />
     <ClInclude Include="GetRawInputDataHook.h" />
+    <ClInclude Include="GtoMnK_RawInput.h" />
+    <ClInclude Include="GtoMnK_RawInputHooks.h" />
     <ClInclude Include="Gui.h" />
     <ClInclude Include="Hook.h" />
     <ClInclude Include="HookManager.h" />
@@ -270,6 +272,8 @@
     <ClCompile Include="GetKeyboardStateHook.cpp" />
     <ClCompile Include="GetKeyStateHook.cpp" />
     <ClCompile Include="GetRawInputDataHook.cpp" />
+    <ClCompile Include="GtoMnK_RawInput.cpp" />
+    <ClCompile Include="GtoMnK_RawInputHooks.cpp" />
     <ClCompile Include="Gui.cpp" />
     <ClCompile Include="GuiImpl.cpp" />
     <ClCompile Include="HookInstaller.cpp" />

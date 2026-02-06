@@ -44,6 +44,8 @@ private:
 	static void ProcessKeyboardInput(const RAWKEYBOARD& data, HANDLE deviceHandle);
 
 public:
+	static void SendInputMessages(const RAWMOUSE& data);
+	static void SendKeyMessage(const RAWKEYBOARD& data, bool pressed);
 	static RawInputState rawInputState;
 	static HWND rawInputHwnd;
 	static bool forwardRawInput;

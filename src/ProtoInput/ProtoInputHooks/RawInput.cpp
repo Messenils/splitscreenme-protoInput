@@ -42,74 +42,13 @@ const std::vector<USAGE> RawInput::usageTypesOfInterest
 
 HWND RawInput::rawInputHwnd = nullptr;
 
-void RawInput::ProcessMouseInput(const RAWMOUSE& data, HANDLE deviceHandle)
-{	
-	// Update fake mouse position
-	if ((data.usFlags & MOUSE_MOVE_ABSOLUTE) == MOUSE_MOVE_ABSOLUTE)
-	{
-		const bool isVirtualDesktop = (data.usFlags & MOUSE_VIRTUAL_DESKTOP) == MOUSE_VIRTUAL_DESKTOP;
-
-		// const int width = GetSystemMetrics(isVirtualDesktop ? SM_CXVIRTUALSCREEN : SM_CXSCREEN);
-		// const int height = GetSystemMetrics(isVirtualDesktop ? SM_CYVIRTUALSCREEN : SM_CYSCREEN);
-
-		static int widthVirtual = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-		static int widthNonVirtual = GetSystemMetrics(SM_CXSCREEN);
-		static int heightVirtual = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-		static int heightNonVirtual = GetSystemMetrics(SM_CYSCREEN);
-		
-		const int absoluteX = int((data.lLastX / 65535.0f) * (isVirtualDesktop ? widthVirtual : widthNonVirtual));
-		const int absoluteY = int((data.lLastY / 65535.0f) * (isVirtualDesktop ? heightVirtual : heightNonVirtual));
-
-		static std::unordered_map<HANDLE, std::pair<int, int>> oldPositions{};
-		
-		if (const auto find = oldPositions.find(deviceHandle); find != oldPositions.end())
-		{
-			FakeMouseKeyboard::AddMouseDelta(absoluteX - find->second.first, absoluteY - find->second.second);
-		}
-		else
-		{
-			oldPositions.emplace(std::make_pair( deviceHandle, std::pair<int, int>{ absoluteX, absoluteY } ));
-		}		
-	}
-	else if (data.lLastX != 0 || data.lLastY != 0)
-	{
-		const int relativeX = data.lLastX;
-		const int relativeY = data.lLastY;
-		FakeMouseKeyboard::AddMouseDelta(relativeX, relativeY);
-	}
-
-	// Set vkeys (GetKeyState/etc can be used to get the mouse buttons state)
-	if ((data.usButtonFlags & RI_MOUSE_LEFT_BUTTON_DOWN) != 0)
-		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_LBUTTON, true);
-	if ((data.usButtonFlags & RI_MOUSE_LEFT_BUTTON_UP) != 0)
-		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_LBUTTON, false);
-
-	if ((data.usButtonFlags & RI_MOUSE_MIDDLE_BUTTON_DOWN) != 0)
-		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_MBUTTON, true);
-	if ((data.usButtonFlags & RI_MOUSE_MIDDLE_BUTTON_UP) != 0)
-		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_MBUTTON, false);
-
-	if ((data.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_DOWN) != 0)
-		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_RBUTTON, true);
-	if ((data.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_UP) != 0)
-		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_RBUTTON, false);
-
-	if ((data.usButtonFlags & RI_MOUSE_BUTTON_4_DOWN) != 0)
-		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_XBUTTON1, true);
-	if ((data.usButtonFlags & RI_MOUSE_BUTTON_4_UP) != 0)
-		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_XBUTTON1, false);
-
-	if ((data.usButtonFlags & RI_MOUSE_BUTTON_5_DOWN) != 0)
-		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_XBUTTON2, true);
-	if ((data.usButtonFlags & RI_MOUSE_BUTTON_5_UP) != 0)
-		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_XBUTTON2, false);
-
-
+void RawInput::SendInputMessages(const RAWMOUSE& data)
+{
 	// This is used a lot in sending messages
 	const unsigned int mouseMkFlags = FakeMouseKeyboard::GetMouseMkFlags();
 	const unsigned int mousePointLparam = MAKELPARAM(FakeMouseKeyboard::GetMouseState().x, FakeMouseKeyboard::GetMouseState().y);
-	
-	
+
+
 	// Send mouse wheel
 	if (rawInputState.sendMouseWheelMessages)
 	{
@@ -173,7 +112,7 @@ void RawInput::ProcessMouseInput(const RAWMOUSE& data, HANDLE deviceHandle)
 	}
 	// Send mouse button messages
 	else if (rawInputState.sendMouseButtonMessages)
-	{		
+	{
 		if ((data.usButtonFlags & RI_MOUSE_LEFT_BUTTON_DOWN) != 0)
 			PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_LBUTTONDOWN, mouseMkFlags | MouseButtonFilter::signature, mousePointLparam);
 		if ((data.usButtonFlags & RI_MOUSE_LEFT_BUTTON_UP) != 0)
@@ -207,42 +146,100 @@ void RawInput::ProcessMouseInput(const RAWMOUSE& data, HANDLE deviceHandle)
 	{
 		PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_MOUSEMOVE, mouseMkFlags, mousePointLparam);
 	}
-
-
-
-	// Fake cursor
 	FakeCursor::NotifyUpdatedCursorPosition();
+
 }
 
-void RawInput::ProcessKeyboardInput(const RAWKEYBOARD& data, HANDLE deviceHandle)
-{
-	const bool released = (data.Flags & RI_KEY_BREAK) != 0;
-	const bool pressed = !released;
+void RawInput::ProcessMouseInput(const RAWMOUSE& data, HANDLE deviceHandle)
+{	
+	// Update fake mouse position
+	if ((data.usFlags & MOUSE_MOVE_ABSOLUTE) == MOUSE_MOVE_ABSOLUTE)
+	{
+		const bool isVirtualDesktop = (data.usFlags & MOUSE_VIRTUAL_DESKTOP) == MOUSE_VIRTUAL_DESKTOP;
 
-	if (pressed && FakeCursor::GetToggleVisilbityShorcutEnabled() &&  data.VKey == FakeCursor::GetToggleVisibilityVkey())
+		// const int width = GetSystemMetrics(isVirtualDesktop ? SM_CXVIRTUALSCREEN : SM_CXSCREEN);
+		// const int height = GetSystemMetrics(isVirtualDesktop ? SM_CYVIRTUALSCREEN : SM_CYSCREEN);
+
+		static int widthVirtual = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+		static int widthNonVirtual = GetSystemMetrics(SM_CXSCREEN);
+		static int heightVirtual = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+		static int heightNonVirtual = GetSystemMetrics(SM_CYSCREEN);
+		
+		const int absoluteX = int((data.lLastX / 65535.0f) * (isVirtualDesktop ? widthVirtual : widthNonVirtual));
+		const int absoluteY = int((data.lLastY / 65535.0f) * (isVirtualDesktop ? heightVirtual : heightNonVirtual));
+
+		static std::unordered_map<HANDLE, std::pair<int, int>> oldPositions{};
+		
+		if (const auto find = oldPositions.find(deviceHandle); find != oldPositions.end())
+		{
+			FakeMouseKeyboard::AddMouseDelta(absoluteX - find->second.first, absoluteY - find->second.second);
+		}
+		else
+		{
+			oldPositions.emplace(std::make_pair( deviceHandle, std::pair<int, int>{ absoluteX, absoluteY } ));
+		}		
+	}
+	else if (data.lLastX != 0 || data.lLastY != 0)
+	{
+		const int relativeX = data.lLastX;
+		const int relativeY = data.lLastY;
+		FakeMouseKeyboard::AddMouseDelta(relativeX, relativeY);
+	}
+
+	// Set vkeys (GetKeyState/etc can be used to get the mouse buttons state)
+	if ((data.usButtonFlags & RI_MOUSE_LEFT_BUTTON_DOWN) != 0)
+		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_LBUTTON, true);
+	if ((data.usButtonFlags & RI_MOUSE_LEFT_BUTTON_UP) != 0)
+		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_LBUTTON, false);
+
+	if ((data.usButtonFlags & RI_MOUSE_MIDDLE_BUTTON_DOWN) != 0)
+		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_MBUTTON, true);
+	if ((data.usButtonFlags & RI_MOUSE_MIDDLE_BUTTON_UP) != 0)
+		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_MBUTTON, false);
+
+	if ((data.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_DOWN) != 0)
+		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_RBUTTON, true);
+	if ((data.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_UP) != 0)
+		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_RBUTTON, false);
+
+	if ((data.usButtonFlags & RI_MOUSE_BUTTON_4_DOWN) != 0)
+		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_XBUTTON1, true);
+	if ((data.usButtonFlags & RI_MOUSE_BUTTON_4_UP) != 0)
+		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_XBUTTON1, false);
+
+	if ((data.usButtonFlags & RI_MOUSE_BUTTON_5_DOWN) != 0)
+		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_XBUTTON2, true);
+	if ((data.usButtonFlags & RI_MOUSE_BUTTON_5_UP) != 0)
+		FakeMouseKeyboard::ReceivedKeyPressOrRelease(VK_XBUTTON2, false);
+	RawInput::SendInputMessages(data);
+}
+
+void RawInput::SendKeyMessage(const RAWKEYBOARD& data, bool pressed)
+{
+	if (pressed && FakeCursor::GetToggleVisilbityShorcutEnabled() && data.VKey == FakeCursor::GetToggleVisibilityVkey())
 	{
 		FakeCursor::SetCursorVisibility(!FakeCursor::GetCursorVisibility());
 		return;
 	}
-	
+
 	if (rawInputState.sendKeyboardPressMessages)
 	{
 		if (pressed)
 		{
 			unsigned int lparam = 0;
-			
+
 			lparam |= 1; // Repeat bit
 			lparam |= (data.MakeCode << 16); // Scan code
-			
+
 			if (FakeMouseKeyboard::IsKeyStatePressed(data.VKey))
 			{
 				lparam |= (1 << 30);
 			}
-			
-			PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_KEYDOWN, 
-				MessageFilterHook::IsKeyboardButtonFilterEnabled() ? data.VKey | KeyboardButtonFilter::signature : data.VKey, 
+
+			PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_KEYDOWN,
+				MessageFilterHook::IsKeyboardButtonFilterEnabled() ? data.VKey | KeyboardButtonFilter::signature : data.VKey,
 				lparam);
-			
+
 			// if (data.VKey == VK_SHIFT || data.VKey == VK_LSHIFT)
 			// {
 			// 	PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_KEYDOWN, VK_SHIFT, lparam);
@@ -253,7 +250,7 @@ void RawInput::ProcessKeyboardInput(const RAWKEYBOARD& data, HANDLE deviceHandle
 			// 	PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_KEYDOWN, data.VKey, lparam);
 			// }
 		}
-		else if (released)
+		else
 		{
 			unsigned int lparam = 0;
 			lparam |= 1; // Repeat count (always 1 for key up)
@@ -261,10 +258,10 @@ void RawInput::ProcessKeyboardInput(const RAWKEYBOARD& data, HANDLE deviceHandle
 			lparam |= (1 << 30); // Previous key state (always 1 for key up)
 			lparam |= (1 << 31); // Transition state (always 1 for key up)
 
-			PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_KEYUP, 
+			PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_KEYUP,
 				MessageFilterHook::IsKeyboardButtonFilterEnabled() ? data.VKey | KeyboardButtonFilter::signature : data.VKey,
 				lparam);
-			
+
 			// if (data.VKey == VK_SHIFT || data.VKey == VK_LSHIFT)
 			// {
 			// 	PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_KEYUP, VK_SHIFT, lparam);
@@ -274,9 +271,16 @@ void RawInput::ProcessKeyboardInput(const RAWKEYBOARD& data, HANDLE deviceHandle
 			// {
 			// 	PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_KEYUP, data.VKey, lparam);
 			// }
-			
+
 		}
 	}
+}
+void RawInput::ProcessKeyboardInput(const RAWKEYBOARD& data, HANDLE deviceHandle)
+{
+	const bool released = (data.Flags & RI_KEY_BREAK) != 0;
+	const bool pressed = !released;
+
+	RawInput::SendKeyMessage(data, pressed);
 	
 	FakeMouseKeyboard::ReceivedKeyPressOrRelease(data.VKey, pressed);
 }
@@ -339,7 +343,7 @@ void RawInput::ProcessRawInput(HRAWINPUT rawInputHandle, bool inForeground, cons
 	{
 		//TODO: This may waste CPU? (But need a way to update window otherwise)
 		//if (HwndSelector::GetSelectedHwnd() == 0)
-			HwndSelector::UpdateMainHwnd(false);
+		HwndSelector::UpdateMainHwnd(false);
 	
 		HwndSelector::UpdateWindowBounds();
 	}

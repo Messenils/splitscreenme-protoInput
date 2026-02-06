@@ -21,12 +21,11 @@ BOOL IsMainWindow(HWND handle)
 {
 	// Is top level & visible & not one of ours
     return
-		GetWindow(handle, GW_OWNER) == (HWND)0 && 
+        GetWindow(handle, GW_OWNER) == (HWND)0 &&
         IsWindowVisible(handle) &&
         handle != (HWND)Proto::ConsoleHwnd &&
         handle != Proto::ProtoGuiHwnd &&
-        handle != FakeCursor::GetPointerWindow() &&
-        handle != ScreenshotInput::TranslateXtoMKB::pointerWindows;
+        handle != FakeCursor::GetPointerWindow();
 }
 
 BOOL CALLBACK EnumWindowsCallback(HWND handle, LPARAM lParam)

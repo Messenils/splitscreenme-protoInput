@@ -46,37 +46,30 @@ DWORD WINAPI StartThread(LPVOID lpParameter)
     Proto::StartPipeCommunication();
 
     Sleep(50); //let pipe finish
+    Proto::AddThreadToACL(GetCurrentThreadId());
 
     Proto::RawInput::InitialiseRawInput();
 	// Useful to add a pause if we need to attach a debugger
     // MessageBoxW(NULL, L"Press OK to start", L"", MB_OK);
-    	
     Proto::HwndSelector::UpdateMainHwnd();
 
     Proto::FocusMessageLoop::SetupThread();
 
-    Proto::AddThreadToACL(GetCurrentThreadId());
+    Proto::FakeCursor::Initialise();
+    
+    if (Proto::RawInput::TranslateXinputtoMKB)
+        ScreenshotInput::TranslateXtoMKB::Initialize(dll_hModule);
 
-    if (!Proto::RawInput::TranslateXinputtoMKB)
-    {
+    HANDLE hGuiThread = CreateThread(nullptr, 0,
+        (LPTHREAD_START_ROUTINE)GuiThread, dll_hModule, CREATE_SUSPENDED, &Proto::GuiThreadID);
 
+    ResumeThread(hGuiThread);
 
+    if (hGuiThread != nullptr)
+        CloseHandle(hGuiThread);
 
-        Proto::FakeCursor::Initialise();
+    std::cout << "Reached end of startup thread\n";
 
-
-
-        HANDLE hGuiThread = CreateThread(nullptr, 0,
-            (LPTHREAD_START_ROUTINE)GuiThread, dll_hModule, CREATE_SUSPENDED, &Proto::GuiThreadID);
-
-        ResumeThread(hGuiThread);
-
-        if (hGuiThread != nullptr)
-            CloseHandle(hGuiThread);
-
-        std::cout << "Reached end of startup thread\n";
-    }
-    else ScreenshotInput::TranslateXtoMKB::Initialize(dll_hModule);
     return 0;
 }
  
