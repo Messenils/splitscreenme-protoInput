@@ -162,6 +162,34 @@ DWORD WINAPI PipeThread(LPVOID lpParameter)
 				}
 				break;
 			}
+			case ProtoPipe::PipeMessageType::SetXinputtoMKBkeys:
+			{
+				const auto body = reinterpret_cast<ProtoPipe::PipeMessageSetXinputtoMKBkeys*>(messageBuffer);
+				ScreenshotInput::TranslateXtoMKB::Amapping = body->XinputtoMKBAkey;
+				ScreenshotInput::TranslateXtoMKB::Bmapping = body->XinputtoMKBBkey;
+				ScreenshotInput::TranslateXtoMKB::Xmapping = body->XinputtoMKBXkey;
+				ScreenshotInput::TranslateXtoMKB::Ymapping = body->XinputtoMKBYkey;
+				ScreenshotInput::TranslateXtoMKB::RSmapping = body->XinputtoMKBRSkey;
+				ScreenshotInput::TranslateXtoMKB::LSmapping = body->XinputtoMKBLSkey;
+				ScreenshotInput::TranslateXtoMKB::RSmapping = body->XinputtoMKBRSkey;
+
+				ScreenshotInput::TranslateXtoMKB::rightmapping = body->XinputtoMKBrightkey;
+				ScreenshotInput::TranslateXtoMKB::leftmapping = body->XinputtoMKBleftkey;
+				ScreenshotInput::TranslateXtoMKB::upmapping = body->XinputtoMKBupkey;
+				ScreenshotInput::TranslateXtoMKB::downmapping = body->XinputtoMKBdownkey;
+
+				ScreenshotInput::TranslateXtoMKB::stickRpressmapping = body->XinputtoMKBstickR;
+				ScreenshotInput::TranslateXtoMKB::stickLpressmapping = body->XinputtoMKBstickL;
+				ScreenshotInput::TranslateXtoMKB::stickrightmapping = body->XinputtoMKBstickright;
+				ScreenshotInput::TranslateXtoMKB::stickleftmapping = body->XinputtoMKBstickleft;
+				ScreenshotInput::TranslateXtoMKB::stickupmapping = body->XinputtoMKBstickup;
+				ScreenshotInput::TranslateXtoMKB::stickdownmapping = body->XinputtoMKBstickdown;
+
+				ScreenshotInput::TranslateXtoMKB::optionmapping = body->XinputtoMKBoption;
+				ScreenshotInput::TranslateXtoMKB::startmapping = body->XinputtoMKBstart;
+				ScreenshotInput::TranslateXtoMKB::lefthanded = body->XinputtoMKBstickinvert;
+				break;
+			}
 			case ProtoPipe::PipeMessageType::SetupHook:
 			{
 				const auto body = reinterpret_cast<ProtoPipe::PipeMessageSetupHook*>(messageBuffer);

@@ -88,6 +88,41 @@ void SetTranslateXinputtoMKB(ProtoInstanceHandle instanceHandle, bool TranslateX
 		ProtoSendPipeMessage(instance.pipeHandle, ProtoPipe::PipeMessageType::SetTranslateXinputtoMKB, &message);
 	}
 }
+void SetXinputtoMKBkeys(ProtoInstanceHandle instanceHandle, int XinputtoMKBAkey, int XinputtoMKBBkey, int XinputtoMKBXkey, int XinputtoMKBYkey, int XinputtoMKBRSkey, int XinputtoMKBLSkey, int XinputtoMKBrightkey, int XinputtoMKBleftkey, int XinputtoMKBupkey, int XinputtoMKBdownkey, int XinputtoMKBstickR, int XinputtoMKBstickL, int XinputtoMKBstickright,int XinputtoMKBstickleft, int XinputtoMKBstickup, int XinputtoMKBstickdown, int XinputtoMKBoption, int XinputtoMKBstart, bool XinputtoMKBstickinvert)
+{
+	if (const auto find = Proto::instances.find(instanceHandle); find != Proto::instances.end())
+	{
+		auto& instance = find->second;
+
+		WaitClientConnect(instance);
+
+		ProtoPipe::PipeMessageSetXinputtoMKBkeys message
+		{
+			XinputtoMKBAkey,
+			XinputtoMKBBkey,
+			XinputtoMKBXkey,
+			XinputtoMKBYkey,
+			XinputtoMKBRSkey,
+			XinputtoMKBLSkey,
+			XinputtoMKBrightkey,
+			XinputtoMKBleftkey,
+			XinputtoMKBupkey,
+			XinputtoMKBdownkey,
+			XinputtoMKBstickR,
+			XinputtoMKBstickL,
+			XinputtoMKBstickright,
+			XinputtoMKBstickleft,
+			XinputtoMKBstickup,
+			XinputtoMKBstickdown,
+			XinputtoMKBoption,
+			XinputtoMKBstart,
+			XinputtoMKBstickinvert
+
+		};
+
+		ProtoSendPipeMessage(instance.pipeHandle, ProtoPipe::PipeMessageType::SetXinputtoMKBkeys, &message);
+	}
+}
 
 
 extern "C" __declspec(dllexport) void StartFocusMessageLoop(ProtoInstanceHandle instanceHandle, int milliseconds,

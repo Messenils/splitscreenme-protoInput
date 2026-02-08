@@ -239,16 +239,6 @@ void RawInput::SendKeyMessage(const RAWKEYBOARD& data, bool pressed)
 			PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_KEYDOWN,
 				MessageFilterHook::IsKeyboardButtonFilterEnabled() ? data.VKey | KeyboardButtonFilter::signature : data.VKey,
 				lparam);
-
-			// if (data.VKey == VK_SHIFT || data.VKey == VK_LSHIFT)
-			// {
-			// 	PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_KEYDOWN, VK_SHIFT, lparam);
-			// 	PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_KEYDOWN, VK_LSHIFT, lparam);
-			// }
-			// else
-			// {
-			// 	PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_KEYDOWN, data.VKey, lparam);
-			// }
 		}
 		else
 		{
@@ -261,17 +251,6 @@ void RawInput::SendKeyMessage(const RAWKEYBOARD& data, bool pressed)
 			PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_KEYUP,
 				MessageFilterHook::IsKeyboardButtonFilterEnabled() ? data.VKey | KeyboardButtonFilter::signature : data.VKey,
 				lparam);
-
-			// if (data.VKey == VK_SHIFT || data.VKey == VK_LSHIFT)
-			// {
-			// 	PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_KEYUP, VK_SHIFT, lparam);
-			// 	PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_KEYUP, VK_LSHIFT, lparam);
-			// }
-			// else
-			// {
-			// 	PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_KEYUP, data.VKey, lparam);
-			// }
-
 		}
 	}
 }

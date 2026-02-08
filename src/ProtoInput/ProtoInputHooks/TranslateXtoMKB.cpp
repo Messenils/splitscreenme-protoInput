@@ -40,6 +40,31 @@
 
 namespace ScreenshotInput
 {
+    //from tunnell
+    int TranslateXtoMKB::controllerID;
+    bool TranslateXtoMKB::rawinputhook; //registerrawinputhook
+    bool TranslateXtoMKB::registerrawinputhook; //registerrawinputhook
+
+    int TranslateXtoMKB::Amapping;
+    int TranslateXtoMKB::Bmapping;
+    int TranslateXtoMKB::Xmapping;
+    int TranslateXtoMKB::Ymapping;
+    int TranslateXtoMKB::RSmapping;
+    int TranslateXtoMKB::LSmapping;
+    int TranslateXtoMKB::rightmapping;
+    int TranslateXtoMKB::leftmapping;
+    int TranslateXtoMKB::upmapping;
+    int TranslateXtoMKB::downmapping;
+    int TranslateXtoMKB::stickRpressmapping;
+    int TranslateXtoMKB::stickLpressmapping;
+    int TranslateXtoMKB::stickrightmapping;
+    int TranslateXtoMKB::stickleftmapping;
+    int TranslateXtoMKB::stickupmapping;
+    int TranslateXtoMKB::stickdownmapping;
+    int TranslateXtoMKB::optionmapping;
+    int TranslateXtoMKB::startmapping;
+    bool TranslateXtoMKB::lefthanded;
+
     int updatewindowtick = 300;
     int mode = 1;
     int AxisLeftsens;
@@ -54,43 +79,7 @@ namespace ScreenshotInput
     const float curve_exponent = 5.00f; // The exponential portion of the curve (1.0 to 10.0)
     float sensitivity = 12.00f; // Base sensitivity / max speed (1.0 to 30.0)
     float accel_multiplier = 1.90f; // Look Acceleration Multiplier (1.0 to 3.0)
-    struct KeyMapEntry {
-        WORD makeCode;
-        WORD vKey;
-    };
 
-    static const std::unordered_map<int, KeyMapEntry> keyMap = {
-        { 1,  { 0x11, 0x57       } }, // W
-        { 2,  { 0x1C, VK_RETURN  } }, // Enter
-        { 3,  { 0x4B, VK_LEFT    } }, // Left Arrow
-        { 4,  { 0x01, VK_ESCAPE  } }, // Escape
-        { 5,  { 0x1E, 0x57       } }, // A
-        { 6,  { 0x1F, 0x57       } }, // S
-        { 7,  { 0x20, 0x57       } }, // D
-        { 8,  { 0x4D, VK_RIGHT   } }, // Right Arrow
-        { 9,  { 0x48, VK_UP      } }, // Up Arrow
-        { 10, { 0x50, VK_DOWN    } }, // Down Arrow
-        { 11, { 0x39, VK_SPACE   } }, // Space
-        { 12, { 0x0E, VK_BACK    } }, // Backspace
-        { 13, { 0x0F, VK_TAB     } }, // Tab
-        { 14, { 0x2A, VK_LSHIFT  } }, // Left Shift
-        { 15, { 0x1D, VK_LCONTROL} }, // Left Ctrl
-        { 16, { 0x38, VK_LMENU   } }, // Left Alt
-        { 17, { 0x13, 0x52} }, // R
-
-    };
-    int Atype = 1;
-    int Btype = 2;
-    int Xtype = 17;
-    int Ytype = 11;
-    int Ctype = 2;
-    int Dtype = 4;
-   // int Etype = 7;
-   /// int Ftype = 8;
-    int uptype = 9;
-    int downtype = 10;
-    int Lefttype = 3;
-    int righttype = 8;
     /////////////////
     bool movedmouse;
 	bool leftPressedold = false;
@@ -113,9 +102,7 @@ namespace ScreenshotInput
 
 
     //fake cursor
-    int TranslateXtoMKB::controllerID;
-    bool TranslateXtoMKB::rawinputhook; //registerrawinputhook
-    bool TranslateXtoMKB::registerrawinputhook; //registerrawinputhook
+
     int Xf = 0;
     int Yf = 0;
 
@@ -124,7 +111,6 @@ namespace ScreenshotInput
 
     bool rawmouseWu = false;
     bool rawmouseWd = false;
-    int righthanded = 0;
 	bool oldA = false;
 	bool oldB = false;
 	bool oldX = false;
@@ -187,31 +173,40 @@ namespace ScreenshotInput
         Proto::RawInput::SendInputMessages(muusjn);
         return true;
     }
-    void ButtonStateImpulse(int button, bool state)
-    {
-        RAWKEYBOARD data{};
-        data.Reserved = 0;
-        data.ExtraInformation = 0;
-        if (state)
-        {
-            data.Flags = RI_KEY_MAKE;
-            data.Message = WM_KEYDOWN;
-        }
-        else
-        {
-            data.Flags = RI_KEY_BREAK;
-            data.Message = WM_KEYUP;
-		}
 
-        auto it = keyMap.find(button);
-        if (it != keyMap.end())
+        void ButtonStateImpulse(int vk, bool state)
         {
-            data.MakeCode = it->second.makeCode;
-            data.VKey = it->second.vKey;
-            Proto::RawInput::SendKeyMessage(data, state);
-            RawInput::GenerateRawKey(data.VKey, state, false);
-        }
-		else MessageBoxA(NULL, "Invalid button mapping", "Error", MB_OK | MB_ICONERROR);
+            RAWKEYBOARD data{};
+            data.MakeCode = MapVirtualKey(vk, MAPVK_VK_TO_VSC);
+            data.VKey = vk;
+            data.ExtraInformation = 0;
+
+            data.Flags = state ? 0 : RI_KEY_BREAK;
+            data.Message = state ? WM_KEYDOWN : WM_KEYUP;
+
+            // Extended key?
+            switch (vk)
+            {
+            case VK_LEFT:
+            case VK_RIGHT:
+            case VK_UP:
+            case VK_DOWN:
+            case VK_INSERT:
+            case VK_DELETE:
+            case VK_HOME:
+            case VK_END:
+            case VK_PRIOR:
+            case VK_NEXT:
+            case VK_RCONTROL:
+            case VK_RMENU:
+            case VK_DIVIDE:
+            case VK_NUMLOCK:
+                data.Flags |= RI_KEY_E0;
+                break;
+            }
+        Proto::FakeMouseKeyboard::ReceivedKeyPressOrRelease(vk, state);
+        Proto::RawInput::SendKeyMessage(data, state);
+        RawInput::GenerateRawKey(vk, state, false);
 
     }
     std::string UGetExecutableFolder() {
@@ -362,7 +357,7 @@ namespace ScreenshotInput
                     bool leftPressed = IsTriggerPressed(state.Gamepad.bLeftTrigger);
                     bool rightPressed = IsTriggerPressed(state.Gamepad.bRightTrigger);
 
-                    if (righthanded == 1) {
+                    if (TranslateXtoMKB::lefthanded == 1) {
                         Xaxis = state.Gamepad.sThumbRX;
                         Yaxis = state.Gamepad.sThumbRY;
                         scrollXaxis = state.Gamepad.sThumbLX;
@@ -440,13 +435,13 @@ namespace ScreenshotInput
                        }
                        else{
                            oldA = false;
-                           ButtonStateImpulse(Atype, false);//release
+                           ButtonStateImpulse(TranslateXtoMKB::Amapping, false);//release
                        }
                     }
                     else if (buttons & XINPUT_GAMEPAD_A)
                     {
                         oldA = true;
-                        ButtonStateImpulse(Atype, true);//down
+                        ButtonStateImpulse(TranslateXtoMKB::Amapping, true);//down
                     }
 
 
@@ -457,13 +452,13 @@ namespace ScreenshotInput
                         }
                         else {
                             oldB = false;
-                            ButtonStateImpulse(Btype, false);//release
+                            ButtonStateImpulse(TranslateXtoMKB::Bmapping, false);//release
                         }
                     }
                     else if (buttons & XINPUT_GAMEPAD_B)
                     {
                         oldB = true;
-                        ButtonStateImpulse(Btype, true);//down
+                        ButtonStateImpulse(TranslateXtoMKB::Bmapping, true);//down
                     }
 
 
@@ -474,13 +469,13 @@ namespace ScreenshotInput
                         }
                         else {
                             oldX = false;
-                            ButtonStateImpulse(Xtype, false);//release
+                            ButtonStateImpulse(TranslateXtoMKB::Xmapping, false);//release
                         }
                     }
                     else if (buttons & XINPUT_GAMEPAD_X)
                     {
                         oldX = true;
-                        ButtonStateImpulse(Xtype, true);//down
+                        ButtonStateImpulse(TranslateXtoMKB::Xmapping, true);//down
                     }
 
 
@@ -491,13 +486,13 @@ namespace ScreenshotInput
                         }
                         else {
                             oldY = false;
-                            ButtonStateImpulse(Ytype, false);//release
+                            ButtonStateImpulse(TranslateXtoMKB::Ymapping, false);//release
                         }
                     }
                     else if (buttons & XINPUT_GAMEPAD_Y)
                     {
                         oldY = true;
-                        ButtonStateImpulse(Ytype, true);//down
+                        ButtonStateImpulse(TranslateXtoMKB::Ymapping, true);//down
                     }
 
 
@@ -508,13 +503,13 @@ namespace ScreenshotInput
                         }
                         else {
                             oldC = false;
-                            ButtonStateImpulse(Ctype, false); //release
+                            ButtonStateImpulse(TranslateXtoMKB::RSmapping, false); //release
                         }
                     }
                     else if (buttons & XINPUT_GAMEPAD_RIGHT_SHOULDER)
                     {
                         oldC = true;
-                        ButtonStateImpulse(Ctype, true); //down
+                        ButtonStateImpulse(TranslateXtoMKB::RSmapping, true); //down
                     }
 
 
@@ -525,13 +520,13 @@ namespace ScreenshotInput
                         }
                         else {
                             oldD = false;
-                            ButtonStateImpulse(Ctype, false);//release
+                            ButtonStateImpulse(TranslateXtoMKB::LSmapping, false);//release
                         }
                     }
                     else if (buttons & XINPUT_GAMEPAD_LEFT_SHOULDER)
                     {
                         oldD = true;
-                        ButtonStateImpulse(Ctype, true);//down
+                        ButtonStateImpulse(TranslateXtoMKB::LSmapping, true);//down
                     }
 
 
@@ -542,13 +537,13 @@ namespace ScreenshotInput
                         }
                         else {
                             oldleft = false;
-                            ButtonStateImpulse(Lefttype, false); //release
+                            ButtonStateImpulse(TranslateXtoMKB::leftmapping, false); //release
                         }
                     }
                     else if (buttons & XINPUT_GAMEPAD_DPAD_LEFT)
                     {
                         oldleft = true;
-                        ButtonStateImpulse(Lefttype, true);//down
+                        ButtonStateImpulse(TranslateXtoMKB::leftmapping, true);//down
                     }
 
 
@@ -559,13 +554,13 @@ namespace ScreenshotInput
                         }
                         else {
                             oldright = false;
-                            ButtonStateImpulse(righttype, false);//release
+                            ButtonStateImpulse(TranslateXtoMKB::rightmapping, false);//release
                         }
                     }
                     else if (buttons & XINPUT_GAMEPAD_DPAD_RIGHT)
                     {
                         oldright = true;
-                        ButtonStateImpulse(righttype, true);//down
+                        ButtonStateImpulse(TranslateXtoMKB::rightmapping, true);//down
                     }
 
 
@@ -576,13 +571,13 @@ namespace ScreenshotInput
                         }
                         else {
                             oldup = false;
-                            ButtonStateImpulse(uptype, false);//release
+                            ButtonStateImpulse(TranslateXtoMKB::upmapping, false);//release
                         }
                     }
                     else if (buttons & XINPUT_GAMEPAD_DPAD_UP)
                     {
                         oldup = true;
-                        ButtonStateImpulse(uptype, true);//down
+                        ButtonStateImpulse(TranslateXtoMKB::upmapping, true);//down
                     }
 
 
@@ -593,13 +588,13 @@ namespace ScreenshotInput
                         }
                         else {
                             olddown = false;
-                            ButtonStateImpulse(downtype, false);//release
+                            ButtonStateImpulse(TranslateXtoMKB::downmapping, false);//release
                         }
                     }
                     else if (buttons & XINPUT_GAMEPAD_DPAD_DOWN)
                     {
                         olddown = true;
-						ButtonStateImpulse(downtype, true);//down
+						ButtonStateImpulse(TranslateXtoMKB::downmapping, true);//down
                     }
 
                 } //if mode above 0

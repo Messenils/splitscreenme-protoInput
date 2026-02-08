@@ -9,6 +9,7 @@ enum class PipeMessageType
 {
 	AddSelectedMouseOrKeyboard,
 	SetTranslateXinputtoMKB,
+	SetXinputtoMKBkeys,
 	SetupHook,
 	WakeUpProcess,
 	SetupMessageFilter,
@@ -60,6 +61,28 @@ struct PipeMessageAddSelectedMouseOrKeyboard
 struct PipeMessageSetTranslateXinputtoMKB
 {
 	bool TranslateXinputtoMKB;
+};
+struct PipeMessageSetXinputtoMKBkeys
+{
+	int XinputtoMKBAkey;
+	int XinputtoMKBBkey;
+	int XinputtoMKBXkey;
+	int XinputtoMKBYkey;
+	int XinputtoMKBRSkey;
+	int XinputtoMKBLSkey;
+	int XinputtoMKBrightkey;
+	int XinputtoMKBleftkey;
+	int XinputtoMKBupkey;
+	int XinputtoMKBdownkey;
+	int XinputtoMKBstickR;
+	int XinputtoMKBstickL;
+	int XinputtoMKBstickright;
+int XinputtoMKBstickleft;
+		int XinputtoMKBstickup;
+		int XinputtoMKBstickdown;
+		int XinputtoMKBoption;
+		int XinputtoMKBstart;
+		bool XinputtoMKBstickinvert;
 };
 
 struct PipeMessageSetupHook

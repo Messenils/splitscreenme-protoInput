@@ -13,6 +13,13 @@ namespace ProtoHost
 intptr_t lastKeypressKeyboardHandle = -1;
 intptr_t lastMouseClicked = -1;
 
+int lastVKcode = 0;
+//int Akey = 0x57; //wasd
+//int Bkey = 0x53;
+//int Xkey = 0x41;
+//int Ykey = 0x44;
+//int RSkey = VK_RETURN;
+//int LSkey = VK_SPACE;
 bool lockInputWithTheEndKey = true;
 bool lockInputSuspendsExplorer = true;
 bool freezeGameInputWhileInputNotLocked = true;
@@ -21,6 +28,8 @@ HWND rawInputHwnd;
 
 std::vector<void*> keyboardHandles{};
 std::vector<void*> mouseHandles{};
+
+
 
 void ProcessRawInput(HRAWINPUT rawInputHandle)
 {
@@ -37,10 +46,26 @@ void ProcessRawInput(HRAWINPUT rawInputHandle)
 		return;
 		
 	if (rawinput.header.dwType == RIM_TYPEKEYBOARD &&
-		rawinput.data.keyboard.Flags == RI_KEY_MAKE)
+		(rawinput.data.keyboard.Flags & RI_KEY_BREAK) == 0)   // key down
 	{
+		USHORT vkey = rawinput.data.keyboard.VKey;
+		//if (vkey == VK_LEFT)
+	//		MessageBoxA(nullptr, "E0 key detected", "Info", MB_OK);
+		// If VKey is missing or invalid, reconstruct it
+		//if (vkey == 0 || vkey == 255)
+		//{
+		//	if ((rawinput.data.keyboard.Flags & RI_KEY_E0) != 0)
+		//	{ 
+		//		vkey = MapVirtualKey(rawinput.data.keyboard.MakeCode, MAPVK_VSC_TO_VK_EX);
+
+		//	}
+		//	else
+		//		vkey = MapVirtualKey(rawinput.data.keyboard.MakeCode, MAPVK_VSC_TO_VK);
+		//}
+		lastVKcode = vkey;
 		lastKeypressKeyboardHandle = (intptr_t)rawinput.header.hDevice;
 	}
+
 	else if (rawinput.header.dwType == RIM_TYPEMOUSE &&
 			 rawinput.data.mouse.usButtonFlags != 0)
 	{

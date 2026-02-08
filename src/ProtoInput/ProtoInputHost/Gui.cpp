@@ -52,6 +52,39 @@ StartupInjectionType selectedStartupInjectionType = StartupInjectionType::EASYHO
 std::vector<ProtoInstanceHandle> trackedInstanceHandles{};
 
 static bool isInputCurrentlyLocked = false;
+std::string VkToKeyName(int vk)
+{
+    
+    UINT scan = MapVirtualKey(vk, MAPVK_VK_TO_VSC);
+    UINT flags = scan << 16;
+
+    // Add extended-key flag when needed
+    switch (vk)
+    {
+    case VK_LEFT:
+    case VK_RIGHT:
+    case VK_UP:
+    case VK_DOWN:
+    case VK_INSERT:
+    case VK_DELETE:
+    case VK_HOME:
+    case VK_END:
+    case VK_PRIOR: // Page Up
+    case VK_NEXT:  // Page Down
+    case VK_RCONTROL:
+    case VK_RMENU: // Right Alt
+    case VK_DIVIDE:
+    case VK_NUMLOCK:
+        flags |= (1 << 24);
+        break;
+    }
+
+    char name[64] = { 0 };
+    GetKeyNameTextA(flags, name, sizeof(name));
+    return std::string(name);
+}
+
+
 void OnInputLockChange(bool locked)
 {
     isInputCurrentlyLocked = locked;
@@ -140,6 +173,11 @@ bool Launch()
         if (instance.keyboardHandle != -1)
             AddSelectedKeyboardHandle(instanceHandle, instance.keyboardHandle);
         SetTranslateXinputtoMKB(instanceHandle, currentProfile.TranslateXinputtoMKB);
+        //keys
+        SetXinputtoMKBkeys(instanceHandle, currentProfile.XinputtoMKBAkey, currentProfile.XinputtoMKBBkey, currentProfile.XinputtoMKBXkey, currentProfile.XinputtoMKBYkey, currentProfile.XinputtoMKBRSkey, currentProfile.XinputtoMKBLSkey, currentProfile.XinputtoMKBrightkey, currentProfile.XinputtoMKBleftkey, currentProfile.XinputtoMKBupkey, currentProfile.XinputtoMKBdownkey,
+        currentProfile.XinputtoMKBstickR, currentProfile.XinputtoMKBstickL, currentProfile.XinputtoMKBstickright, currentProfile.XinputtoMKBstickleft, currentProfile.XinputtoMKBstickup, currentProfile.XinputtoMKBstickdown, 
+        currentProfile.XinputtoMKBoption, currentProfile.XinputtoMKBstart, currentProfile.XinputtoMKBstickinvert);
+
         if (hookEnabled(RegisterRawInputHookID))        InstallHook(instanceHandle, RegisterRawInputHookID);
         if (hookEnabled(GetRawInputDataHookID))         InstallHook(instanceHandle, GetRawInputDataHookID);
         if (hookEnabled(MessageFilterHookID))           InstallHook(instanceHandle, MessageFilterHookID);
@@ -676,13 +714,495 @@ void SelectedInstanceWindow()
     ImGui::Separator();
     ImGui::SliderInt("", (int*)&instance.controllerIndex, 0, 16, "%d", ImGuiSliderFlags_AlwaysClamp);
     ImGui::Separator();
+    ImGui::Spacing();
     ImGui::TextWrapped("Controller index");
     ImGui::Separator();
+    ImGui::Spacing();
+    ImGui::Checkbox("Use OpenXinput", &currentProfile.useOpenXinput); //		
+    ImGui::Separator();
+    ImGui::TextWrapped("If Translate X to MKB is selected, then it will emulate mouse and keyboard from selected ControllerIndex." 
+        "Option will automatically deactivate if a keyboard or mouse is selected for the instance. "
+        "Also you should make sure ControllerIndex is not zero, as zero still implies no controller"
+        "UseOpenXinput hook or Xinput hook are not needed, as it will use OpenXinput already and poll selected controllerindex"
+        "");
     ImGui::Checkbox("Translate X to MKB", &currentProfile.TranslateXinputtoMKB); //
     ImGui::Separator();
-    ImGui::Checkbox("Use OpenXinput", &currentProfile.useOpenXinput); //		
-    
-    
+    ImGui::Spacing();
+    ImGui::Spacing();
+    ImGui::TextWrapped("Options and mappings for Xinput controller if Translate X to MKB is enabled."
+        "Option will automatically deactivate if a keyboard or mouse is selected for the instance. "
+        "");
+    // A key
+    {
+        const auto XAString = VkToKeyName(currentProfile.XinputtoMKBAkey);
+        ImGui::TextWrapped("A is mapped to: %s", (XAString.c_str()));
+
+        static bool waitingKeyPressA = false;
+
+        if (waitingKeyPressA)
+        {
+            PushDisabled();
+            ImGui::Button("Press Keyboard button...##A"); //these need unique IDs or text
+            PopDisabled();
+            
+            if (lastVKcode != -1)
+            {
+                waitingKeyPressA = false;
+                currentProfile.XinputtoMKBAkey = lastVKcode;
+            }
+        }
+        else if (ImGui::Button("Click to change##A1"))//these need unique IDs or text
+        {
+            waitingKeyPressA = true;
+            lastVKcode = -1;
+        }
+    }
+    ImGui::Separator();
+    // B key
+    {
+        const auto XAString = VkToKeyName(currentProfile.XinputtoMKBBkey);
+        ImGui::TextWrapped("B is mapped to: %s", (XAString.c_str()));
+
+        static bool waitingKeyPressB = false;
+
+        if (waitingKeyPressB)
+        {
+            PushDisabled();
+            ImGui::Button("Press Keyboard button...##B");
+            PopDisabled();
+
+            if (lastVKcode != -1)
+            {
+                waitingKeyPressB = false;
+                currentProfile.XinputtoMKBBkey = lastVKcode;
+            }
+        }
+        else if (ImGui::Button("Click to change##B1"))
+        {
+            waitingKeyPressB = true;
+            lastVKcode = -1;
+        }
+    }
+    ImGui::Separator();
+    // X key
+    {
+        const auto XAString = VkToKeyName(currentProfile.XinputtoMKBXkey);
+        ImGui::TextWrapped("X is mapped to: %s", (XAString.c_str()));
+
+        static bool waitingKeyPressX = false;
+
+        if (waitingKeyPressX)
+        {
+            PushDisabled();
+            ImGui::Button("Press Keyboard button...##C");
+            PopDisabled();
+
+            if (lastVKcode != -1)
+            {
+                waitingKeyPressX = false;
+                currentProfile.XinputtoMKBXkey = lastVKcode;
+            }
+        }
+        else if (ImGui::Button("Click to change##C1"))
+        {
+            waitingKeyPressX = true;
+            lastVKcode = -1;
+        }
+    }
+    ImGui::Separator();
+    // Y key
+    {
+        const auto XAString = VkToKeyName(currentProfile.XinputtoMKBYkey);
+        ImGui::TextWrapped("Y is mapped to: %s", (XAString.c_str()));
+
+        static bool waitingKeyPressY = false;
+
+        if (waitingKeyPressY)
+        {
+            PushDisabled();
+            ImGui::Button("Press Keyboard button...##D1");
+            PopDisabled();
+
+            if (lastVKcode != -1)
+            {
+                waitingKeyPressY = false;
+                currentProfile.XinputtoMKBYkey = lastVKcode;
+            }
+        }
+        else if (ImGui::Button("Click to change##D1"))
+        {
+            waitingKeyPressY = true;
+            lastVKcode = -1;
+        }
+    }
+    ImGui::Separator();
+    // RS key
+    {
+        const auto XAString = VkToKeyName(currentProfile.XinputtoMKBRSkey);
+        ImGui::TextWrapped("Right Shoulder is mapped to: %s", (XAString.c_str()));
+
+        static bool waitingKeyPressRS = false;
+
+        if (waitingKeyPressRS)
+        {
+            PushDisabled();
+            ImGui::Button("Press Keyboard button...##E");
+            PopDisabled();
+
+            if (lastVKcode != -1)
+            {
+                waitingKeyPressRS = false;
+                currentProfile.XinputtoMKBRSkey = lastVKcode;
+            }
+        }
+        else if (ImGui::Button("Click to change##E1"))
+        {
+            waitingKeyPressRS = true;
+            lastVKcode = -1;
+        }
+    }
+    ImGui::Separator();
+    // LS key
+    {
+        const auto XAString = VkToKeyName(currentProfile.XinputtoMKBLSkey);
+        ImGui::TextWrapped("Left Shoulder is mapped to: %s", (XAString.c_str()));
+
+        static bool waitingKeyPressLS = false;
+
+        if (waitingKeyPressLS)
+        {
+            PushDisabled();
+            ImGui::Button("Press Keyboard button...##F");
+            PopDisabled();
+
+            if (lastVKcode != -1)
+            {
+                waitingKeyPressLS = false;
+                currentProfile.XinputtoMKBLSkey = lastVKcode;
+            }
+        }
+        else if (ImGui::Button("Click to change##F1"))
+        {
+            waitingKeyPressLS = true;
+            lastVKcode = -1;
+        }
+    }
+    ImGui::Separator();
+ ///right
+    {
+        const auto XAString = VkToKeyName(currentProfile.XinputtoMKBrightkey);
+        ImGui::TextWrapped("right is mapped to: %s", (XAString.c_str()));
+
+        static bool waitingKeyPressright = false;
+
+        if (waitingKeyPressright)
+        {
+            PushDisabled();
+            ImGui::Button("Press Keyboard button...##G");
+            PopDisabled();
+
+            if (lastVKcode != -1)
+            {
+                waitingKeyPressright = false;
+                currentProfile.XinputtoMKBrightkey = lastVKcode;
+            }
+        }
+        else if (ImGui::Button("Click to change##G1"))
+        {
+            waitingKeyPressright = true;
+            lastVKcode = -1;
+        }
+    }
+    ImGui::Separator();
+    ///left
+    {
+        const auto XAString = VkToKeyName(currentProfile.XinputtoMKBleftkey);
+        ImGui::TextWrapped("left is mapped to: %s", (XAString.c_str()));
+
+        static bool waitingKeyPressleft = false;
+
+        if (waitingKeyPressleft)
+        {
+            PushDisabled();
+            ImGui::Button("Press Keyboard button...##H");
+            PopDisabled();
+
+            if (lastVKcode != -1)
+            {
+                waitingKeyPressleft = false;
+                currentProfile.XinputtoMKBleftkey = lastVKcode;
+            }
+        }
+        else if (ImGui::Button("Click to change##H1"))
+        {
+            waitingKeyPressleft = true;
+            lastVKcode = -1;
+        }
+    }
+    ImGui::Separator();
+    ///up
+    {
+        const auto XAString = VkToKeyName(currentProfile.XinputtoMKBupkey);
+        ImGui::TextWrapped("up is mapped to: %s", (XAString.c_str()));
+
+        static bool waitingKeyPressup = false;
+
+        if (waitingKeyPressup)
+        {
+            PushDisabled();
+            ImGui::Button("Press Keyboard button...##I");
+            PopDisabled();
+
+            if (lastVKcode != -1)
+            {
+                waitingKeyPressup = false;
+                currentProfile.XinputtoMKBupkey = lastVKcode;
+            }
+        }
+        else if (ImGui::Button("Click to change##I1"))
+        {
+            waitingKeyPressup = true;
+            lastVKcode = -1;
+        }
+    }
+    ImGui::Separator();
+    ///down
+    {
+        const auto XAString = VkToKeyName(currentProfile.XinputtoMKBdownkey);
+        ImGui::TextWrapped("down is mapped to: %s", (XAString.c_str()));
+
+        static bool waitingKeyPressdown = false;
+
+        if (waitingKeyPressdown)
+        {
+            PushDisabled();
+            ImGui::Button("Press Keyboard button...##J");
+            PopDisabled();
+
+            if (lastVKcode != -1)
+            {
+                waitingKeyPressdown = false;
+                currentProfile.XinputtoMKBdownkey = lastVKcode;
+            }
+        }
+        else if (ImGui::Button("Click to change##J2"))
+        {
+            waitingKeyPressdown = true;
+            lastVKcode = -1;
+        }
+    }
+    ImGui::Separator();
+    ///right stick press
+    {
+        const auto XAString = VkToKeyName(currentProfile.XinputtoMKBstickR);
+        ImGui::TextWrapped("Right Stick Press is mapped to: %s", (XAString.c_str()));
+
+        static bool waitingKeyPressstickR = false;
+
+        if (waitingKeyPressstickR)
+        {
+            PushDisabled();
+            ImGui::Button("Press Keyboard button...##K");
+            PopDisabled();
+
+            if (lastVKcode != -1)
+            {
+                waitingKeyPressstickR = false;
+                currentProfile.XinputtoMKBstickR = lastVKcode;
+            }
+        }
+        else if (ImGui::Button("Click to change##K1"))
+        {
+            waitingKeyPressstickR = true;
+            lastVKcode = -1;
+        }
+    }
+    ImGui::Separator();
+    ///left stick press
+    {
+        const auto XAString = VkToKeyName(currentProfile.XinputtoMKBstickL);
+        ImGui::TextWrapped("Left Stick Press is mapped to: %s", (XAString.c_str()));
+
+        static bool waitingKeyPressstickL = false;
+
+        if (waitingKeyPressstickL)
+        {
+            PushDisabled();
+            ImGui::Button("Press Keyboard button...##L");
+            PopDisabled();
+
+            if (lastVKcode != -1)
+            {
+                waitingKeyPressstickL = false;
+                currentProfile.XinputtoMKBstickL = lastVKcode;
+            }
+        }
+        else if (ImGui::Button("Click to change##L1"))
+        {
+            waitingKeyPressstickL = true;
+            lastVKcode = -1;
+        }
+    }
+    ImGui::Separator();
+    ///stick move right
+    {
+        const auto XAString = VkToKeyName(currentProfile.XinputtoMKBstickright);
+        ImGui::TextWrapped("stick move right is mapped to: %s", (XAString.c_str()));
+
+        static bool waitingKeyPressstickright = false;
+
+        if (waitingKeyPressstickright)
+        {
+            PushDisabled();
+            ImGui::Button("Press Keyboard button...##M2");
+            PopDisabled();
+
+            if (lastVKcode != -1)
+            {
+                waitingKeyPressstickright = false;
+                currentProfile.XinputtoMKBstickright = lastVKcode;
+            }
+        }
+        else if (ImGui::Button("Click to change##M"))
+        {
+            waitingKeyPressstickright = true;
+            lastVKcode = -1;
+        }
+    }
+    ImGui::Separator();
+    ///stick move left
+    {
+        const auto XAString = VkToKeyName(currentProfile.XinputtoMKBstickleft);
+        ImGui::TextWrapped("stick move left is mapped to: %s", (XAString.c_str()));
+
+        static bool waitingKeyPressstickleft = false;
+
+        if (waitingKeyPressstickleft)
+        {
+            PushDisabled();
+            ImGui::Button("Press Keyboard button...##N");
+            PopDisabled();
+
+            if (lastVKcode != -1)
+            {
+                waitingKeyPressstickleft = false;
+                currentProfile.XinputtoMKBstickleft = lastVKcode;
+            }
+        }
+        else if (ImGui::Button("Click to change##N1"))
+        {
+            waitingKeyPressstickleft = true;
+            lastVKcode = -1;
+        }
+    }
+    ImGui::Separator();
+    ///stick move up
+    {
+        const auto XAString = VkToKeyName(currentProfile.XinputtoMKBstickup);
+        ImGui::TextWrapped("stick move up is mapped to: %s", (XAString.c_str()));
+
+        static bool waitingKeyPressstickup = false;
+
+        if (waitingKeyPressstickup)
+        {
+            PushDisabled();
+            ImGui::Button("Press Keyboard button...##O");
+            PopDisabled();
+
+            if (lastVKcode != -1)
+            {
+                waitingKeyPressstickup = false;
+                currentProfile.XinputtoMKBstickup = lastVKcode;
+            }
+        }
+        else if (ImGui::Button("Click to change##O1"))
+        {
+            waitingKeyPressstickup = true;
+            lastVKcode = -1;
+        }
+    }
+    ImGui::Separator();
+    ///stick move up
+    {
+        const auto XAString = VkToKeyName(currentProfile.XinputtoMKBstickdown);
+        ImGui::TextWrapped("stick move Down is mapped to: %s", (XAString.c_str()));
+
+        static bool waitingKeyPressstickdown = false;
+
+        if (waitingKeyPressstickdown)
+        {
+            PushDisabled();
+            ImGui::Button("Press Keyboard button...##P");
+            PopDisabled();
+
+            if (lastVKcode != -1)
+            {
+                waitingKeyPressstickdown = false;
+                currentProfile.XinputtoMKBstickdown = lastVKcode;
+            }
+        }
+        else if (ImGui::Button("Click to change##P1"))
+        {
+            waitingKeyPressstickdown = true;
+            lastVKcode = -1;
+        }
+    }
+    ImGui::Separator();
+    ///start button
+    {
+        const auto XAString = VkToKeyName(currentProfile.XinputtoMKBstart);
+        ImGui::TextWrapped("Start button is mapped to: %s", (XAString.c_str()));
+
+        static bool waitingKeyPressstart = false;
+
+        if (waitingKeyPressstart)
+        {
+            PushDisabled();
+            ImGui::Button("Press Keyboard button...##Q");
+            PopDisabled();
+
+            if (lastVKcode != -1)
+            {
+                waitingKeyPressstart = false;
+                currentProfile.XinputtoMKBstart = lastVKcode;
+            }
+        }
+        else if (ImGui::Button("Click to change##Q1"))
+        {
+            waitingKeyPressstart = true;
+            lastVKcode = -1;
+        }
+    }
+    ImGui::Separator();
+    ///option button
+    {
+        const auto XAString = VkToKeyName(currentProfile.XinputtoMKBoption);
+        ImGui::TextWrapped("option button is mapped to: %s", (XAString.c_str()));
+
+        static bool waitingKeyPressoption = false;
+
+        if (waitingKeyPressoption)
+        {
+            PushDisabled();
+            ImGui::Button("Press Keyboard button...##R");
+            PopDisabled();
+
+            if (lastVKcode != -1)
+            {
+                waitingKeyPressoption = false;
+                currentProfile.XinputtoMKBoption = lastVKcode;
+            }
+        }
+        else if (ImGui::Button("Click to change##R2"))
+        {
+            waitingKeyPressoption = true;
+            lastVKcode = -1;
+        }
+    }
+    ImGui::Separator();
+    ImGui::Checkbox("Lefthanded Stick. moves mouse with left stick and button map on right stick. or opposite if disabled", &currentProfile.XinputtoMKBstickinvert); //
+    ImGui::Separator();
+
     ImGui::PopID();
 }
 

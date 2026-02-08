@@ -74,6 +74,26 @@ struct Profile
 	bool useOpenXinput = false;
 	bool TranslateXinputtoMKB = false;
 
+	int XinputtoMKBAkey = 0x52; //R
+	int XinputtoMKBBkey = 0x47; //G
+	int XinputtoMKBXkey = 0x45; //E
+	int XinputtoMKBYkey = 0x43; //C
+	int XinputtoMKBRSkey = 0x10;
+	int XinputtoMKBLSkey = 0x20;
+	int XinputtoMKBrightkey = 0x27;
+	int XinputtoMKBleftkey = 0x25;
+	int XinputtoMKBupkey = 0x26;
+	int XinputtoMKBdownkey = 0x28;
+	int XinputtoMKBstickR = 0x5A; //Z
+	int XinputtoMKBstickL = 0x4D; //M
+	int XinputtoMKBstickright = 0x41; //A
+	int XinputtoMKBstickleft = 0x44; //D
+	int XinputtoMKBstickup = 0x57; //W
+	int XinputtoMKBstickdown = 0x53; //S
+	int XinputtoMKBoption = 0x1B; //
+	int XinputtoMKBstart = 0x0D;
+	bool XinputtoMKBstickinvert = false;
+
 	bool useFakeClipCursor = true;
 
 	bool showCursorWhenImageUpdated = false;
