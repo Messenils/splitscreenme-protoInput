@@ -12,10 +12,12 @@ namespace ScreenshotInput
 
 	public:
 		static void Initialize(HMODULE g_hModule);
+		static void SendMouseClick(int x, int y, int z);
 		static int controllerID;
 		static bool rawinputhook;
 		static bool registerrawinputhook;
-
+		static int showmessage;
+		static int mode;
 		static int Amapping;
 		static int Bmapping;
 		static int Xmapping;

@@ -157,14 +157,17 @@ DWORD WINAPI PipeThread(LPVOID lpParameter)
 					if (gotkeyboardmouse)
 					{ 
 						RawInput::TranslateXinputtoMKB = false;
-						//MessageBoxA(NULL, "OOOhhhh, there is a mouse here. disabling", "tunell", MB_OK | MB_ICONWARNING);
+						printf("Discovered mouse or keyboard. disabling TranslateXtoMKB");
 					}
+					else printf("Enabling TranslateXtoMKB");
 				}
+				else printf("TranslateXtoMKB is set to false");
 				break;
 			}
 			case ProtoPipe::PipeMessageType::SetXinputtoMKBkeys:
 			{
 				const auto body = reinterpret_cast<ProtoPipe::PipeMessageSetXinputtoMKBkeys*>(messageBuffer);
+				printf("Received TranslateXtoMKB Mapping");
 				ScreenshotInput::TranslateXtoMKB::Amapping = body->XinputtoMKBAkey;
 				ScreenshotInput::TranslateXtoMKB::Bmapping = body->XinputtoMKBBkey;
 				ScreenshotInput::TranslateXtoMKB::Xmapping = body->XinputtoMKBXkey;

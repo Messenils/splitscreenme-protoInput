@@ -11,7 +11,6 @@
 #include "RawInput.h"
 #include "protoloader.h"
 #include "Profiles.h"
-#include "RawInput.h"
 #include "MessageList.h"
 
 namespace ProtoHost
@@ -52,6 +51,10 @@ StartupInjectionType selectedStartupInjectionType = StartupInjectionType::EASYHO
 std::vector<ProtoInstanceHandle> trackedInstanceHandles{};
 
 static bool isInputCurrentlyLocked = false;
+
+//TranslateXtoMKB
+float Sensitivitymultiplier = 3.5f;
+float Sensitivity = 15.0f;
 std::string VkToKeyName(int vk)
 {
     
@@ -717,9 +720,6 @@ void SelectedInstanceWindow()
     ImGui::Spacing();
     ImGui::TextWrapped("Controller index");
     ImGui::Separator();
-    ImGui::Spacing();
-    ImGui::Checkbox("Use OpenXinput", &currentProfile.useOpenXinput); //		
-    ImGui::Separator();
     ImGui::TextWrapped("If Translate X to MKB is selected, then it will emulate mouse and keyboard from selected ControllerIndex." 
         "Option will automatically deactivate if a keyboard or mouse is selected for the instance. "
         "Also you should make sure ControllerIndex is not zero, as zero still implies no controller"
@@ -1202,6 +1202,13 @@ void SelectedInstanceWindow()
     ImGui::Separator();
     ImGui::Checkbox("Lefthanded Stick. moves mouse with left stick and button map on right stick. or opposite if disabled", &currentProfile.XinputtoMKBstickinvert); //
     ImGui::Separator();
+    ImGui::Separator();
+    ImGui::TextWrapped("Sensitivity");
+    ImGui::SliderFloat("Slider", &Sensitivity, 0.0f, 40.0f);
+    ImGui::Separator();
+    ImGui::TextWrapped("Sensitivity Multiplier");
+    ImGui::SliderFloat("Slider", &Sensitivitymultiplier, 1.0f, 20.0f);
+    ImGui::Separator();
 
     ImGui::PopID();
 }
@@ -1394,6 +1401,7 @@ void OptionsMenu()
             ImGui::Checkbox(hook.uiLabel.c_str(), &hook.enabled);
         }
     }
+    ImGui::Checkbox("Use OpenXinput", &currentProfile.useOpenXinput);	
 
     ImGui::Checkbox("Dinput to Xinput redirection", &currentProfile.dinputToXinputRedirection);
 

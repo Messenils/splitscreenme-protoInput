@@ -36,16 +36,19 @@ class RawInput
 {
 private:
 	static std::bitset<9> usages;
+	
 	static std::vector<HWND> forwardingWindows;
-
 	static const std::vector<USAGE> usageTypesOfInterest;
 
 	static void ProcessMouseInput(const RAWMOUSE& data, HANDLE deviceHandle);
 	static void ProcessKeyboardInput(const RAWKEYBOARD& data, HANDLE deviceHandle);
 
+	static bool locked; //input lock state
+	static bool alreadyAddToACL;
 public:
 	static void SendInputMessages(const RAWMOUSE& data);
 	static void SendKeyMessage(const RAWKEYBOARD& data, bool pressed);
+	static void ToggleLockInput();
 	static RawInputState rawInputState;
 	static HWND rawInputHwnd;
 	static bool forwardRawInput;

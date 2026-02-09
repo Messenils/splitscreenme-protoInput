@@ -5,7 +5,8 @@
 #include <bitset>
 #include "RawInput.h"
 #include <imgui.h>
-#include "HwndSelector.h"
+#include "HwndSelector.h" //GtoMnK_RawInputHooks
+#include "GtoMnK_RawInputHooks.h" //GtoMnK_RawInputHooks
 
 namespace Proto
 {
@@ -156,7 +157,13 @@ void RegisterRawInputHook::ShowGuiStatus()
 
 void RegisterRawInputHook::InstallImpl()
 {
-
+	if (RawInput::TranslateXinputtoMKB)
+	{
+		auto [status, _hookInfo] = InstallNamedHook(L"user32", "RegisterRawInputDevices", ScreenshotInput::RawInputHooks::RegisterRawInputDevicesHookX);
+		this->hookInfo = _hookInfo;
+	}
+	else
+	{
 		if (!installedAtLeastOnce)
 		{
 			installedAtLeastOnce = true;
@@ -172,6 +179,7 @@ void RegisterRawInputHook::InstallImpl()
 		FindAlreadySubscribedWindows();
 		RawInput::UnregisterGameFromRawInput();
 		RawInput::RegisterProtoForRawInput();
+	}
 }
 
 void RegisterRawInputHook::UninstallImpl()

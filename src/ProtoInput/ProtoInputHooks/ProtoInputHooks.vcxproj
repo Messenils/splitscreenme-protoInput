@@ -234,6 +234,7 @@
     <ClInclude Include="RegisterRawInputHook.h" />
     <ClInclude Include="RemoveBorderHook.h" />
     <ClInclude Include="RenameHandlesHook.h" />
+    <ClInclude Include="ScanThread.h" />
     <ClInclude Include="SetCursorPosHook.h" />
     <ClInclude Include="SetWindowPosHook.h" />
     <ClInclude Include="StateInfo.h" />
@@ -288,6 +289,7 @@
     <ClCompile Include="RegisterRawInputHook.cpp" />
     <ClCompile Include="RemoveBorderHook.cpp" />
     <ClCompile Include="RenameHandlesHook.cpp" />
+    <ClCompile Include="ScanThread.cpp" />
     <ClCompile Include="SetCursorPosHook.cpp" />
     <ClCompile Include="SetWindowPosHook.cpp" />
     <ClCompile Include="StateInfo.cpp" />

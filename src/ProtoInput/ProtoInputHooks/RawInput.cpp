@@ -29,6 +29,8 @@ bool RawInput::rawInputBypass = false;
 RAWINPUT RawInput::inputBuffer[RawInputBufferSize]{};
 std::vector<RAWINPUT> RawInput::rawinputs{};
 bool RawInput::TranslateXinputtoMKB;
+bool RawInput::locked = false;
+bool RawInput::alreadyAddToACL = false;
 const std::vector<USAGE> RawInput::usageTypesOfInterest
 {
 		HID_USAGE_GENERIC_POINTER,
@@ -264,6 +266,26 @@ void RawInput::ProcessKeyboardInput(const RAWKEYBOARD& data, HANDLE deviceHandle
 	FakeMouseKeyboard::ReceivedKeyPressOrRelease(data.VKey, pressed);
 }
 
+
+
+void RawInput::ToggleLockInput() 
+{
+	RawInput::locked = !RawInput::locked;
+	static unsigned int loopThreadId = 0;
+	loopThreadId = LockInput(locked);
+	// Add the looping thread to the ACL so it can still use ClipCursor, etc
+	if (!RawInput::alreadyAddToACL && loopThreadId != 0)
+	{
+		RawInput::alreadyAddToACL = true;
+		printf("Adding loop thread %d to ACL\n", loopThreadId);
+		AddThreadToACL(loopThreadId);
+	}
+	if (locked)
+		SuspendExplorer();
+	else
+		RestartExplorer();
+}
+
 void RawInput::ProcessRawInput(HRAWINPUT rawInputHandle, bool inForeground, const MSG& msg)
 {
 	// if (rawInputBypass)
@@ -331,25 +353,8 @@ void RawInput::ProcessRawInput(HRAWINPUT rawInputHandle, bool inForeground, cons
 	// Lock input toggle
 	if (lockInputToggleEnabled && rawinput.header.dwType == RIM_TYPEKEYBOARD && rawinput.data.keyboard.VKey == VK_HOME && rawinput.data.keyboard.Message == WM_KEYUP)
 	{
-		static bool locked = false;
-		locked = !locked;
 		printf(locked ? "Locking input\n" : "Unlocking input\n");
-	
-		// Add the looping thread to the ACL so it can still use ClipCursor, etc
-		static unsigned int loopThreadId = 0;
-		static bool alreadyAddToACL = false;
-		loopThreadId = LockInput(locked);
-		if (!alreadyAddToACL && loopThreadId != 0)
-		{
-			alreadyAddToACL = true;
-			printf("Adding loop thread %d to ACL\n", loopThreadId);
-			AddThreadToACL(loopThreadId);
-		}
-		
-		if (locked)
-			SuspendExplorer();
-		else
-			RestartExplorer();
+		RawInput::ToggleLockInput();
 	}
 	
 	

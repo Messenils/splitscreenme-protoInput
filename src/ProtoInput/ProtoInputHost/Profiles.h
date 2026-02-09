@@ -98,7 +98,7 @@ struct Profile
 
 	bool showCursorWhenImageUpdated = false;
 
-	bool putMouseInsideWindow = false;
+	bool putMouseInsideWindow = true;
 	
 	bool drawFakeMouseCursor = true;
 	bool drawFakeCursorFix = false;

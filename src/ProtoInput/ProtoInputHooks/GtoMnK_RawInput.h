@@ -17,6 +17,7 @@ namespace ScreenshotInput {
         static void SendActionDelta(int deltaX, int deltaY);
         static const int RAWINPUT_BUFFER_SIZE = 20;
         static  RAWINPUT g_inputBuffer[RAWINPUT_BUFFER_SIZE];
+        
 
         static std::vector<HWND> g_forwardingWindows;
         static HWND g_rawInputHwnd;

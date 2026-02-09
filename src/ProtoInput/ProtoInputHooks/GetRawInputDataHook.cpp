@@ -3,9 +3,13 @@
 #include "RegisterRawInputHook.h"
 #include <cassert>
 #include "RawInput.h"
+#include "GtoMnK_RawInputHooks.h" //GtoMnK_RawInput.cpp
+#include "GtoMnK_RawInput.h" //GtoMnK_RawInput.cpp//TranslateXtoMKB.h
+//#include "TranslateXtoMKB.h" //GtoMnK_RawInput.cpp//TranslateXtoMKB.h
 
 namespace Proto
 {
+	
 
 UINT WINAPI Hook_GetRawInputData(
 	HRAWINPUT hRawInput,
@@ -15,6 +19,7 @@ UINT WINAPI Hook_GetRawInputData(
 	UINT      cbSizeHeader
 )
 {
+
 	unsigned int h = (unsigned int)hRawInput; // Only care about first 4 bytes.
 	bool hasSignature = (h & 0xFF000000) == 0xAB000000;
 	if (!hasSignature)
@@ -51,14 +56,13 @@ UINT WINAPI Hook_GetRawInputData(
 	}
 }
 
-// void GetRawInputDataHook::ShowGuiStatus()
-// {
-// }
-
 void GetRawInputDataHook::InstallImpl()
 {
-	//MessageBoxA(NULL, "Installing GetRawInputData Hook", "Info", MB_OK);
-	hookInfo = std::get<1>(InstallNamedHook(L"user32", "GetRawInputData", Hook_GetRawInputData));
+	if (RawInput::TranslateXinputtoMKB)
+		hookInfo = std::get<1>(InstallNamedHook(L"user32", "GetRawInputData", ScreenshotInput::RawInputHooks::GetRawInputDataHookX));
+	else
+		hookInfo = std::get<1>(InstallNamedHook(L"user32", "GetRawInputData", Hook_GetRawInputData));
+		
 }
 
 void GetRawInputDataHook::UninstallImpl()

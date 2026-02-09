@@ -67,8 +67,8 @@ void HookManager::InstallHook(ProtoHookIDs hookID)
 			hookManagerInstance.hooks[hookID]->Install();
 		else  // skipping original protoinput hooks on experimental Xinput to MKB translation mode
 		{
-			if (hookID == 0) ScreenshotInput::TranslateXtoMKB::registerrawinputhook = true;
-			if (hookID == 1) ScreenshotInput::TranslateXtoMKB::rawinputhook = true;
+			if (hookID == 0) hookManagerInstance.hooks[hookID]->Install();
+			if (hookID == 1) hookManagerInstance.hooks[hookID]->Install();
 			if (hookID == 2) hookManagerInstance.hooks[hookID]->Install();
 			if (hookID == 3) hookManagerInstance.hooks[hookID]->Install();
 			if (hookID == 4) hookManagerInstance.hooks[hookID]->Install();
@@ -94,8 +94,8 @@ void HookManager::UninstallHook(ProtoHookIDs hookID)
 		if (!RawInput::TranslateXinputtoMKB)
 			hookManagerInstance.hooks[hookID]->Uninstall();
 		else 			
-		if (hookID == 0) ScreenshotInput::TranslateXtoMKB::registerrawinputhook = false;
-		if (hookID == 1) ScreenshotInput::TranslateXtoMKB::rawinputhook = false;
+		if (hookID == 0) hookManagerInstance.hooks[hookID]->Uninstall();
+		if (hookID == 1) hookManagerInstance.hooks[hookID]->Uninstall();
 		if (hookID == 2) hookManagerInstance.hooks[hookID]->Uninstall();
 		if (hookID == 3) hookManagerInstance.hooks[hookID]->Uninstall();
 		if (hookID == 4) hookManagerInstance.hooks[hookID]->Uninstall();
@@ -120,8 +120,8 @@ bool HookManager::IsInstalled(ProtoHookIDs hookID)
 	{
 		if(RawInput::TranslateXinputtoMKB)
 		{ 
-			if (hookID == 0) return true;
-			if (hookID == 1) return true;
+			if (hookID == 0) return hookManagerInstance.hooks[hookID]->IsInstalled();
+			if (hookID == 1) return hookManagerInstance.hooks[hookID]->IsInstalled();
 			if (hookID == 2) return hookManagerInstance.hooks[hookID]->IsInstalled();
 			else return hookManagerInstance.hooks[hookID]->IsInstalled();
 		}

@@ -49,19 +49,6 @@ void ProcessRawInput(HRAWINPUT rawInputHandle)
 		(rawinput.data.keyboard.Flags & RI_KEY_BREAK) == 0)   // key down
 	{
 		USHORT vkey = rawinput.data.keyboard.VKey;
-		//if (vkey == VK_LEFT)
-	//		MessageBoxA(nullptr, "E0 key detected", "Info", MB_OK);
-		// If VKey is missing or invalid, reconstruct it
-		//if (vkey == 0 || vkey == 255)
-		//{
-		//	if ((rawinput.data.keyboard.Flags & RI_KEY_E0) != 0)
-		//	{ 
-		//		vkey = MapVirtualKey(rawinput.data.keyboard.MakeCode, MAPVK_VSC_TO_VK_EX);
-
-		//	}
-		//	else
-		//		vkey = MapVirtualKey(rawinput.data.keyboard.MakeCode, MAPVK_VSC_TO_VK);
-		//}
 		lastVKcode = vkey;
 		lastKeypressKeyboardHandle = (intptr_t)rawinput.header.hDevice;
 	}

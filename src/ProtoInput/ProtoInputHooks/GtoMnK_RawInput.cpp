@@ -65,7 +65,7 @@ namespace ScreenshotInput {
                 WaitForSingleObject(hWindowReadyEvent, 2000);
                 CloseHandle(hThread);
             }
-            RawInputHooks::InstallHooks();
+           // RawInputHooks::InstallHooks();
             CloseHandle(hWindowReadyEvent);
         }
 
@@ -78,9 +78,10 @@ namespace ScreenshotInput {
         }
 
 
-
-        LRESULT WINAPI RawInputWindowWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-            switch (msg) {
+        LRESULT WINAPI RawInputWindowWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) 
+        {
+            switch (msg) 
+            {
             case WM_DESTROY: {
                 PostQuitMessage(0);
                 return 0;
