@@ -13,7 +13,7 @@ LRESULT CALLBACK LowLevelMouseProc(
 )
 {
 	//TODO: change wparam/lparam instead of blocking
-	return CallNextHookEx(nullptr, nCode, wParam, lParam);// isLocked ? 1 :
+	return isLocked ? 1 : CallNextHookEx(nullptr, nCode, wParam, lParam);
 }
 
 LRESULT CALLBACK LowLevelKeyboardProc(
@@ -75,7 +75,7 @@ extern "C" __declspec(dllexport) unsigned int LockInput(bool lock)
 	if (lock && !installedHooks)
 	{
 		installedHooks = true;
-		//SetWindowsHookExW(WH_MOUSE_LL, LowLevelMouseProc, GetModuleHandle(0), 0);
+		SetWindowsHookExW(WH_MOUSE_LL, LowLevelMouseProc, GetModuleHandle(0), 0);
 		SetWindowsHookExW(WH_KEYBOARD_LL, LowLevelKeyboardProc, GetModuleHandle(0), 0);
 	}
 
