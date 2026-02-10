@@ -934,7 +934,7 @@ namespace ScreenshotInput {
      //   }
         // else if (MainThread::showmessage != 0)
             // MainThread::showmessage = 11;//wait for mesage expire
-        return true;
+        return false;
     }
 
     DWORD WINAPI ScanThreadMain(LPVOID, int Aisstatic, int Bisstatic, int Xisstatic, int Yisstatic)
@@ -1022,7 +1022,7 @@ namespace ScreenshotInput {
                 }
                 Sleep(10);
             }
-            //else Sleep(1000);
+            else Sleep(100);
         }
         return 0;
     }
@@ -1140,8 +1140,6 @@ namespace ScreenshotInput {
                 POINT Cpoint;
                 Cpoint.x = ScanThread::PointY.x;
                 Cpoint.y = ScanThread::PointY.y;
-
-                //LeaveCriticalSection(&critical);
                 if (Cpoint.x != 0 && Cpoint.y != 0)
                 {
                     if (!ScanThread::ShoulderNextBMP)

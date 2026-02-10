@@ -29,6 +29,7 @@
 #include "GtoMnK_RawInput.h"
 #include "FakeMouseKeyboard.h"
 #include "ScanThread.h"
+#include "StateInfo.h"
 //#include <dwmapi.h>
 #pragma comment(lib, "dwmapi.lib")
 #include <unordered_map>
@@ -41,6 +42,8 @@
 
 namespace ScreenshotInput
 {
+    int InstanceID = 0; //InstanceID copy from stateinfo.h
+
     //from tunnell
     int TranslateXtoMKB::controllerID;
     bool TranslateXtoMKB::rawinputhook; //registerrawinputhook
@@ -134,16 +137,15 @@ namespace ScreenshotInput
     bool oldscrollleft = false;
     bool oldscrollright = false;
     bool oldscrollup = false;
+    bool oldGUIkey = false;
 
     // Add a fake key event to the array
 
 	USHORT lastVKkey = 0;
     bool IsKeyPressed(int Vkey)
     {
-		SHORT hmm = GetKeyState(Vkey); 
-        if (hmm > 0)
-            return true;
-        else return false;
+        return (GetAsyncKeyState(Vkey) & 0x8000) != 0;
+
     }
     void TranslateXtoMKB::SendMouseClick(int x, int y, int z) {
         // Create a named mutex
@@ -342,6 +344,7 @@ namespace ScreenshotInput
     }
     void ThreadFunction(HMODULE hModule)
     {
+        
         Proto::AddThreadToACL(GetCurrentThreadId());
         Sleep(2000);
         if (readsettings() == false)
@@ -349,18 +352,18 @@ namespace ScreenshotInput
             //messagebox? settings not read
         }
 
-        InitializeCriticalSection(&ScanThread::critical);
+       // InitializeCriticalSection(&ScanThread::critical);
         if (!ScanThread::enumeratebmps()) //false means no bmps found. also counts statics
         {
-           // LOG("BMPs enumerated but not found: 0x%p", hwnd);
+          //  printf("BMPs enumerated but not found");
             if (ScanThread::scanoption == 1)
             {
                 ScanThread::scanoption = 0;
-               // LOG("Error. Nothing to scan for. Disabling scanoption: 0x%p", hwnd);
+            //    printf("Error. Nothing to scan for. Disabling scanoption");
             }
         }
         else {
-           // LOG("BMPs found: 0x%p", hwnd);
+          //  printf("BMPs found");
             ScanThread::staticPointA.assign(ScanThread::numphotoA + 1, POINT{ 0, 0 });
             ScanThread::staticPointB.assign(ScanThread::numphotoB + 1, POINT{ 0, 0 });
             ScanThread::staticPointX.assign(ScanThread::numphotoX + 1, POINT{ 0, 0 });
@@ -370,16 +373,36 @@ namespace ScreenshotInput
         if (ScanThread::scanoption == 1)
         { //starting bmp continous scanner
             ScanThread::StartScanThread(g_hModule, ScanThread::Aisstatic, ScanThread::Bisstatic, ScanThread::Xisstatic, ScanThread::Yisstatic, ScanThread::scanoption);
-          //  LOG("BMP scanner started: 0x%p", hwnd);
+          //  printf("BMP scanner started");
         }
 
         while (loop == true)
         {
+            //if render. sleep while rendering instead of at the end
+            bool alreadyslept = false; 
             //copy criticals
 			EnterCriticalSection(&ScanThread::critical);
 			showmessageMT = TranslateXtoMKB::showmessage;
 			modeMT = TranslateXtoMKB::mode;
 			LeaveCriticalSection(&ScanThread::critical);
+
+            //GUI
+            if (oldGUIkey)
+            {
+                if (IsKeyPressed(VK_RCONTROL) && IsKeyPressed(VK_RMENU) && IsKeyPressed(0x30 + InstanceID))
+                {
+                }
+                else
+                {
+                    oldGUIkey = false;
+                    ButtonStateImpulse(VK_HOME, false);//down}
+                }
+            }
+            else if (IsKeyPressed(VK_RCONTROL) && IsKeyPressed(VK_RMENU) && IsKeyPressed(0x30 + InstanceID))//gui or fake cursor toggle
+            {
+                Proto::ToggleWindow();
+                oldGUIkey = true;
+            }
 
             movedmouse = false; //reset
             XINPUT_STATE state;
@@ -427,12 +450,12 @@ namespace ScreenshotInput
                         Yf += delta.y;
                         movedmouse = true;
                     }
-
                     if (movedmouse == true) //fake cursor move message
                     {
                         TranslateXtoMKB::SendMouseClick(delta.x, delta.y, 8);
-                            
+
                         Proto::FakeCursor::NotifyUpdatedCursorPosition();
+
                     }
 
                     if (leftPressedold)
@@ -551,9 +574,13 @@ namespace ScreenshotInput
                     else if (buttons & XINPUT_GAMEPAD_A)
                     {
                         oldA = true;
+                        if (ScanThread::scanoption == 1)
+                        { 
                         bool found = ScanThread::ButtonPressed(0);
                         if (!found)
                             ButtonStateImpulse(TranslateXtoMKB::Amapping, true);//down
+                        }
+                        else ButtonStateImpulse(TranslateXtoMKB::Amapping, true);
                     }
 
 
@@ -570,9 +597,13 @@ namespace ScreenshotInput
                     else if (buttons & XINPUT_GAMEPAD_B)
                     {
                         oldB = true;
-                        bool found = ScanThread::ButtonPressed(1);
-                        if (!found)
-                            ButtonStateImpulse(TranslateXtoMKB::Bmapping, true);//down
+                        if (ScanThread::scanoption == 1)
+                        {
+                            bool found = ScanThread::ButtonPressed(1);
+                            if (!found)
+                                ButtonStateImpulse(TranslateXtoMKB::Bmapping, true);//down
+                        }
+                        else ButtonStateImpulse(TranslateXtoMKB::Bmapping, true);//down
                     }
 
 
@@ -589,9 +620,13 @@ namespace ScreenshotInput
                     else if (buttons & XINPUT_GAMEPAD_X)
                     {
                         oldX = true;
-                        bool found = ScanThread::ButtonPressed(2);
-                        if (!found)
-                            ButtonStateImpulse(TranslateXtoMKB::Xmapping, true);//down
+                        if (ScanThread::scanoption == 1)
+                        {
+                            bool found = ScanThread::ButtonPressed(2);
+                            if (!found)
+                                ButtonStateImpulse(TranslateXtoMKB::Xmapping, true);//down
+                        }
+                        else ButtonStateImpulse(TranslateXtoMKB::Xmapping, true);//down
                     }
 
 
@@ -608,9 +643,13 @@ namespace ScreenshotInput
                     else if (buttons & XINPUT_GAMEPAD_Y)
                     {
                         oldY = true;
-                        bool found = ScanThread::ButtonPressed(3);
-                        if (!found)
-                            ButtonStateImpulse(TranslateXtoMKB::Ymapping, true);//down
+                        if (ScanThread::scanoption == 1)
+                        {
+                            bool found = ScanThread::ButtonPressed(3);
+                            if (!found)
+                                ButtonStateImpulse(TranslateXtoMKB::Ymapping, true);//down
+                        }
+						else ButtonStateImpulse(TranslateXtoMKB::Ymapping, true);//down
                     }
 
 
@@ -627,9 +666,13 @@ namespace ScreenshotInput
                     else if (buttons & XINPUT_GAMEPAD_RIGHT_SHOULDER)
                     {
                         oldC = true;
-                        bool found = ScanThread::ButtonPressed(4);
-                        if (!found)
-                            ButtonStateImpulse(TranslateXtoMKB::RSmapping, true); //down
+                        if (ScanThread::scanoption == 1)
+                        {
+                            bool found = ScanThread::ButtonPressed(4);
+                            if (!found)
+                                ButtonStateImpulse(TranslateXtoMKB::RSmapping, true); //down
+                        }
+                        else ButtonStateImpulse(TranslateXtoMKB::RSmapping, true); //down
                     }
 
 
@@ -646,9 +689,13 @@ namespace ScreenshotInput
                     else if (buttons & XINPUT_GAMEPAD_LEFT_SHOULDER)
                     {
                         oldD = true;
-                        bool found = ScanThread::ButtonPressed(5);
-                        if (!found)
-                            ButtonStateImpulse(TranslateXtoMKB::LSmapping, true);//down
+                        if (ScanThread::scanoption == 1)
+                        {
+                            bool found = ScanThread::ButtonPressed(5);
+                            if (!found)
+                                ButtonStateImpulse(TranslateXtoMKB::LSmapping, true);//down
+                        }
+						else ButtonStateImpulse(TranslateXtoMKB::LSmapping, true);//down
                     }
 
 
@@ -732,11 +779,8 @@ namespace ScreenshotInput
                     }
 					else if (oldstart && oldoptions)//gui or fake cursor toggle
                     {
-                        //Proto::ToggleWindow();
                         ButtonStateImpulse(VK_HOME, true);//down
                         oldstartoptions = true;
-                       // oldstart = false;
-                       // oldoptions = false;
                     }
                     if (oldstart)
                     {
@@ -781,10 +825,13 @@ namespace ScreenshotInput
             if (tick < updatewindowtick)
                 tick++;
             else { //need to update hwnd and bounds periodically
+               // EnterCriticalSection(&ScanThread::critical);
                 Proto::HwndSelector::UpdateMainHwnd(false);
                 Proto::HwndSelector::UpdateWindowBounds();
+               // LeaveCriticalSection(&ScanThread::critical);
                 tick = 0;
             }
+
 			EnterCriticalSection(&ScanThread::critical);
             if (showmessageMT != 0) { //drawing messages or something
                 if (counter < 400) { //showmessage is critical
@@ -792,20 +839,18 @@ namespace ScreenshotInput
                 }
                 else {
                     showmessageMT = 0;
-                    EnterCriticalSection(&ScanThread::critical);
                     TranslateXtoMKB::showmessage = 0;
-                    LeaveCriticalSection(&ScanThread::critical);
                     counter = 0;
                 }
             }
 			LeaveCriticalSection(&ScanThread::critical);
-            if (modeMT == 0)
-                Sleep(10);
+
             if (modeMT > 0) {
                 Sleep(1);
             }
+            else Sleep(1);
             if (showmessageMT == 99)
-                Sleep(15);
+                Sleep(1);
         } //loop end but endless
         return;
     }
@@ -814,7 +859,7 @@ namespace ScreenshotInput
     {
             RawInput::Initialize();
             g_hModule = hModule;
-            
+            InstanceID = Proto::StateInfo::info.instanceIndex;
             std::thread one(ThreadFunction, g_hModule);
             one.detach();
             return;

@@ -15,7 +15,9 @@ FakeCursor FakeCursor::state{};
 //TranslateXtoMKB
 POINT OldspotA, OldspotB, OldspotX, OldspotY;
 int showmessage = 0;
-bool erasemessage = false;
+int oldmessage = 0;
+bool messageshown = false;
+HWND selectorhwnd = nullptr; //copy of variable in TranslateXtoMKB to avoid accessing it multiple times with critical section in DrawCursor
 
 LRESULT WINAPI FakeCursorWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -115,13 +117,36 @@ void DrawPinkSquare(HDC hdc, int x, int y)
     DeleteObject(hPen);
 }
 POINT OldTestpos = { 0,0 };
-void DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, POINT spotY, HBRUSH Brush)
+
+void DrawMessage(HDC hdc, HWND window, HBRUSH Brush) 
+{
+    POINT here = { 0,0 };
+    ClientToScreen(window, &here);
+
+    if (oldmessage != showmessage)
+    {
+        RECT fill{ 50, 50, 100, 100 };
+        FillRect(hdc, &fill, Brush); // Note: window, not screen coordinates!
+        messageshown = false;
+    }
+    if (!messageshown)
+    { 
+        if (showmessage == 12){
+            DrawGreenTriangle(hdc, here.x + 50, here.y + 50);
+            TextOutW(hdc, here.x + 20, here.y + 20, TEXT("DISCONNECTED!"), 14); //14
+		    messageshown = true;
+	    }
+    }
+    oldmessage = showmessage;
+
+}
+void DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, POINT spotY,HWND window, HBRUSH Brush)
 {
 	bool windowmoved = false;
     bool erased = false;
     //detect window change pos
     POINT testpos;
-	ClientToScreen((HWND)HwndSelector::GetSelectedHwnd(), &testpos);
+	ClientToScreen(window, &testpos);
     if (testpos.x < OldTestpos.x || testpos.y < OldTestpos.y || testpos.x > OldTestpos.x || testpos.y > OldTestpos.y)
     {
         windowmoved = true;
@@ -152,22 +177,22 @@ void DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, POINT spotY,
     }
     if (spotA.x != 0 && spotA.y != 0 && erased == true)
     { 
-        ClientToScreen((HWND)HwndSelector::GetSelectedHwnd(), &spotA);
+        ClientToScreen(window, &spotA);
         DrawRedX(hdc, spotA.x, spotA.y);
     }
     if (spotB.x != 0 && spotB.y != 0 && erased == true)
     {
-        ClientToScreen((HWND)HwndSelector::GetSelectedHwnd(), &spotB);
+        ClientToScreen(window, &spotB);
         DrawBlueCircle(hdc, spotB.x, spotB.y);
     }
     if (spotX.x != 0 && spotX.y != 0 && erased == true)
     {
-        ClientToScreen((HWND)HwndSelector::GetSelectedHwnd(), &spotX);
+        ClientToScreen(window, &spotX);
         DrawGreenTriangle(hdc, spotX.x, spotX.y);
     }
     if (spotY.x != 0 && spotY.y != 0 && erased == true)
     {
-        ClientToScreen((HWND)HwndSelector::GetSelectedHwnd(), &spotY);
+        ClientToScreen(window, &spotY);
         DrawPinkSquare(hdc, spotY.x, spotY.y);
     }
 
@@ -186,19 +211,21 @@ void FakeCursor::DrawCursor()
         FillRect(hdc, &fill, transparencyBrush); // Note: window, not screen coordinates!
 
     }
+    
     if (ScreenshotInput::ScanThread::scanoption == 1)
     {
         EnterCriticalSection(&ScreenshotInput::ScanThread::critical);
+        selectorhwnd = (HWND)HwndSelector::GetSelectedHwnd();
 		showmessage = ScreenshotInput::TranslateXtoMKB::showmessage;
         POINT Apos = { ScreenshotInput::ScanThread::PointA.x, ScreenshotInput::ScanThread::PointA.y };
         POINT Bpos = { ScreenshotInput::ScanThread::PointB.x, ScreenshotInput::ScanThread::PointB.y };
         POINT Xpos = { ScreenshotInput::ScanThread::PointX.x, ScreenshotInput::ScanThread::PointX.y };
         POINT Ypos = { ScreenshotInput::ScanThread::PointY.x, ScreenshotInput::ScanThread::PointY.y };
+        DrawFoundSpots(hdc, Apos, Bpos, Xpos, Ypos, selectorhwnd, transparencyBrush);
+        //DrawMessage(hdc, selectorhwnd, transparencyBrush);
         LeaveCriticalSection(&ScreenshotInput::ScanThread::critical);
-
-        DrawFoundSpots(hdc, Apos, Bpos, Xpos, Ypos, transparencyBrush);
-
     }
+
     oldHadShowCursor = showCursor;
 
     POINT pos = { FakeMouseKeyboard::GetMouseState().x,FakeMouseKeyboard::GetMouseState().y };

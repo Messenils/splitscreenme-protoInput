@@ -19,7 +19,7 @@
 
 namespace Proto
 {
-
+	bool TranslateXisenabled = false;
 intptr_t ConsoleHwnd;
 
 static void HelpMarker(const char* desc)
@@ -795,8 +795,9 @@ void RawInputMenu()
 	
 
 
-    if (RawInput::TranslateXinputtoMKB)
+    if (RawInput::TranslateXinputtoMKB) //TranslateXisenabled
     {
+		
         ImGui::TextWrapped("XinputtoMKB ControllerID");
         ImGui::TextWrapped("0 is first controller");
         ImGui::SliderInt("XinputtoMKB ControllerID", (int*)&ScreenshotInput::TranslateXtoMKB::controllerID, 0, 16, "%d", ImGuiSliderFlags_AlwaysClamp);

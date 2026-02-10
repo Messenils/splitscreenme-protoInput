@@ -17,6 +17,7 @@
 #include "Gui.h"
 #include "FakeCursor.h"
 #include "TranslateXtoMKB.h"
+#include "ScanThread.h"
 
 HMODULE dll_hModule;
 
@@ -59,6 +60,8 @@ DWORD WINAPI StartThread(LPVOID lpParameter)
     
     if (Proto::RawInput::TranslateXinputtoMKB)
         ScreenshotInput::TranslateXtoMKB::Initialize(dll_hModule);
+
+    InitializeCriticalSection(&ScreenshotInput::ScanThread::critical);
 
     HANDLE hGuiThread = CreateThread(nullptr, 0,
         (LPTHREAD_START_ROUTINE)GuiThread, dll_hModule, CREATE_SUSPENDED, &Proto::GuiThreadID);
