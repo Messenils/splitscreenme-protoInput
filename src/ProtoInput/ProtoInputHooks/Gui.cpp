@@ -14,6 +14,7 @@
 #include "StateInfo.h"
 #include "FakeCursor.h"
 #include "TranslateXtoMKB.h" 
+#include "ScanThread.h" 
 #include "GtoMnK_RawInput.h" 
 
 namespace Proto
@@ -663,6 +664,9 @@ void XTranslateMenu()
     ImGui::Separator(); //no idea if this may crash. suppose it is not safe
     ImGui::Checkbox("Lefthanded Stick. moves mouse with left stick and button map on right stick. or opposite if disabled", &ScreenshotInput::TranslateXtoMKB::lefthanded); //
     ImGui::Separator();
+    ImGui::Separator();
+    ImGui::Checkbox("Shoulder Swap BMPs", &ScreenshotInput::ScanThread::ShoulderNextBMP); //
+    ImGui::Separator();
 }
 void HooksMenu()
 {
@@ -821,7 +825,7 @@ void RawInputMenu()
 }
 
 void ControlsMenu()
-{
+{ 
 	if (ImGui::Button("Hide GUI"))
 	{
         SetWindowVisible(false);

@@ -114,29 +114,37 @@ void DrawPinkSquare(HDC hdc, int x, int y)
     SelectObject(hdc, hOldPen);
     DeleteObject(hPen);
 }
+POINT OldTestpos = { 0,0 };
 void DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, POINT spotY, HBRUSH Brush)
 {
-
+	bool windowmoved = false;
     bool erased = false;
-    if (OldspotA.x != spotA.x || OldspotA.y != spotA.y)
+    //detect window change pos
+    POINT testpos;
+	ClientToScreen((HWND)HwndSelector::GetSelectedHwnd(), &testpos);
+    if (testpos.x < OldTestpos.x || testpos.y < OldTestpos.y || testpos.x > OldTestpos.x || testpos.y > OldTestpos.y)
+    {
+        windowmoved = true;
+	}
+    if (OldspotA.x != spotA.x || OldspotA.y != spotA.y || windowmoved)
     {
         RECT fill{ OldspotA.x - 20, OldspotA.y - 20, OldspotA.x + 20, OldspotA.y + 20 };
         FillRect(hdc, &fill, Brush); // Note: window, not screen coordinates!
         erased = true;
     }
-    if (OldspotB.x != spotB.x || OldspotB.y != spotB.y)
+    if (OldspotB.x != spotB.x || OldspotB.y != spotB.y || windowmoved)
     {
         RECT fill{ OldspotB.x - 20, OldspotB.y - 20, OldspotB.x + 20, OldspotB.y + 20 };
         FillRect(hdc, &fill, Brush); // Note: window, not screen coordinates!
         erased = true;
     }
-    if (OldspotX.x != spotX.x || OldspotX.y != spotX.y)
+    if (OldspotX.x != spotX.x || OldspotX.y != spotX.y || windowmoved)
     {
         RECT fill{ OldspotX.x - 20, OldspotX.y - 20, OldspotX.x + 20, OldspotX.y + 20 };
         FillRect(hdc, &fill, Brush); // Note: window, not screen coordinates!
         erased = true;
     }
-    if (OldspotY.x != spotY.x || OldspotY.y != spotY.y)
+    if (OldspotY.x != spotY.x || OldspotY.y != spotY.y || windowmoved)
     {
         RECT fill{ OldspotY.x - 20, OldspotY.y - 20, OldspotY.x + 20, OldspotY.y + 20 };
         FillRect(hdc, &fill, Brush); // Note: window, not screen coordinates!
@@ -167,6 +175,7 @@ void DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, POINT spotY,
     OldspotB = spotB;
     OldspotX = spotX;
     OldspotY = spotY;
+	OldTestpos = testpos;
 }
 void FakeCursor::DrawCursor()
 {

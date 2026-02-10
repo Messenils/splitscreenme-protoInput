@@ -74,6 +74,13 @@ struct Profile
 	bool useOpenXinput = false;
 	bool TranslateXinputtoMKB = false;
 
+	bool XinputtoMKBstickinvert = false;
+	bool ScanOption = false;
+	bool Shoulderswappoints = false;
+	bool XAstatic = false;
+	bool XBstatic = false;
+	bool XXstatic = false;
+	bool XYstatic = false;
 	int XinputtoMKBAkey = 0x52; //R
 	int XinputtoMKBBkey = 0x47; //G
 	int XinputtoMKBXkey = 0x45; //E
@@ -92,7 +99,7 @@ struct Profile
 	int XinputtoMKBstickdown = 0x53; //S
 	int XinputtoMKBoption = 0x1B; //
 	int XinputtoMKBstart = 0x0D;
-	bool XinputtoMKBstickinvert = false;
+	
 
 	bool useFakeClipCursor = true;
 

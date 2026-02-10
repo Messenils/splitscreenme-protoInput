@@ -48,8 +48,7 @@ namespace ScreenshotInput {
     int ScanThread::Ctype, ScanThread::Dtype, ScanThread::Etype, ScanThread::Ftype;
     bool ScanThread::scanloop = true;
     int ScanThread::scanoption;
-    int ScanThread::ignorerect;
-    int ScanThread::ShoulderNextBMP;
+    bool ScanThread::ShoulderNextBMP;
     int ScanThread::resize = 1; //support scaling
     HWND hwndhandle;
 	POINT hwndres{ 0,0 };
@@ -1044,7 +1043,7 @@ namespace ScreenshotInput {
                 Cpoint.y = ScanThread::PointA.y;
                 if (Cpoint.x != 0 && Cpoint.y != 0)
                 {
-                    if (ScanThread::ShoulderNextBMP == 0)
+                    if (!ScanThread::ShoulderNextBMP)
                     {
                         if (ScanThread::startsearchA < ScanThread::numphotoA - 1)
                             ScanThread::startsearchA++; //dont want it to update before input done
@@ -1077,7 +1076,7 @@ namespace ScreenshotInput {
                 Cpoint.y = ScanThread::PointB.y;
                 if (Cpoint.x != 0 && Cpoint.y != 0)
                 {
-                    if (ScanThread::ShoulderNextBMP == 0)
+                    if (!ScanThread::ShoulderNextBMP)
                     {
                         if (ScanThread::startsearchB < ScanThread::numphotoB - 1)
                             ScanThread::startsearchB++; //dont want it to update before input done
@@ -1110,7 +1109,7 @@ namespace ScreenshotInput {
 
                 if (Cpoint.x != 0 && Cpoint.y != 0)
                 {
-                    if (ScanThread::ShoulderNextBMP == 0)
+                    if (!ScanThread::ShoulderNextBMP)
                     {
                         if (ScanThread::startsearchX < ScanThread::numphotoX - 1)
                             ScanThread::startsearchX++; //dont want it to update before input done
@@ -1145,7 +1144,7 @@ namespace ScreenshotInput {
                 //LeaveCriticalSection(&critical);
                 if (Cpoint.x != 0 && Cpoint.y != 0)
                 {
-                    if (ScanThread::ShoulderNextBMP == 0)
+                    if (!ScanThread::ShoulderNextBMP)
                     {
                         if (ScanThread::startsearchY < ScanThread::numphotoY - 1)
                             ScanThread::startsearchY++; //dont want it to update before input done
@@ -1173,7 +1172,7 @@ namespace ScreenshotInput {
                 returnedvalue = ButtonScanAction("\\C", ModeScanThread, ScanThread::numphotoC, ScanThread::startsearchC, false, { 0,0 }, false); //2 save bmps
                 LeaveCriticalSection(&ScanThread::critical);
             }
-            else if (ScanThread::ShoulderNextBMP == 1)
+            else if (ScanThread::ShoulderNextBMP)
             {
                 EnterCriticalSection(&ScanThread::critical);
                 if (ScanThread::startsearchA < ScanThread::numphotoA - 1)
@@ -1202,7 +1201,7 @@ namespace ScreenshotInput {
                 returnedvalue = ButtonScanAction("\\D", ModeScanThread, ScanThread::numphotoD, ScanThread::startsearchD, false, { 0,0 }, false); //2 save bmps
                 LeaveCriticalSection(&ScanThread::critical);
             }
-            else if (ScanThread::ShoulderNextBMP == 1)
+            else if (ScanThread::ShoulderNextBMP)
             {
 
                 EnterCriticalSection(&ScanThread::critical);

@@ -9,7 +9,6 @@ enum class PipeMessageType
 {
 	AddSelectedMouseOrKeyboard,
 	SetTranslateXinputtoMKB,
-	SetXinputtoMKBkeys,
 	SetupHook,
 	WakeUpProcess,
 	SetupMessageFilter,
@@ -44,7 +43,9 @@ enum class PipeMessageType
 	SetMoveWindowDontResize,
 	SetMoveWindowDontReposition,
 	SetAdjustWindowRectSettings,
-	SetDontWaitWindowBorder
+	SetDontWaitWindowBorder,
+	SetXinputtoMKBkeys,
+	SetXinputtoMKBCFG
 };
 
 struct PipeMessageHeader
@@ -62,28 +63,7 @@ struct PipeMessageSetTranslateXinputtoMKB
 {
 	bool TranslateXinputtoMKB;
 };
-struct PipeMessageSetXinputtoMKBkeys
-{
-	int XinputtoMKBAkey;
-	int XinputtoMKBBkey;
-	int XinputtoMKBXkey;
-	int XinputtoMKBYkey;
-	int XinputtoMKBRSkey;
-	int XinputtoMKBLSkey;
-	int XinputtoMKBrightkey;
-	int XinputtoMKBleftkey;
-	int XinputtoMKBupkey;
-	int XinputtoMKBdownkey;
-	int XinputtoMKBstickR;
-	int XinputtoMKBstickL;
-	int XinputtoMKBstickright;
-int XinputtoMKBstickleft;
-		int XinputtoMKBstickup;
-		int XinputtoMKBstickdown;
-		int XinputtoMKBoption;
-		int XinputtoMKBstart;
-		bool XinputtoMKBstickinvert;
-};
+
 
 struct PipeMessageSetupHook
 {
@@ -286,4 +266,35 @@ struct PipeMessageSetDontWaitWindowBorder
 	bool DontWaitWindowBorder;
 };
 
+struct PipeMessageSetXinputtoMKBkeys
+{
+	int XinputtoMKBAkey;
+	int XinputtoMKBBkey;
+	int XinputtoMKBXkey;
+	int XinputtoMKBYkey;
+	int XinputtoMKBRSkey;
+	int XinputtoMKBLSkey;
+	int XinputtoMKBrightkey;
+	int XinputtoMKBleftkey;
+	int XinputtoMKBupkey;
+	int XinputtoMKBdownkey;
+	int XinputtoMKBstickR;
+	int XinputtoMKBstickL;
+	int XinputtoMKBstickright;
+	int XinputtoMKBstickleft;
+	int XinputtoMKBstickup;
+	int XinputtoMKBstickdown;
+	int XinputtoMKBoption;
+	int XinputtoMKBstart;
+};
+struct PipeMessageSetXinputtoMKBCFG
+{
+	bool stickinvert;
+	bool scanoption;
+	bool shoulderswap;
+	bool astsatic;
+	bool bstsatic;
+	bool xstsatic;
+	bool ystsatic;
+};
 }

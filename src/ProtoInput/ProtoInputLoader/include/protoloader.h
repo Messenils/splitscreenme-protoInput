@@ -60,8 +60,6 @@ extern "C" __declspec(dllexport) void AddSelectedMouseHandle(ProtoInstanceHandle
 extern "C" __declspec(dllexport) void AddSelectedKeyboardHandle(ProtoInstanceHandle instanceHandle, unsigned int keyboardHandle);
 extern "C" __declspec(dllexport) void SetTranslateXinputtoMKB(ProtoInstanceHandle instanceHandle, bool TranslateXinputtoMKB);
 
-extern "C" __declspec(dllexport) void SetXinputtoMKBkeys(ProtoInstanceHandle instanceHandle, int XinputtoMKBAkey, int XinputtoMKBBkey, int XinputtoMKBXkey, int XinputtoMKBYkey, int XinputtoMKBRSkey, int XinputtoMKBLSkey, int XinputtoMKBrightkey, int XinputtoMKBleftkey, int XinputtoMKBupkey, int XinputtoMKBdownkey, int XinputtoMKBstickR, int XinputtoMKBstickL, int XinputtoMKBstickright, int XinputtoMKBstickleft, int XinputtoMKBstickup, int XinputtoMKBstickdown, int XinputtoMKBoption, int XinputtoMKBstart, bool XinputtoMKBstickinvert);
-
 extern "C" __declspec(dllexport) void InstallHook(ProtoInstanceHandle instanceHandle, ProtoHookIDs hookID);
 extern "C" __declspec(dllexport) void UninstallHook(ProtoInstanceHandle instanceHandle, ProtoHookIDs hookID);
 
@@ -153,3 +151,7 @@ extern "C" __declspec(dllexport) void SetMoveWindowDontReposition(ProtoInstanceH
 extern "C" __declspec(dllexport) void SetAdjustWindowRectSettings(ProtoInstanceHandle instanceHandle, int posx, int posy, int width, int height);
 
 extern "C" __declspec(dllexport) void SetDontWaitWindowBorder(ProtoInstanceHandle instanceHandle, bool enabled);
+
+extern "C" __declspec(dllexport) void SetXinputtoMKBkeys(ProtoInstanceHandle instanceHandle, int XinputtoMKBAkey, int XinputtoMKBBkey, int XinputtoMKBXkey, int XinputtoMKBYkey, int XinputtoMKBRSkey, int XinputtoMKBLSkey, int XinputtoMKBrightkey, int XinputtoMKBleftkey, int XinputtoMKBupkey, int XinputtoMKBdownkey, int XinputtoMKBstickR, int XinputtoMKBstickL, int XinputtoMKBstickright, int XinputtoMKBstickleft, int XinputtoMKBstickup, int XinputtoMKBstickdown, int XinputtoMKBoption, int XinputtoMKBstart, bool XinputtoMKBstickinvert);
+
+extern "C" __declspec(dllexport) void SetXinputtoMKBCFG(ProtoInstanceHandle instanceHandle, bool stickinvert, bool scanoption, bool shoulderswap, bool astatic, bool bstatic, bool xstatic, bool ystatic);

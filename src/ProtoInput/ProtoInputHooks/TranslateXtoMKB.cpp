@@ -350,7 +350,6 @@ namespace ScreenshotInput
         }
 
         InitializeCriticalSection(&ScanThread::critical);
-        ScanThread::scanoption = 1;
         if (!ScanThread::enumeratebmps()) //false means no bmps found. also counts statics
         {
            // LOG("BMPs enumerated but not found: 0x%p", hwnd);
@@ -380,10 +379,8 @@ namespace ScreenshotInput
 			EnterCriticalSection(&ScanThread::critical);
 			showmessageMT = TranslateXtoMKB::showmessage;
 			modeMT = TranslateXtoMKB::mode;
-
-
-
 			LeaveCriticalSection(&ScanThread::critical);
+
             movedmouse = false; //reset
             XINPUT_STATE state;
             ZeroMemory(&state, sizeof(XINPUT_STATE));
@@ -727,11 +724,16 @@ namespace ScreenshotInput
                         if (oldstart && oldoptions)
                         {
                         }
-                        else oldstartoptions = false;
+                        else
+                        {
+                            oldstartoptions = false;
+                            ButtonStateImpulse(VK_HOME, false);//down}
+                        }
                     }
-                    else if (oldstart && oldoptions)//gui
+					else if (oldstart && oldoptions)//gui or fake cursor toggle
                     {
-                        Proto::ToggleWindow();
+                        //Proto::ToggleWindow();
+                        ButtonStateImpulse(VK_HOME, true);//down
                         oldstartoptions = true;
                        // oldstart = false;
                        // oldoptions = false;

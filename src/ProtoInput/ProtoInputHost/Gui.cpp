@@ -176,10 +176,7 @@ bool Launch()
         if (instance.keyboardHandle != -1)
             AddSelectedKeyboardHandle(instanceHandle, instance.keyboardHandle);
         SetTranslateXinputtoMKB(instanceHandle, currentProfile.TranslateXinputtoMKB);
-        //keys
-        SetXinputtoMKBkeys(instanceHandle, currentProfile.XinputtoMKBAkey, currentProfile.XinputtoMKBBkey, currentProfile.XinputtoMKBXkey, currentProfile.XinputtoMKBYkey, currentProfile.XinputtoMKBRSkey, currentProfile.XinputtoMKBLSkey, currentProfile.XinputtoMKBrightkey, currentProfile.XinputtoMKBleftkey, currentProfile.XinputtoMKBupkey, currentProfile.XinputtoMKBdownkey,
-        currentProfile.XinputtoMKBstickR, currentProfile.XinputtoMKBstickL, currentProfile.XinputtoMKBstickright, currentProfile.XinputtoMKBstickleft, currentProfile.XinputtoMKBstickup, currentProfile.XinputtoMKBstickdown, 
-        currentProfile.XinputtoMKBoption, currentProfile.XinputtoMKBstart, currentProfile.XinputtoMKBstickinvert);
+
 
         if (hookEnabled(RegisterRawInputHookID))        InstallHook(instanceHandle, RegisterRawInputHookID);
         if (hookEnabled(GetRawInputDataHookID))         InstallHook(instanceHandle, GetRawInputDataHookID);
@@ -260,6 +257,12 @@ bool Launch()
 
         SetExternalFreezeFakeInput(instanceHandle, !isInputCurrentlyLocked && freezeGameInputWhileInputNotLocked);
 
+        //Xinput translate settings
+        SetXinputtoMKBkeys(instanceHandle, currentProfile.XinputtoMKBAkey, currentProfile.XinputtoMKBBkey, currentProfile.XinputtoMKBXkey, currentProfile.XinputtoMKBYkey, currentProfile.XinputtoMKBRSkey, currentProfile.XinputtoMKBLSkey, currentProfile.XinputtoMKBrightkey, currentProfile.XinputtoMKBleftkey, currentProfile.XinputtoMKBupkey, currentProfile.XinputtoMKBdownkey,
+            currentProfile.XinputtoMKBstickR, currentProfile.XinputtoMKBstickL, currentProfile.XinputtoMKBstickright, currentProfile.XinputtoMKBstickleft, currentProfile.XinputtoMKBstickup, currentProfile.XinputtoMKBstickdown,
+            currentProfile.XinputtoMKBoption, currentProfile.XinputtoMKBstart, currentProfile.XinputtoMKBstickinvert);
+        SetXinputtoMKBCFG(instanceHandle, currentProfile.XinputtoMKBstickinvert, currentProfile.ScanOption, currentProfile.Shoulderswappoints, currentProfile.XAstatic, currentProfile.XBstatic, currentProfile.XXstatic, currentProfile.XYstatic);
+       
         if (!instance.runtime)
             WakeUpProcess(instanceHandle);
 
@@ -715,11 +718,11 @@ void SelectedInstanceWindow()
     ImGui::PushID(128794);
     ImGui::Spacing();
     ImGui::Separator();
+    ImGui::TextWrapped("Controller index");
     ImGui::SliderInt("", (int*)&instance.controllerIndex, 0, 16, "%d", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
-    ImGui::TextWrapped("Controller index");
-    ImGui::Separator();
     ImGui::TextWrapped("If Translate X to MKB is selected, then it will emulate mouse and keyboard from selected ControllerIndex." 
         "Option will automatically deactivate if a keyboard or mouse is selected for the instance. "
         "Also you should make sure ControllerIndex is not zero, as zero still implies no controller"
@@ -728,9 +731,26 @@ void SelectedInstanceWindow()
     ImGui::Checkbox("Translate X to MKB", &currentProfile.TranslateXinputtoMKB); //
     ImGui::Separator();
     ImGui::Spacing();
+    ImGui::TextWrapped("Scanoption Will prescan and render coordinates if any BMPs or static points are loaded"
+        "");
+    ImGui::Checkbox("Scanoption", &currentProfile.ScanOption); //
+    ImGui::Separator();
     ImGui::Spacing();
-    ImGui::TextWrapped("Options and mappings for Xinput controller if Translate X to MKB is enabled."
-        "Option will automatically deactivate if a keyboard or mouse is selected for the instance. "
+    ImGui::TextWrapped("Uses shoulder buttons for point next or previous point if enabled"
+        "");
+    ImGui::Checkbox("ShoulderScroll", &currentProfile.Shoulderswappoints); //
+    ImGui::Separator();
+    ImGui::Spacing();
+    ImGui::TextWrapped("Any button set as static will not forget coordinates found"
+        "");
+    
+    ImGui::Spacing();
+    ImGui::Checkbox("A static", &currentProfile.XAstatic); //
+    ImGui::Checkbox("B static", &currentProfile.XBstatic); //
+    ImGui::Checkbox("X static", &currentProfile.XXstatic); //
+    ImGui::Checkbox("Y static", &currentProfile.XYstatic); //
+    ImGui::Separator();
+    ImGui::TextWrapped("Mappings:"
         "");
     // A key
     {
@@ -1202,12 +1222,6 @@ void SelectedInstanceWindow()
     ImGui::Separator();
     ImGui::Checkbox("Lefthanded Stick. moves mouse with left stick and button map on right stick. or opposite if disabled", &currentProfile.XinputtoMKBstickinvert); //
     ImGui::Separator();
-    ImGui::Separator();
-    ImGui::TextWrapped("Sensitivity");
-    ImGui::SliderFloat("Slider", &Sensitivity, 0.0f, 40.0f);
-    ImGui::Separator();
-    ImGui::TextWrapped("Sensitivity Multiplier");
-    ImGui::SliderFloat("Slider", &Sensitivitymultiplier, 1.0f, 20.0f);
     ImGui::Separator();
 
     ImGui::PopID();
