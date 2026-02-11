@@ -72,10 +72,10 @@ namespace ScreenshotInput
 
     int updatewindowtick = 300;
     
-    int AxisLeftsens;
-    int AxisRightsens;
-    int AxisUpsens;
-    int AxisDownsens;
+    int AxisLeftsens = -15000;
+    int AxisRightsens = 15000;
+    int AxisUpsens = 15000;
+    int AxisDownsens = -15000;
     int scrollspeed3;
     float radial_deadzone = 0.10f; // Circular/Radial Deadzone (0.0 to 0.3)
     float axial_deadzone = 0.00f; // Square/Axial Deadzone (0.0 to 0.3)
@@ -334,11 +334,19 @@ namespace ScreenshotInput
         return std::wstring(s.begin(), s.end());
     }
     bool readsettings() {
-        char buffer[16]; //or only 4 maybe
+        char buffer[64]; //or only 4 maybe
 
         // settings reporting
         std::string iniPath = UGetExeFolder() + "\\Xinput.ini";
         std::string iniSettings = "Settings";
+        GetPrivateProfileStringA(iniSettings.c_str(), "Axial_Deadzone", "0.0", buffer, sizeof(buffer), iniPath.c_str());
+        axial_deadzone = std::stof(buffer); //sensitivity
+
+        GetPrivateProfileStringA(iniSettings.c_str(), "Sensitivity", "12.0", buffer, sizeof(buffer), iniPath.c_str());
+        sensitivity = std::stof(buffer); //sensitivity //accel_multiplier
+
+        GetPrivateProfileStringA(iniSettings.c_str(), "Accel_Multiplier", "2.5", buffer, sizeof(buffer), iniPath.c_str());
+        accel_multiplier = std::stof(buffer);
 
         return true;
     }
@@ -502,14 +510,14 @@ namespace ScreenshotInput
                         }
                         else {
                             oldscrollleft = false;
-                            ButtonStateImpulse(TranslateXtoMKB::stickleftmapping, false);//down
+                            ButtonStateImpulse(TranslateXtoMKB::stickrightmapping, false);//down
                         }
                     }
                     else if (scrollXaxis < AxisLeftsens) //left
                     {
                         oldscrollleft = true;
                         
-                        ButtonStateImpulse(TranslateXtoMKB::stickleftmapping, true);//down
+                        ButtonStateImpulse(TranslateXtoMKB::stickrightmapping, true);//down
                     }
 
                     if (oldscrollright)
@@ -519,18 +527,18 @@ namespace ScreenshotInput
                         }
                         else {
                             oldscrollright = false;
-                            ButtonStateImpulse(TranslateXtoMKB::stickrightmapping, false);//down
+                            ButtonStateImpulse(TranslateXtoMKB::stickleftmapping, false);//down
                         }
                     }
                     else if (scrollXaxis > AxisRightsens) //left
                     {
                         oldscrollright = true;
-                        ButtonStateImpulse(TranslateXtoMKB::stickrightmapping, true);//down
+                        ButtonStateImpulse(TranslateXtoMKB::stickleftmapping, true);//down
                     }
 
                     if (oldscrollup)
                     {
-                        if (scrollXaxis > AxisUpsens) //left
+                        if (scrollYaxis > AxisUpsens) //left
                         {
                         }
                         else {
@@ -538,7 +546,7 @@ namespace ScreenshotInput
                             ButtonStateImpulse(TranslateXtoMKB::stickupmapping, false);//down
                         }
                     }
-                    else if (scrollXaxis > AxisUpsens) //left
+                    else if (scrollYaxis > AxisUpsens) //left
                     {
                         oldscrollup = true;
                         ButtonStateImpulse(TranslateXtoMKB::stickupmapping, true);//down
@@ -546,7 +554,7 @@ namespace ScreenshotInput
 
                     if (oldscrolldown)
                     {
-                        if (scrollXaxis < AxisDownsens) //left
+                        if (scrollYaxis < AxisDownsens) //left
                         {
                         }
                         else {
@@ -554,7 +562,7 @@ namespace ScreenshotInput
                             ButtonStateImpulse(TranslateXtoMKB::stickdownmapping, false);//down
                         }
                     }
-                    else if (scrollXaxis < AxisDownsens) //left
+                    else if (scrollYaxis < AxisDownsens) //left
                     {
                         oldscrolldown = true;
                         ButtonStateImpulse(TranslateXtoMKB::stickdownmapping, true);//down
@@ -766,7 +774,7 @@ namespace ScreenshotInput
 						ButtonStateImpulse(TranslateXtoMKB::downmapping, true);//down
                     }
 
-                    if (oldstartoptions)
+                    if (oldstartoptions) //toggle fake cursor
                     {
                         if (oldstart && oldoptions)
                         {
@@ -774,12 +782,11 @@ namespace ScreenshotInput
                         else
                         {
                             oldstartoptions = false;
-                            ButtonStateImpulse(VK_HOME, false);//down}
                         }
                     }
-					else if (oldstart && oldoptions)//gui or fake cursor toggle
+					else if (oldstart && oldoptions)//fake cursor toggle
                     {
-                        ButtonStateImpulse(VK_HOME, true);//down
+                        Proto::FakeCursor::SetCursorVisibility(!Proto::FakeCursor::GetCursorVisibility());
                         oldstartoptions = true;
                     }
                     if (oldstart)

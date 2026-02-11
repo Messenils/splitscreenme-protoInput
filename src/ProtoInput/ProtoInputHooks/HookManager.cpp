@@ -21,6 +21,7 @@
 #include "MoveWindowHook.h"
 #include "AdjustWindowRectHook.h"
 #include "RemoveBorderHook.h"
+#include "GetCursorInfoHook.h"
 #include "RawInput.h"
 #include "TranslateXtoMKB.h"
 
@@ -54,6 +55,7 @@ HookManager::HookManager()
 	AddHook<MoveWindowHook>(ProtoHookIDs::MoveWindowHookID);//19
 	AddHook<AdjustWindowRectHook>(ProtoHookIDs::AdjustWindowRectHookID);//20
 	AddHook<RemoveBorderHook>(ProtoHookIDs::RemoveBorderHookID);//21
+	AddHook<GetCursorInfoHook>(ProtoHookIDs::GetCursorInfoHookID);//22
 }
 
 void HookManager::InstallHook(ProtoHookIDs hookID)
@@ -118,14 +120,6 @@ bool HookManager::IsInstalled(ProtoHookIDs hookID)
 	}
 	else
 	{
-		if(RawInput::TranslateXinputtoMKB)
-		{ 
-			if (hookID == 0) return hookManagerInstance.hooks[hookID]->IsInstalled();
-			if (hookID == 1) return hookManagerInstance.hooks[hookID]->IsInstalled();
-			if (hookID == 2) return hookManagerInstance.hooks[hookID]->IsInstalled();
-			else return hookManagerInstance.hooks[hookID]->IsInstalled();
-		}
-		else
 		return hookManagerInstance.hooks[hookID]->IsInstalled();
 	}
 }

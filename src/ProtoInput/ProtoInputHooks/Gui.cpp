@@ -169,7 +169,7 @@ void XTranslatefreshmapping(bool read) {
         X_stickdown = ScreenshotInput::TranslateXtoMKB::stickdownmapping;
 
         X_option = ScreenshotInput::TranslateXtoMKB::optionmapping;
-        X_start = ScreenshotInput::TranslateXtoMKB::optionmapping;
+        X_start = ScreenshotInput::TranslateXtoMKB::startmapping;
         X_stickdown = ScreenshotInput::TranslateXtoMKB::stickdownmapping;
     }//ImGui::SliderFloat("Slider", &sliderValue, 0.0f, 1.0f);
 
@@ -586,7 +586,7 @@ void XTranslateMenu()
     ImGui::Separator();
     {
         const auto XstickdownString = VkToKeyName(X_stickdown);
-        ImGui::TextWrapped("Stick up axis is mapped to: %s", (XstickdownString.c_str()));
+        ImGui::TextWrapped("Stick down axis is mapped to: %s", (XstickdownString.c_str()));
 
         static bool waitingKeyPressstickdown = false;
         if (waitingKeyPressstickdown)
@@ -612,7 +612,7 @@ void XTranslateMenu()
     ImGui::Separator();
     {
         const auto XoptionString = VkToKeyName(X_option);
-        ImGui::TextWrapped("Stick Options button is mapped to: %s", (XoptionString.c_str()));
+        ImGui::TextWrapped("Options button is mapped to: %s", (XoptionString.c_str()));
 
         static bool waitingKeyPressoption = false;
         if (waitingKeyPressoption)
@@ -638,7 +638,7 @@ void XTranslateMenu()
     ImGui::Separator();
     {
         const auto XstartString = VkToKeyName(X_start);
-        ImGui::TextWrapped("Stick Start button is mapped to: %s", (XstartString.c_str()));
+        ImGui::TextWrapped("Start button is mapped to: %s", (XstartString.c_str()));
 
         static bool waitingKeyPressstart = false;
         if (waitingKeyPressstart)

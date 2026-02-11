@@ -195,6 +195,9 @@
     <ClInclude Include="ScanThread.h">
       <Filter>Source Files\Hooks\TranslateXtoMKB</Filter>
     </ClInclude>
+    <ClInclude Include="GetCursorInfoHook.h">
+      <Filter>Source Files\Hooks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -349,6 +352,9 @@
     </ClCompile>
     <ClCompile Include="ScanThread.cpp">
       <Filter>Source Files\Hooks\TranslateXtoMKB</Filter>
+    </ClCompile>
+    <ClCompile Include="GetCursorInfoHook.cpp">
+      <Filter>Source Files\Hooks</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

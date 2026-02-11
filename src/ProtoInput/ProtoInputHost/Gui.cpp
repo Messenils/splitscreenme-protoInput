@@ -206,6 +206,7 @@ bool Launch()
         if (hookEnabled(XinputHookID))                  InstallHook(instanceHandle, XinputHookID);
         
         if (hookEnabled(DinputOrderHookID))             InstallHook(instanceHandle, DinputOrderHookID);
+        if (hookEnabled(GetCursorInfoHookID))             InstallHook(instanceHandle, GetCursorInfoHookID);
     	
         if (filterEnabled(RawInputFilterID))            EnableMessageFilter(instanceHandle, RawInputFilterID);
         if (filterEnabled(MouseMoveFilterID))           EnableMessageFilter(instanceHandle, MouseMoveFilterID);

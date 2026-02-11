@@ -55,7 +55,8 @@ struct Profile
 		{ "Rename Handles", true, "Rename Handles", ProtoHookIDs::RenameHandlesHookID },
 		{ "Block Raw Input", false, "Block Raw Input", ProtoHookIDs::BlockRawInputHookID },
 		{ "Dinput Order", false, "Dinput Order", ProtoHookIDs::DinputOrderHookID },
-		{ "Xinput", false, "Xinput", ProtoHookIDs::XinputHookID }
+		{ "Xinput", false, "Xinput", ProtoHookIDs::XinputHookID },
+		{ "GetCursorInfo", false, "GetCursorInfo", ProtoHookIDs::GetCursorInfoHookID }
 	};
 
 	std::vector<ProfileOption> messageFilters
