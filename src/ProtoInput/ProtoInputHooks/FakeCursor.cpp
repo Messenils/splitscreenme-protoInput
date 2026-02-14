@@ -5,6 +5,7 @@
 #include "HwndSelector.h"
 #include "ScanThread.h"
 #include "TranslateXtoMKB.h"
+#include "RawInput.h"
 #include <string>
 
 namespace Proto
@@ -14,7 +15,7 @@ FakeCursor FakeCursor::state{};
 
 //TranslateXtoMKB
 POINT OldspotA, OldspotB, OldspotX, OldspotY;
-int showmessage = 0;
+int FakeCursor::Showmessage = 0;
 int oldmessage = 0;
 bool messageshown = false;
 HWND selectorhwnd = nullptr; //copy of variable in TranslateXtoMKB to avoid accessing it multiple times with critical section in DrawCursor
@@ -118,88 +119,152 @@ void DrawPinkSquare(HDC hdc, int x, int y)
 }
 POINT OldTestpos = { 0,0 };
 
-void DrawMessage(HDC hdc, HWND window, HBRUSH Brush) 
+void FakeCursor::DrawMessage(HDC hdc, HWND window, HBRUSH Brush, int message) 
 {
     POINT here = { 0,0 };
     ClientToScreen(window, &here);
 
-    if (oldmessage != showmessage)
+    if (oldmessage != message)
     {
-        RECT fill{ 50, 50, 100, 100 };
-        FillRect(hdc, &fill, Brush); // Note: window, not screen coordinates!
-        messageshown = false;
+       // RECT fill{ here.x + 20, here.y + 20, 500, 500 };
+       // FillRect(hdc, &fill, Brush); // Note: window, not screen coordinates!
+       RECT wholewindow;
+       GetClientRect(pointerWindow, &wholewindow);
+
+       FillRect(hdc, &wholewindow, Brush);
+      // MessageBoxA(NULL, "Message Erased!", "Debug", MB_OK);
+      /// messageshown = false;
     }
     if (!messageshown)
     { 
-        if (showmessage == 12){
-            DrawGreenTriangle(hdc, here.x + 50, here.y + 50);
+        if (message == 1){
+          //  DrawGreenTriangle(hdc, here.x + 50, here.y + 50);
             TextOutW(hdc, here.x + 20, here.y + 20, TEXT("DISCONNECTED!"), 14); //14
 		    messageshown = true;
 	    }
+        if (message == 2) {
+          //  DrawGreenTriangle(hdc, here.x + 50, here.y + 50);
+            TextOutW(hdc, here.x + 20, here.y + 20, TEXT("GUI TOGGLE!"), 11); //14
+            messageshown = true;
+        }
+        if (message == 3) {
+          //  DrawGreenTriangle(hdc, here.x + 50, here.y + 50);
+            TextOutW(hdc, here.x + 20, here.y + 20, TEXT("SHOWCURSOR TOGGLE!"), 18); //14
+            messageshown = true;
+        }
+        if (message == 4) {
+          //  DrawGreenTriangle(hdc, here.x + 50, here.y + 50);
+            TextOutW(hdc, here.x + 20, here.y + 20, TEXT("LOCK TOGGLED!"), 13); //14
+            messageshown = true;
+        }
+        if (ScreenshotInput::TranslateXtoMKB::SaveBmps) {
+            //  DrawGreenTriangle(hdc, here.x + 50, here.y + 50);
+            TextOutW(hdc, here.x + 20, here.y + 0, TEXT("BMP SAVE MODE!"), 14); //14
+            messageshown = true;
+        }
+        if (message == 10) {
+            //  DrawGreenTriangle(hdc, here.x + 50, here.y + 50);
+            TextOutW(hdc, here.x + 20, here.y + 25, TEXT("A MAPPED TO SPOT!"), 17); //14
+            messageshown = true;
+        }
+        if (message == 11) {
+            //  DrawGreenTriangle(hdc, here.x + 50, here.y + 50);
+            TextOutW(hdc, here.x + 20, here.y + 25, TEXT("B MAPPED TO SPOT!"), 17); //14
+            messageshown = true;
+        }
+        if (message == 12) {
+            //  DrawGreenTriangle(hdc, here.x + 50, here.y + 50);
+            TextOutW(hdc, here.x + 20, here.y + 25, TEXT("X MAPPED TO SPOT!"), 17); //14
+            messageshown = true;
+        }
+        if (message == 13) {
+            //  DrawGreenTriangle(hdc, here.x + 50, here.y + 50);
+            TextOutW(hdc, here.x + 20, here.y + 25, TEXT("Y MAPPED TO SPOT!"), 17); //14
+            messageshown = true;
+        }
     }
-    oldmessage = showmessage;
+    oldmessage = message;
 
 }
-void DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, POINT spotY,HWND window, HBRUSH Brush)
+void FakeCursor::DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, POINT spotY,HWND window, HBRUSH Brush)
 {
 	bool windowmoved = false;
-    bool erased = false;
+    bool erasedA = false;
+    bool erasedB = false;
+    bool erasedX = false;
+    bool erasedY = false;
     //detect window change pos
     POINT testpos;
 	ClientToScreen(window, &testpos);
     if (testpos.x < OldTestpos.x || testpos.y < OldTestpos.y || testpos.x > OldTestpos.x || testpos.y > OldTestpos.y)
     {
         windowmoved = true;
+		//MessageBoxA(NULL, "Window moved!", "Debug", MB_OK);
 	}
-    if (OldspotA.x != spotA.x || OldspotA.y != spotA.y || windowmoved)
+    if (OldspotA.x != spotA.x)
     {
-        RECT fill{ OldspotA.x - 20, OldspotA.y - 20, OldspotA.x + 20, OldspotA.y + 20 };
-        FillRect(hdc, &fill, Brush); // Note: window, not screen coordinates!
-        erased = true;
+        RECT wholewindow;
+        GetClientRect(pointerWindow, &wholewindow);
+
+        FillRect(hdc, &wholewindow, Brush);
+        erasedA = true;
+       // std::string text = "OldSpot:\nA = " + std::to_string(OldspotA.x) +
+       //     "\nNewspot = " + std::to_string(spotA.x);
+       // MessageBoxA(NULL, text.c_str(), "Two Integers", MB_OK);
     }
-    if (OldspotB.x != spotB.x || OldspotB.y != spotB.y || windowmoved)
+
+    if (OldspotB.x != spotB.x || OldspotB.y != spotB.y) //|| windowmoved)
     {
         RECT fill{ OldspotB.x - 20, OldspotB.y - 20, OldspotB.x + 20, OldspotB.y + 20 };
         FillRect(hdc, &fill, Brush); // Note: window, not screen coordinates!
-        erased = true;
+        erasedB = true;
     }
-    if (OldspotX.x != spotX.x || OldspotX.y != spotX.y || windowmoved)
+    if (OldspotX.x != spotX.x || OldspotX.y != spotX.y) //|| windowmoved)
     {
         RECT fill{ OldspotX.x - 20, OldspotX.y - 20, OldspotX.x + 20, OldspotX.y + 20 };
         FillRect(hdc, &fill, Brush); // Note: window, not screen coordinates!
-        erased = true;
+        erasedX = true;
     }
-    if (OldspotY.x != spotY.x || OldspotY.y != spotY.y || windowmoved)
+    if (OldspotY.x != spotY.x || OldspotY.y != spotY.y) //|| windowmoved)
     {
         RECT fill{ OldspotY.x - 20, OldspotY.y - 20, OldspotY.x + 20, OldspotY.y + 20 };
         FillRect(hdc, &fill, Brush); // Note: window, not screen coordinates!
-        erased = true;
+        erasedY = true;
     }
-    if (spotA.x != 0 && spotA.y != 0 && erased == true)
+
+    OldspotA.x = spotA.x;
+    OldspotB = spotB;
+    OldspotX = spotX;
+    OldspotY = spotY;
+
+
+
+
+    if (spotA.x != 0 && spotA.y != 0 && erasedA == true)
     { 
         ClientToScreen(window, &spotA);
         DrawRedX(hdc, spotA.x, spotA.y);
+		//MessageBoxA(NULL, "Spot A drawn!", "Debug", MB_OK);
+        erasedA = false;
     }
-    if (spotB.x != 0 && spotB.y != 0 && erased == true)
+    if (spotB.x != 0 && spotB.y != 0 && erasedB == true)
     {
         ClientToScreen(window, &spotB);
         DrawBlueCircle(hdc, spotB.x, spotB.y);
     }
-    if (spotX.x != 0 && spotX.y != 0 && erased == true)
+    if (spotX.x != 0 && spotX.y != 0 && erasedX == true)
     {
         ClientToScreen(window, &spotX);
         DrawGreenTriangle(hdc, spotX.x, spotX.y);
     }
-    if (spotY.x != 0 && spotY.y != 0 && erased == true)
+    if (spotY.x != 0 && spotY.y != 0 && erasedY == true)
     {
         ClientToScreen(window, &spotY);
         DrawPinkSquare(hdc, spotY.x, spotY.y);
     }
 
-    OldspotA = spotA;
-    OldspotB = spotB;
-    OldspotX = spotX;
-    OldspotY = spotY;
+
+
 	OldTestpos = testpos;
 }
 void FakeCursor::DrawCursor()
@@ -212,19 +277,21 @@ void FakeCursor::DrawCursor()
 
     }
     
-    if (ScreenshotInput::ScanThread::scanoption == 1)
+    if (ScreenshotInput::ScanThread::scanoption)
     {
         EnterCriticalSection(&ScreenshotInput::ScanThread::critical);
         selectorhwnd = (HWND)HwndSelector::GetSelectedHwnd();
-		showmessage = ScreenshotInput::TranslateXtoMKB::showmessage;
+       // FakeCursor::Showmessage = ScreenshotInput::TranslateXtoMKB::showmessage;
         POINT Apos = { ScreenshotInput::ScanThread::PointA.x, ScreenshotInput::ScanThread::PointA.y };
-        POINT Bpos = { ScreenshotInput::ScanThread::PointB.x, ScreenshotInput::ScanThread::PointB.y };
+        POINT Bpos = { ScreenshotInput::ScanThread::PointB.x, ScreenshotInput::ScanThread::PointB.y }; 
         POINT Xpos = { ScreenshotInput::ScanThread::PointX.x, ScreenshotInput::ScanThread::PointX.y };
         POINT Ypos = { ScreenshotInput::ScanThread::PointY.x, ScreenshotInput::ScanThread::PointY.y };
-        DrawFoundSpots(hdc, Apos, Bpos, Xpos, Ypos, selectorhwnd, transparencyBrush);
-        //DrawMessage(hdc, selectorhwnd, transparencyBrush);
+        FakeCursor::DrawFoundSpots(hdc, Apos, Bpos, Xpos, Ypos, selectorhwnd, transparencyBrush);
+        FakeCursor::DrawMessage(hdc, selectorhwnd, transparencyBrush, FakeCursor::Showmessage);
         LeaveCriticalSection(&ScreenshotInput::ScanThread::critical);
     }
+    else if (RawInput::TranslateXinputtoMKB)
+        DrawMessage(hdc, (HWND)HwndSelector::GetSelectedHwnd(), transparencyBrush, FakeCursor::Showmessage);
 
     oldHadShowCursor = showCursor;
 
@@ -358,21 +425,38 @@ void FakeCursor::StartDrawLoopInternal()
 {
     int tick = 0;
 
+    if (Proto::RawInput::TranslateXinputtoMKB)
+        ScreenshotInput::TranslateXtoMKB::Initialize(GetModuleHandle(NULL));
+
 	while (true)
 	{
-        std::unique_lock<std::mutex> lock(mutex);
-		conditionvar.wait(lock);
+        if (!Proto::RawInput::TranslateXinputtoMKB)
+        { 
+            std::unique_lock<std::mutex> lock(mutex);
+		    conditionvar.wait(lock);
+        
+            DrawCursor();
 
-        DrawCursor();
-
-        //TODO: is this ok? (might eat cpu)
-        Sleep(drawingEnabled ? 12 : 500);
-
+            //TODO: is this ok? (might eat cpu)
+            Sleep(drawingEnabled ? 12 : 500);
+        }
+        else {
+            ScreenshotInput::TranslateXtoMKB::ThreadFunction();
+            if (ScreenshotInput::TranslateXtoMKB::RefreshWindow > 0)
+            {
+                DrawCursor();
+                ScreenshotInput::TranslateXtoMKB::RefreshWindow--;
+            }
+        }
         tick = (tick + 1) % 200;
 
-        if (tick == 0)
+        if (tick == 0 && pointerWindow != GetForegroundWindow())
+        { 
             // Nucleus can put the game window above the pointer without this
             SetWindowPos(pointerWindow, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOREDRAW | SWP_NOSIZE);
+        }
+
+        
 	}
 }
 
@@ -465,10 +549,10 @@ void FakeCursor::EnableDisableFakeCursor(bool enable)
     UpdateWindow(state.pointerWindow);
 }
 
-void FakeCursor::Initialise()
+void FakeCursor::Initialise(HMODULE module)
 {
 	const auto threadHandle = CreateThread(nullptr, 0,
-                 (LPTHREAD_START_ROUTINE)FakeCursorThreadStart, GetModuleHandle(0), 0, 0);
+                 (LPTHREAD_START_ROUTINE)FakeCursorThreadStart, module, 0, 0);
 
     if (threadHandle != nullptr)
         CloseHandle(threadHandle);

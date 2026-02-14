@@ -286,6 +286,8 @@ struct PipeMessageSetXinputtoMKBkeys
 	int XinputtoMKBstickdown;
 	int XinputtoMKBoption;
 	int XinputtoMKBstart;
+	int XinputtoMKBsens;
+	int XinputtoMKBsensmult;
 };
 struct PipeMessageSetXinputtoMKBCFG
 {
@@ -293,8 +295,16 @@ struct PipeMessageSetXinputtoMKBCFG
 	bool scanoption;
 	bool shoulderswap;
 	bool astsatic;
+	bool aclick;
+	bool amove;
 	bool bstsatic;
+	bool bclick;
+	bool bmove;
 	bool xstsatic;
+	bool xclick;
+	bool xmove;
 	bool ystsatic;
+	bool yclick;
+	bool ymove;
 };
 }

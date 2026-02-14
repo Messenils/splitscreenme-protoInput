@@ -79,9 +79,17 @@ struct Profile
 	bool ScanOption = false;
 	bool Shoulderswappoints = false;
 	bool XAstatic = false;
+	bool XAclick = true;
+	bool XAmove = true;
 	bool XBstatic = false;
+	bool XBclick = true;
+	bool XBmove = true;
 	bool XXstatic = false;
+	bool XXclick = true;
+	bool XXmove = true;
 	bool XYstatic = false;
+	bool XYclick = true;
+	bool XYmove = true;
 	int XinputtoMKBAkey = 0x52; //R
 	int XinputtoMKBBkey = 0x47; //G
 	int XinputtoMKBXkey = 0x45; //E
@@ -100,6 +108,8 @@ struct Profile
 	int XinputtoMKBstickdown = 0x53; //S
 	int XinputtoMKBoption = 0x1B; //
 	int XinputtoMKBstart = 0x0D;
+	int XinputtoMKBsens = 15;
+	int XinputtoMKBsensmult = 4;
 	
 
 	bool useFakeClipCursor = true;
@@ -144,6 +154,47 @@ struct Profile
 			cereal::make_nvp("dinputToXinputRedirection", dinputToXinputRedirection),
 			cereal::make_nvp("useOpenXinput", useOpenXinput),
 			cereal::make_nvp("TranslateXinputtoMKB", TranslateXinputtoMKB),
+			cereal::make_nvp("XinputtoMKBstickinvert", XinputtoMKBstickinvert),
+			cereal::make_nvp("ScanOption", ScanOption),
+
+			cereal::make_nvp("Shoulderswappoints", Shoulderswappoints),
+			cereal::make_nvp("XAstatic", XAstatic),
+			cereal::make_nvp("XAclick", XAclick),
+			cereal::make_nvp("XAmove", XAmove),
+
+			cereal::make_nvp("XBstatic", XBstatic),
+			cereal::make_nvp("XBclick", XBclick),
+			cereal::make_nvp("XBmove", XBmove),
+			cereal::make_nvp("XXstatic", XXstatic),
+
+			cereal::make_nvp("XXclick", XXclick),
+			cereal::make_nvp("XXmove", XXmove),
+			cereal::make_nvp("XYclick", XYclick),
+			cereal::make_nvp("XYmove", XYmove),
+
+			cereal::make_nvp("XinputtoMKBAkey", XinputtoMKBAkey),
+			cereal::make_nvp("XinputtoMKBBkey", XinputtoMKBBkey),
+			cereal::make_nvp("XinputtoMKBXkey", XinputtoMKBXkey),
+			cereal::make_nvp("XinputtoMKBYkey", XinputtoMKBYkey),
+			cereal::make_nvp("XinputtoMKBRSkey", XinputtoMKBRSkey),
+			cereal::make_nvp("XinputtoMKBLSkey", XinputtoMKBLSkey),
+			cereal::make_nvp("XinputtoMKBrightkey", XinputtoMKBrightkey),
+			cereal::make_nvp("XinputtoMKBleftkey", XinputtoMKBleftkey),
+			cereal::make_nvp("XinputtoMKBupkey", XinputtoMKBupkey),
+			cereal::make_nvp("XinputtoMKBdownkey", XinputtoMKBdownkey),
+			cereal::make_nvp("XinputtoMKBstickR", XinputtoMKBstickR),
+			cereal::make_nvp("XinputtoMKBstickL", XinputtoMKBstickL),
+			cereal::make_nvp("XinputtoMKBstickright", XinputtoMKBstickright),
+			cereal::make_nvp("XinputtoMKBstickleft", XinputtoMKBstickleft),
+
+			cereal::make_nvp("XinputtoMKBstickleft", XinputtoMKBstickleft),
+			cereal::make_nvp("XinputtoMKBstickup", XinputtoMKBstickup),
+			cereal::make_nvp("XinputtoMKBstickdown", XinputtoMKBstickdown),
+			cereal::make_nvp("XinputtoMKBoption", XinputtoMKBoption),
+			cereal::make_nvp("XinputtoMKBstart", XinputtoMKBstart),
+			cereal::make_nvp("XinputtoMKBsens", XinputtoMKBsens),
+			cereal::make_nvp("XinputtoMKBsensmult", XinputtoMKBsensmult),
+
 			cereal::make_nvp("useFakeClipCursor", useFakeClipCursor),
 			cereal::make_nvp("showCursorWhenImageUpdated", showCursorWhenImageUpdated),
 

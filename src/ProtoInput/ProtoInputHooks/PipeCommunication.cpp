@@ -379,6 +379,11 @@ DWORD WINAPI PipeThread(LPVOID lpParameter)
 				if (RawInput::TranslateXinputtoMKB == true)
 				{
 					ScreenshotInput::TranslateXtoMKB::controllerID = XinputHook::controllerIndex - 1;
+					//Xinput hook can block controller making TranslateXtoMKB work on games with Xinput support
+					XinputHook::controllerIndex = 0; 
+					XinputHook::controllerIndex2 = 0;
+					XinputHook::controllerIndex3 = 0;
+					XinputHook::controllerIndex4 = 0;
 				}
 				break;
 			}
@@ -633,6 +638,8 @@ DWORD WINAPI PipeThread(LPVOID lpParameter)
 
 				ScreenshotInput::TranslateXtoMKB::optionmapping = body->XinputtoMKBoption;
 				ScreenshotInput::TranslateXtoMKB::startmapping = body->XinputtoMKBstart;
+				ScreenshotInput::TranslateXtoMKB::Sens = body->XinputtoMKBsens;
+				ScreenshotInput::TranslateXtoMKB::Sensmult = body->XinputtoMKBsensmult;
 				break;
 			} //PipeMessageSetXinputtoMKBCFG
 			case ProtoPipe::PipeMessageType::SetXinputtoMKBCFG:
@@ -645,6 +652,35 @@ DWORD WINAPI PipeThread(LPVOID lpParameter)
 				ScreenshotInput::ScanThread::Bisstatic = body->bstsatic;
 				ScreenshotInput::ScanThread::Xisstatic = body->xstsatic;
 				ScreenshotInput::ScanThread::Yisstatic = body->ystsatic;
+
+				if (body->amove && body->aclick)
+					ScreenshotInput::ScanThread::scanAtype = 0;
+				else if (body->amove)
+					ScreenshotInput::ScanThread::scanAtype = 1;
+				else if (body->aclick)
+					ScreenshotInput::ScanThread::scanAtype = 2;
+
+				if (body->bmove && body->bclick)
+					ScreenshotInput::ScanThread::scanBtype = 0;
+				else if (body->bmove)
+					ScreenshotInput::ScanThread::scanBtype = 1;
+				else if (body->bclick)
+					ScreenshotInput::ScanThread::scanBtype = 2;
+
+				if (body->xmove && body->xclick)
+					ScreenshotInput::ScanThread::scanXtype = 0;
+				else if (body->xmove)
+					ScreenshotInput::ScanThread::scanXtype = 1;
+				else if (body->xclick)
+					ScreenshotInput::ScanThread::scanXtype = 2;
+
+				if (body->ymove && body->yclick)
+					ScreenshotInput::ScanThread::scanYtype = 0;
+				else if (body->ymove)
+					ScreenshotInput::ScanThread::scanYtype = 1;
+				else if (body->yclick)
+					ScreenshotInput::ScanThread::scanYtype = 2;
+
 				break;
 			}
 			default:

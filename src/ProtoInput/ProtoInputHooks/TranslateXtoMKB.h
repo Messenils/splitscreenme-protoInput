@@ -12,11 +12,13 @@ namespace ScreenshotInput
 
 	public:
 		static void Initialize(HMODULE g_hModule);
+		static void ThreadFunction(); //polling from idle drawfakecursor thread
 		static void SendMouseClick(int x, int y, int z);
+		static int RefreshWindow;
 		static int controllerID;
 		static bool rawinputhook;
 		static bool registerrawinputhook;
-		static int showmessage;
+		//static int showmessage;
 		static int mode;
 		static int Amapping;
 		static int Bmapping;
@@ -37,6 +39,9 @@ namespace ScreenshotInput
 		static int optionmapping;
 		static int startmapping;
 		static bool lefthanded;
+		static int Sens;
+		static int Sensmult;
+		static bool SaveBmps;
 	};
 
 }

@@ -261,8 +261,8 @@ bool Launch()
         //Xinput translate settings
         SetXinputtoMKBkeys(instanceHandle, currentProfile.XinputtoMKBAkey, currentProfile.XinputtoMKBBkey, currentProfile.XinputtoMKBXkey, currentProfile.XinputtoMKBYkey, currentProfile.XinputtoMKBRSkey, currentProfile.XinputtoMKBLSkey, currentProfile.XinputtoMKBrightkey, currentProfile.XinputtoMKBleftkey, currentProfile.XinputtoMKBupkey, currentProfile.XinputtoMKBdownkey,
             currentProfile.XinputtoMKBstickR, currentProfile.XinputtoMKBstickL, currentProfile.XinputtoMKBstickright, currentProfile.XinputtoMKBstickleft, currentProfile.XinputtoMKBstickup, currentProfile.XinputtoMKBstickdown,
-            currentProfile.XinputtoMKBoption, currentProfile.XinputtoMKBstart, currentProfile.XinputtoMKBstickinvert);
-        SetXinputtoMKBCFG(instanceHandle, currentProfile.XinputtoMKBstickinvert, currentProfile.ScanOption, currentProfile.Shoulderswappoints, currentProfile.XAstatic, currentProfile.XBstatic, currentProfile.XXstatic, currentProfile.XYstatic);
+            currentProfile.XinputtoMKBoption, currentProfile.XinputtoMKBstart, currentProfile.XinputtoMKBsens, currentProfile.XinputtoMKBsensmult);
+        SetXinputtoMKBCFG(instanceHandle, currentProfile.XinputtoMKBstickinvert, currentProfile.ScanOption, currentProfile.Shoulderswappoints, currentProfile.XAstatic, currentProfile.XAclick, currentProfile.XAmove, currentProfile.XBstatic, currentProfile.XBclick, currentProfile.XBmove, currentProfile.XXstatic, currentProfile.XXclick, currentProfile.XXmove, currentProfile.XYstatic, currentProfile.XYclick, currentProfile.XYmove);
        
         if (!instance.runtime)
             WakeUpProcess(instanceHandle);
@@ -732,8 +732,8 @@ void SelectedInstanceWindow()
     ImGui::Checkbox("Translate X to MKB", &currentProfile.TranslateXinputtoMKB); //
     ImGui::Separator();
     ImGui::Spacing();
-    ImGui::TextWrapped("Scanoption Will prescan and render coordinates if any BMPs or static points are loaded"
-        "");
+    ImGui::TextWrapped("Scanoption Will prescan and render coordinates if any BMPs or static points are loaded."
+        "Place .BMP files next to exe. named A0 for A button and +1 for each bmp");
     ImGui::Checkbox("Scanoption", &currentProfile.ScanOption); //
     ImGui::Separator();
     ImGui::Spacing();
@@ -750,6 +750,20 @@ void SelectedInstanceWindow()
     ImGui::Checkbox("B static", &currentProfile.XBstatic); //
     ImGui::Checkbox("X static", &currentProfile.XXstatic); //
     ImGui::Checkbox("Y static", &currentProfile.XYstatic); //
+    ImGui::Separator();
+    ImGui::Spacing();
+    ImGui::TextWrapped("Input Actions on coordinate"
+        "");
+
+    ImGui::Spacing();
+    ImGui::Checkbox("A click", &currentProfile.XAclick); //
+    ImGui::Checkbox("A move", &currentProfile.XAmove); //
+    ImGui::Checkbox("B click", &currentProfile.XBclick); //
+    ImGui::Checkbox("B move", &currentProfile.XBmove); //
+    ImGui::Checkbox("X click", &currentProfile.XXclick); //
+    ImGui::Checkbox("X move", &currentProfile.XXmove); //
+    ImGui::Checkbox("Y click", &currentProfile.XYclick); //
+    ImGui::Checkbox("Y move", &currentProfile.XYmove); //
     ImGui::Separator();
     ImGui::TextWrapped("Mappings:"
         "");
@@ -1223,9 +1237,26 @@ void SelectedInstanceWindow()
     ImGui::Separator();
     ImGui::Checkbox("Lefthanded Stick. moves mouse with left stick and button map on right stick. or opposite if disabled", &currentProfile.XinputtoMKBstickinvert); //
     ImGui::Separator();
+    ImGui::SliderInt("XtoMKB Sensitivity", (int*)&currentProfile.XinputtoMKBsens, 1, 40, "%d", ImGuiSliderFlags_AlwaysClamp);
     ImGui::Separator();
+    ImGui::SliderInt("XtoMKB Sensitivity multiplier", (int*)&currentProfile.XinputtoMKBsensmult, 1, 20, "%d", ImGuiSliderFlags_AlwaysClamp);
 
     ImGui::PopID();
+    bool stickinvert;
+    bool scanoption;
+    bool shoulderswap;
+    bool astsatic;
+    bool aclick;
+    bool amove;
+    bool bstsatic;
+    bool bclick;
+    bool bmove;
+    bool xstsatic;
+    bool xclick;
+    bool xmove;
+    bool ystsatic;
+    bool yclick;
+    bool ymove;
 }
 
 void OptionsMenu()

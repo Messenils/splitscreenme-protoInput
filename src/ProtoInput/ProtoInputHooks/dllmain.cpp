@@ -56,10 +56,8 @@ DWORD WINAPI StartThread(LPVOID lpParameter)
 
     Proto::FocusMessageLoop::SetupThread();
 
-    Proto::FakeCursor::Initialise();
+    Proto::FakeCursor::Initialise(dll_hModule);
     
-    if (Proto::RawInput::TranslateXinputtoMKB)
-        ScreenshotInput::TranslateXtoMKB::Initialize(dll_hModule);
 
     InitializeCriticalSection(&ScreenshotInput::ScanThread::critical);
 
@@ -67,7 +65,7 @@ DWORD WINAPI StartThread(LPVOID lpParameter)
         (LPTHREAD_START_ROUTINE)GuiThread, dll_hModule, CREATE_SUSPENDED, &Proto::GuiThreadID);
 
     ResumeThread(hGuiThread);
-
+      
     if (hGuiThread != nullptr)
         CloseHandle(hGuiThread);
 

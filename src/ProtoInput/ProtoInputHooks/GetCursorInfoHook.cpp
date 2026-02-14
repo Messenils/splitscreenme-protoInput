@@ -7,18 +7,11 @@ namespace Proto
 
 	BOOL WINAPI Hook_GetCursorInfo(PCURSORINFO pci)
 	{
-		if (pci)
+		if (GetCursorInfo(pci))
 		{
+		
 			const auto& state = FakeMouseKeyboard::GetMouseState();
-			POINT clientPos = pci->ptScreenPos;
-			ScreenToClient((HWND)HwndSelector::GetSelectedHwnd(), &clientPos);
-			clientPos.x = state.x;
-			clientPos.y = state.y;
-
-			clientPos.x = state.x;
-			clientPos.y = state.y;
-			
-			
+			POINT clientPos = { state.x, state.y };
 			if (FakeMouseKeyboard::PutMouseInsideWindow)
 			{
 				int clientWidth = HwndSelector::windowWidth;
@@ -41,9 +34,11 @@ namespace Proto
 			ClientToScreen((HWND)HwndSelector::GetSelectedHwnd(), &clientPos);
 			pci->ptScreenPos.x = clientPos.x;
 			pci->ptScreenPos.y = clientPos.y;
+			
 		}
-
 		return true;
+
+		
 	}
 
 	void GetCursorInfoHook::ShowGuiStatus()

@@ -28,7 +28,7 @@
     <Filter Include="Source Files\openxinput">
       <UniqueIdentifier>{14e41680-f011-4d2c-b31b-3fd2d6ae9a52}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Hooks\TranslateXtoMKB">
+    <Filter Include="Source Files\TranslateXtoMKB">
       <UniqueIdentifier>{a0d1a945-2bce-40dd-88b8-54724cf1b678}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -184,16 +184,16 @@
       <Filter>Source Files\Hooks</Filter>
     </ClInclude>
     <ClInclude Include="TranslateXtoMKB.h">
-      <Filter>Source Files\Hooks\TranslateXtoMKB</Filter>
+      <Filter>Source Files\TranslateXtoMKB</Filter>
     </ClInclude>
     <ClInclude Include="GtoMnK_RawInput.h">
-      <Filter>Source Files\Hooks\TranslateXtoMKB</Filter>
+      <Filter>Source Files\TranslateXtoMKB</Filter>
     </ClInclude>
     <ClInclude Include="GtoMnK_RawInputHooks.h">
-      <Filter>Source Files\Hooks\TranslateXtoMKB</Filter>
+      <Filter>Source Files\TranslateXtoMKB</Filter>
     </ClInclude>
     <ClInclude Include="ScanThread.h">
-      <Filter>Source Files\Hooks\TranslateXtoMKB</Filter>
+      <Filter>Source Files\TranslateXtoMKB</Filter>
     </ClInclude>
     <ClInclude Include="GetCursorInfoHook.h">
       <Filter>Source Files\Hooks</Filter>
@@ -342,16 +342,16 @@
       <Filter>Source Files\Hooks</Filter>
     </ClCompile>
     <ClCompile Include="TranslateXtoMKB.cpp">
-      <Filter>Source Files\Hooks\TranslateXtoMKB</Filter>
+      <Filter>Source Files\TranslateXtoMKB</Filter>
     </ClCompile>
     <ClCompile Include="GtoMnK_RawInput.cpp">
-      <Filter>Source Files\Hooks\TranslateXtoMKB</Filter>
+      <Filter>Source Files\TranslateXtoMKB</Filter>
     </ClCompile>
     <ClCompile Include="GtoMnK_RawInputHooks.cpp">
-      <Filter>Source Files\Hooks\TranslateXtoMKB</Filter>
+      <Filter>Source Files\TranslateXtoMKB</Filter>
     </ClCompile>
     <ClCompile Include="ScanThread.cpp">
-      <Filter>Source Files\Hooks\TranslateXtoMKB</Filter>
+      <Filter>Source Files\TranslateXtoMKB</Filter>
     </ClCompile>
     <ClCompile Include="GetCursorInfoHook.cpp">
       <Filter>Source Files\Hooks</Filter>

@@ -697,7 +697,7 @@ void SetDontWaitWindowBorder(ProtoInstanceHandle instanceHandle, bool enabled)
 		ProtoSendPipeMessage(instance.pipeHandle, ProtoPipe::PipeMessageType::SetDontWaitWindowBorder, &message);
 	}
 }
-void SetXinputtoMKBkeys(ProtoInstanceHandle instanceHandle, int XinputtoMKBAkey, int XinputtoMKBBkey, int XinputtoMKBXkey, int XinputtoMKBYkey, int XinputtoMKBRSkey, int XinputtoMKBLSkey, int XinputtoMKBrightkey, int XinputtoMKBleftkey, int XinputtoMKBupkey, int XinputtoMKBdownkey, int XinputtoMKBstickR, int XinputtoMKBstickL, int XinputtoMKBstickright, int XinputtoMKBstickleft, int XinputtoMKBstickup, int XinputtoMKBstickdown, int XinputtoMKBoption, int XinputtoMKBstart, bool XinputtoMKBstickinvert)
+void SetXinputtoMKBkeys(ProtoInstanceHandle instanceHandle, int XinputtoMKBAkey, int XinputtoMKBBkey, int XinputtoMKBXkey, int XinputtoMKBYkey, int XinputtoMKBRSkey, int XinputtoMKBLSkey, int XinputtoMKBrightkey, int XinputtoMKBleftkey, int XinputtoMKBupkey, int XinputtoMKBdownkey, int XinputtoMKBstickR, int XinputtoMKBstickL, int XinputtoMKBstickright, int XinputtoMKBstickleft, int XinputtoMKBstickup, int XinputtoMKBstickdown, int XinputtoMKBoption, int XinputtoMKBstart, int XinputtoMKBsens, int XinputtoMKBsensmult)
 {
 	if (const auto find = Proto::instances.find(instanceHandle); find != Proto::instances.end())
 	{
@@ -725,12 +725,14 @@ void SetXinputtoMKBkeys(ProtoInstanceHandle instanceHandle, int XinputtoMKBAkey,
 			XinputtoMKBstickdown,
 			XinputtoMKBoption,
 			XinputtoMKBstart,
+			XinputtoMKBsens,
+			XinputtoMKBsensmult
 		};
 
 		ProtoSendPipeMessage(instance.pipeHandle, ProtoPipe::PipeMessageType::SetXinputtoMKBkeys, &message);
 	}
 }
-void SetXinputtoMKBCFG(ProtoInstanceHandle instanceHandle, bool stickinvert, bool scanoption, bool shoulderswap, bool astatic, bool bstatic, bool xstatic, bool ystatic)
+void SetXinputtoMKBCFG(ProtoInstanceHandle instanceHandle, bool stickinvert, bool scanoption, bool shoulderswap, bool astatic, bool aclick, bool amove, bool bstatic, bool bclick, bool bmove, bool xstatic, bool xclick, bool xmove, bool ystatic, bool yclick, bool ymove )
 {
 	if (const auto find = Proto::instances.find(instanceHandle); find != Proto::instances.end())
 	{
@@ -744,9 +746,17 @@ void SetXinputtoMKBCFG(ProtoInstanceHandle instanceHandle, bool stickinvert, boo
 			scanoption,
 			shoulderswap,
 			astatic,
+			aclick,
+			amove,
 			bstatic,
+			bclick,
+			bmove,
 			xstatic,
+			xclick,
+			xmove,
 			ystatic,
+			yclick,
+			ymove
 		};
 
 		ProtoSendPipeMessage(instance.pipeHandle, ProtoPipe::PipeMessageType::SetXinputtoMKBCFG, &message);

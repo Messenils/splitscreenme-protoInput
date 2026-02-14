@@ -44,6 +44,7 @@ namespace ScreenshotInput
 {
     int InstanceID = 0; //InstanceID copy from stateinfo.h
 
+    int TranslateXtoMKB::RefreshWindow;
     //from tunnell
     int TranslateXtoMKB::controllerID;
     bool TranslateXtoMKB::rawinputhook; //registerrawinputhook
@@ -69,37 +70,39 @@ namespace ScreenshotInput
     int TranslateXtoMKB::startmapping;
     bool TranslateXtoMKB::lefthanded;
     int TranslateXtoMKB::mode = 1;
+	bool TranslateXtoMKB::SaveBmps;
 
+    int TranslateXtoMKB::Sens = 12;
+    int TranslateXtoMKB::Sensmult = 4;
     int updatewindowtick = 300;
-    
-    int AxisLeftsens = -15000;
-    int AxisRightsens = 15000;
-    int AxisUpsens = 15000;
-    int AxisDownsens = -15000;
+
+    int AxisLeftsens = -9000;
+    int AxisRightsens = 9000;
+    int AxisUpsens = 9000;
+    int AxisDownsens = -9000;
     int scrollspeed3;
     float radial_deadzone = 0.10f; // Circular/Radial Deadzone (0.0 to 0.3)
     float axial_deadzone = 0.00f; // Square/Axial Deadzone (0.0 to 0.3)
     const float max_threshold = 0.03f; // Max Input Threshold, an "outer deadzone" (0.0 to 0.15)
     const float curve_slope = 0.16f; // The linear portion of the response curve (0.0 to 1.0)
     const float curve_exponent = 5.00f; // The exponential portion of the curve (1.0 to 10.0)
-    float sensitivity = 12.00f; // Base sensitivity / max speed (1.0 to 30.0)
-    float accel_multiplier = 1.90f; // Look Acceleration Multiplier (1.0 to 3.0)
+    //float sensitivity = 9.00f; // Base sensitivity / max speed (1.0 to 30.0)
+    //float accel_multiplier = 1.90f; // Look Acceleration Multiplier (1.0 to 3.0)
 
     /////////////////
-    bool movedmouse;
-	bool leftPressedold = false;
-	bool rightPressedold = false;
+
+    bool leftPressedold = false;
+    bool rightPressedold = false;
     HMODULE g_hModule = nullptr;
 
     bool loop = true;
     //CRITICAL_SECTION critical; //window thread
-    int TranslateXtoMKB::showmessage = 0; //0 = no message, 1 = initializing, 2 = bmp mode, 3 = bmp and cursor mode, 4 = edit mode   
-    
+    //int TranslateXtoMKB::showmessage = 0; //0 = no message, 1 = initializing, 2 = bmp mode, 3 = bmp and cursor mode, 4 = edit mode   
+
     int counter = 0;
-	bool oldhome = false; //toggle lock input with home key
+    bool oldhome = false; //toggle lock input with home key
 
     //copy of criticals
-    int showmessageMT;
     int modeMT;
 
     POINT delta;
@@ -116,10 +119,10 @@ namespace ScreenshotInput
 
     bool rawmouseWu = false;
     bool rawmouseWd = false;
-	bool oldA = false;
-	bool oldB = false;
-	bool oldX = false;
-	bool oldY = false;
+    bool oldA = false;
+    bool oldB = false;
+    bool oldX = false;
+    bool oldY = false;
 
     bool oldC = false;
     bool oldD = false;
@@ -139,9 +142,40 @@ namespace ScreenshotInput
     bool oldscrollup = false;
     bool oldGUIkey = false;
 
-    // Add a fake key event to the array
 
-	USHORT lastVKkey = 0;
+    void StartScanner() {
+        ScanThread::numphotoA = 0;
+        ScanThread::numphotoB = 0;
+        ScanThread::numphotoX = 0;
+        ScanThread::numphotoY = 0;
+        // InitializeCriticalSection(&ScanThread::critical);
+        if (!ScanThread::enumeratebmps()) //false means no bmps found. also counts statics
+        {
+            //  printf("BMPs enumerated but not found");
+            if (ScanThread::scanoption)
+            {
+                ScanThread::scanoption = false;
+                //    printf("Error. Nothing to scan for. Disabling scanoption");
+            }
+			
+        }
+        else {
+            //  printf("BMPs found");
+            ScanThread::staticPointA.assign(ScanThread::numphotoA + 1, POINT{ 0, 0 });
+            ScanThread::staticPointB.assign(ScanThread::numphotoB + 1, POINT{ 0, 0 });
+            ScanThread::staticPointX.assign(ScanThread::numphotoX + 1, POINT{ 0, 0 });
+            ScanThread::staticPointY.assign(ScanThread::numphotoY + 1, POINT{ 0, 0 });
+        }
+        ScanThread::initovector();
+        if (ScanThread::scanoption)
+        { //starting bmp continous scanner
+            ScanThread::StartScanThread(g_hModule, ScanThread::Aisstatic, ScanThread::Bisstatic, ScanThread::Xisstatic, ScanThread::Yisstatic, ScanThread::scanoption);
+            //  printf("BMP scanner started");
+        }
+        Sleep(20); //give time for ScanThread::scanloop toggle true
+    }
+
+    USHORT lastVKkey = 0;
     bool IsKeyPressed(int Vkey)
     {
         return (GetAsyncKeyState(Vkey) & 0x8000) != 0;
@@ -190,42 +224,6 @@ namespace ScreenshotInput
         }
         Proto::RawInput::SendInputMessages(muusjn);
     }
-
-        void ButtonStateImpulse(int vk, bool state)
-        {
-            RAWKEYBOARD data{};
-            data.MakeCode = MapVirtualKey(vk, MAPVK_VK_TO_VSC);
-            data.VKey = vk;
-            data.ExtraInformation = 0;
-
-            data.Flags = state ? 0 : RI_KEY_BREAK;
-            data.Message = state ? WM_KEYDOWN : WM_KEYUP;
-
-            // Extended key?
-            switch (vk)
-            {
-            case VK_LEFT:
-            case VK_RIGHT:
-            case VK_UP:
-            case VK_DOWN:
-            case VK_INSERT:
-            case VK_DELETE:
-            case VK_HOME:
-            case VK_END:
-            case VK_PRIOR:
-            case VK_NEXT:
-            case VK_RCONTROL:
-            case VK_RMENU:
-            case VK_DIVIDE:
-            case VK_NUMLOCK:
-                data.Flags |= RI_KEY_E0;
-                break;
-            }
-        Proto::FakeMouseKeyboard::ReceivedKeyPressOrRelease(vk, state);
-        Proto::RawInput::SendKeyMessage(data, state);
-        RawInput::GenerateRawKey(vk, state, false);
-
-    }
     std::string UGetExeFolder() {
         char path[MAX_PATH];
         GetModuleFileNameA(NULL, path, MAX_PATH);
@@ -235,6 +233,85 @@ namespace ScreenshotInput
         size_t lastSlash = exePath.find_last_of("\\/");
         return exePath.substr(0, lastSlash);
     }
+    void ButtonStateImpulse(int vk, bool state, int whocalled)
+    {
+        if (modeMT == 1)
+        {
+            RAWKEYBOARD data{};
+            data.MakeCode = MapVirtualKey(vk, MAPVK_VK_TO_VSC);
+            data.VKey = vk;
+          //  MessageBoxA(NULL, path.c_str(), "1", MB_OK);
+            data.ExtraInformation = 0;
+            data.Flags = state ? 0 : RI_KEY_BREAK;
+            data.Message = state ? WM_KEYDOWN : WM_KEYUP;
+            // Extended key?
+            switch (vk)
+            {
+                case VK_LEFT:
+                case VK_RIGHT:
+                case VK_UP:
+                case VK_DOWN:
+                case VK_INSERT:
+                case VK_DELETE:
+                case VK_HOME:
+                case VK_END:
+                case VK_PRIOR:
+                case VK_NEXT:
+                case VK_RCONTROL:
+                case VK_RMENU:
+                case VK_DIVIDE:
+                case VK_NUMLOCK:
+                    data.Flags |= RI_KEY_E0;
+                    break;
+            }
+            Proto::FakeMouseKeyboard::ReceivedKeyPressOrRelease(vk, state);
+            Proto::RawInput::SendKeyMessage(data, state);
+            RawInput::GenerateRawKey(vk, state, false);
+        }
+        if (modeMT == 2)
+        {
+            if (Proto::FakeCursor::Showmessage == 0)
+             {
+				HWND hwndhere = (HWND)Proto::HwndSelector::GetSelectedHwnd();
+                Proto::FakeMouseState muusjn = Proto::FakeMouseKeyboard::GetMouseState();
+                int Xhold = muusjn.x;
+                int Yhold = muusjn.y;
+                std::string path;
+                if ( whocalled == 0) //A
+                { 
+                    path = UGetExeFolder() + "\\A" + std::to_string(ScanThread::numphotoA) + ".bmp";
+                    Proto::FakeCursor::Showmessage = 10; //signal is saving
+                    ScanThread::numphotoA++;
+                }
+                if (whocalled == 1) //B
+                {
+                    path = UGetExeFolder() + "\\B" + std::to_string(ScanThread::numphotoB) + ".bmp";
+                    Proto::FakeCursor::Showmessage = 11; //signal is saving
+                    ScanThread::numphotoB++;
+                }
+                if (whocalled == 2) //X
+                {
+                    path = UGetExeFolder() + "\\X" + std::to_string(ScanThread::numphotoX) + ".bmp";
+                    Proto::FakeCursor::Showmessage = 12; //signal is saving
+                    ScanThread::numphotoX++;
+                }
+                if (whocalled == 3) //Y
+                {
+                    path = UGetExeFolder() + "\\Y" + std::to_string(ScanThread::numphotoY) + ".bmp";
+                    Proto::FakeCursor::Showmessage = 13; //signal is saving
+                    ScanThread::numphotoY++;
+                }
+				
+                std::wstring wpath(path.begin(), path.end());
+                ScanThread::SaveWindow10x10BMP(hwndhere, wpath.c_str(), muusjn.x, muusjn.y);
+               // MessageBoxW(nullptr, wpath.c_str(), L"Path", MB_OK);
+
+                TranslateXtoMKB::RefreshWindow ++;
+                counter = 0;
+              }
+        }
+    }
+
 
 
     std::wstring WGetExeFolder() {
@@ -328,547 +405,518 @@ namespace ScreenshotInput
         return { integerDeltaX, -integerDeltaY };
     }
 
-   
+
     std::wstring ToWString(const std::string& s)
     {
         return std::wstring(s.begin(), s.end());
     }
-    bool readsettings() {
-        char buffer[64]; //or only 4 maybe
-
-        // settings reporting
-        std::string iniPath = UGetExeFolder() + "\\Xinput.ini";
-        std::string iniSettings = "Settings";
-        GetPrivateProfileStringA(iniSettings.c_str(), "Axial_Deadzone", "0.0", buffer, sizeof(buffer), iniPath.c_str());
-        axial_deadzone = std::stof(buffer); //sensitivity
-
-        GetPrivateProfileStringA(iniSettings.c_str(), "Sensitivity", "12.0", buffer, sizeof(buffer), iniPath.c_str());
-        sensitivity = std::stof(buffer); //sensitivity //accel_multiplier
-
-        GetPrivateProfileStringA(iniSettings.c_str(), "Accel_Multiplier", "2.5", buffer, sizeof(buffer), iniPath.c_str());
-        accel_multiplier = std::stof(buffer);
-
-        return true;
-    }
-    void ThreadFunction(HMODULE hModule)
+    void TranslateXtoMKB::ThreadFunction()
     {
-        
-        Proto::AddThreadToACL(GetCurrentThreadId());
-        Sleep(2000);
-        if (readsettings() == false)
+        if (ScanThread::scanoption && ScanThread::scanloop == false)
         {
-            //messagebox? settings not read
+			MessageBoxA(NULL, "Starting BMP scanner...", "Info", MB_OK);
+			StartScanner();
         }
+        float sensitivity = static_cast<float>(TranslateXtoMKB::Sens);
+        float accel_multiplier = static_cast<float>(TranslateXtoMKB::Sensmult) / 2.0f;
 
-       // InitializeCriticalSection(&ScanThread::critical);
-        if (!ScanThread::enumeratebmps()) //false means no bmps found. also counts statics
+        EnterCriticalSection(&ScanThread::critical);
+        if (ScanThread::UpdateWindow)
+            TranslateXtoMKB::RefreshWindow = 1;
+        LeaveCriticalSection(&ScanThread::critical);
+        modeMT = 1;
+        if (TranslateXtoMKB::SaveBmps) {
+            modeMT = 2;
+        }
+            
+        //GUI
+        if (oldGUIkey)
         {
-          //  printf("BMPs enumerated but not found");
-            if (ScanThread::scanoption == 1)
+            if (IsKeyPressed(VK_RCONTROL) && IsKeyPressed(VK_RMENU) && IsKeyPressed(0x30 + InstanceID))
             {
-                ScanThread::scanoption = 0;
-            //    printf("Error. Nothing to scan for. Disabling scanoption");
+            }
+            else
+            {
+                oldGUIkey = false;
+                ButtonStateImpulse(VK_HOME, false, 99);//down}
             }
         }
-        else {
-          //  printf("BMPs found");
-            ScanThread::staticPointA.assign(ScanThread::numphotoA + 1, POINT{ 0, 0 });
-            ScanThread::staticPointB.assign(ScanThread::numphotoB + 1, POINT{ 0, 0 });
-            ScanThread::staticPointX.assign(ScanThread::numphotoX + 1, POINT{ 0, 0 });
-            ScanThread::staticPointY.assign(ScanThread::numphotoY + 1, POINT{ 0, 0 });
-        }
-        ScanThread::initovector();
-        if (ScanThread::scanoption == 1)
-        { //starting bmp continous scanner
-            ScanThread::StartScanThread(g_hModule, ScanThread::Aisstatic, ScanThread::Bisstatic, ScanThread::Xisstatic, ScanThread::Yisstatic, ScanThread::scanoption);
-          //  printf("BMP scanner started");
-        }
-
-        while (loop == true)
+        else if (IsKeyPressed(VK_RCONTROL) && IsKeyPressed(VK_RMENU) && IsKeyPressed(0x30 + InstanceID))//gui or fake cursor toggle
         {
-            //if render. sleep while rendering instead of at the end
-            bool alreadyslept = false; 
-            //copy criticals
-			EnterCriticalSection(&ScanThread::critical);
-			showmessageMT = TranslateXtoMKB::showmessage;
-			modeMT = TranslateXtoMKB::mode;
-			LeaveCriticalSection(&ScanThread::critical);
-
-            //GUI
-            if (oldGUIkey)
+            Proto::ToggleWindow();
+            oldGUIkey = true;
+            Proto::FakeCursor::Showmessage = 2;
+            TranslateXtoMKB::RefreshWindow = 1;
+            tick = 0;
+            if (TranslateXtoMKB::mode == 1) //modechange
             {
-                if (IsKeyPressed(VK_RCONTROL) && IsKeyPressed(VK_RMENU) && IsKeyPressed(0x30 + InstanceID))
-                {
+                TranslateXtoMKB::mode = 2;
+            }
+            else TranslateXtoMKB::mode = 1;
+        }
+
+        XINPUT_STATE state;
+        ZeroMemory(&state, sizeof(XINPUT_STATE));
+        // Check controller 0
+        DWORD dwResult = OpenXInputGetState(TranslateXtoMKB::controllerID, &state);
+        if (dwResult == ERROR_SUCCESS)
+        {
+            WORD buttons = state.Gamepad.wButtons;
+            if (Proto::FakeCursor::Showmessage == 1)
+            {//remove disconnected message
+                Proto::FakeCursor::Showmessage = 0;
+                TranslateXtoMKB::RefreshWindow = 1;
+            }
+            if (modeMT > 0)
+            {
+                //fake cursor poll
+                int Xaxis = 0;
+                int Yaxis = 0;
+                int scrollXaxis = 0;
+                int scrollYaxis = 0;
+                int Yscroll = 0;
+                int Xscroll = 0;
+                bool leftPressed = IsTriggerPressed(state.Gamepad.bLeftTrigger);
+                bool rightPressed = IsTriggerPressed(state.Gamepad.bRightTrigger);
+
+                if (TranslateXtoMKB::lefthanded == 1) {
+                    Xaxis = state.Gamepad.sThumbRX;
+                    Yaxis = state.Gamepad.sThumbRY;
+                    scrollXaxis = state.Gamepad.sThumbLX;
+                    scrollYaxis = state.Gamepad.sThumbLY;
                 }
                 else
                 {
-                    oldGUIkey = false;
-                    ButtonStateImpulse(VK_HOME, false);//down}
+                    Xaxis = state.Gamepad.sThumbLX;
+                    Yaxis = state.Gamepad.sThumbLY;
+                    scrollXaxis = state.Gamepad.sThumbRX;
+                    scrollYaxis = state.Gamepad.sThumbRY;
                 }
-            }
-            else if (IsKeyPressed(VK_RCONTROL) && IsKeyPressed(VK_RMENU) && IsKeyPressed(0x30 + InstanceID))//gui or fake cursor toggle
-            {
-                Proto::ToggleWindow();
-                oldGUIkey = true;
-            }
 
-            movedmouse = false; //reset
-            XINPUT_STATE state;
-            ZeroMemory(&state, sizeof(XINPUT_STATE));
-            // Check controller 0
-            DWORD dwResult = OpenXInputGetState(TranslateXtoMKB::controllerID, &state);
-            if (dwResult == ERROR_SUCCESS)
-            {
-                WORD buttons = state.Gamepad.wButtons;
+                delta = CalculateUltimateCursorMove(
+                    Xaxis, Yaxis,
+                    radial_deadzone, axial_deadzone, max_threshold,
+                    curve_slope, curve_exponent,
+                    sensitivity, accel_multiplier
+                ); 
+                if (delta.x != 0 || delta.y != 0) {
+                    Xf += delta.x;
+                    Yf += delta.y;
+                    TranslateXtoMKB::RefreshWindow = 1;
+                    TranslateXtoMKB::SendMouseClick(delta.x, delta.y, 8);
+                }
 
-                if (modeMT > 0)
+                if (leftPressedold)
                 {
-                        //fake cursor poll
-                    int Xaxis = 0;
-                    int Yaxis = 0;
-                    int scrollXaxis = 0;
-                    int scrollYaxis = 0;
-                    int Yscroll = 0;
-                    int Xscroll = 0;
-                    bool leftPressed = IsTriggerPressed(state.Gamepad.bLeftTrigger);
-                    bool rightPressed = IsTriggerPressed(state.Gamepad.bRightTrigger);
+                    if (!leftPressed)
+                    {
 
-                    if (TranslateXtoMKB::lefthanded == 1) {
-                        Xaxis = state.Gamepad.sThumbRX;
-                        Yaxis = state.Gamepad.sThumbRY;
-                        scrollXaxis = state.Gamepad.sThumbLX;
-                        scrollYaxis = state.Gamepad.sThumbLY;
+                        TranslateXtoMKB::SendMouseClick(Xf, Yf, 6); //double click
+                        leftPressedold = false;
+                    }
+                }
+                else if (leftPressed)
+                {
+                    if (leftPressedold == false)
+                    {
+                        TranslateXtoMKB::SendMouseClick(Xf, Yf, 5); //4 skal vere 3
+                        leftPressedold = true;
+                    }
+                }
+
+                if (rightPressedold)
+                {
+                    if (!rightPressed)
+                    {
+                        TranslateXtoMKB::SendMouseClick(Xf, Yf, 4);
+                        rightPressedold = false;
+                    }
+                } //if rightpress
+                else if (rightPressed)
+                {
+                    if (rightPressedold == false)
+                    {
+                        TranslateXtoMKB::SendMouseClick(Xf, Yf, 3);
+                        rightPressedold = true;
+
+                    }
+                }
+
+                //buttons
+                if (oldscrollleft)
+                {
+                    if (scrollXaxis < AxisLeftsens) //left
+                    {
+                    }
+                    else {
+                        oldscrollleft = false;
+                        ButtonStateImpulse(TranslateXtoMKB::stickrightmapping, false, 99);//down
+                    }
+                }
+                else if (scrollXaxis < AxisLeftsens) //left
+                {
+                    oldscrollleft = true;
+
+                    ButtonStateImpulse(TranslateXtoMKB::stickrightmapping, true, 99);//down
+                }
+
+                if (oldscrollright)
+                {
+                    if (scrollXaxis > AxisRightsens) //left
+                    {
+                    }
+                    else {
+                        oldscrollright = false;
+                        ButtonStateImpulse(TranslateXtoMKB::stickleftmapping, false, 99);//down
+                    }
+                }
+                else if (scrollXaxis > AxisRightsens) //left
+                {
+                    oldscrollright = true;
+                    ButtonStateImpulse(TranslateXtoMKB::stickleftmapping, true, 99);//down
+                }
+
+                if (oldscrollup)
+                {
+                    if (scrollYaxis > AxisUpsens) //left
+                    {
+                    }
+                    else {
+                        oldscrollup = false;
+                        ButtonStateImpulse(TranslateXtoMKB::stickupmapping, false, 99);//down
+                    }
+                }
+                else if (scrollYaxis > AxisUpsens) //left
+                {
+                    oldscrollup = true;
+                    ButtonStateImpulse(TranslateXtoMKB::stickupmapping, true, 99);//down
+                }
+
+                if (oldscrolldown)
+                {
+                    if (scrollYaxis < AxisDownsens) //left
+                    {
+                    }
+                    else {
+                        oldscrolldown = false;
+                        ButtonStateImpulse(TranslateXtoMKB::stickdownmapping, false, 99);//down
+                    }
+                }
+                else if (scrollYaxis < AxisDownsens) //left
+                {
+                    oldscrolldown = true;
+                    ButtonStateImpulse(TranslateXtoMKB::stickdownmapping, true, 99);//down
+                }
+
+                if (oldA)
+                {
+                    if (buttons & XINPUT_GAMEPAD_A)
+                    {
+                    }
+                    else {
+                        oldA = false;
+
+                        ButtonStateImpulse(TranslateXtoMKB::Amapping, false, 0);//release
+                    }
+
+                }
+                else if (buttons & XINPUT_GAMEPAD_A)
+                {
+                    oldA = true;
+                    if (ScanThread::scanoption)
+                    {
+                        bool found = ScanThread::ButtonPressed(0);
+                        if (!found)
+                            ButtonStateImpulse(TranslateXtoMKB::Amapping, true, 0);//down
+                    }
+                    else ButtonStateImpulse(TranslateXtoMKB::Amapping, true, 0);
+                    TranslateXtoMKB::RefreshWindow = 2;
+                }
+
+
+                if (oldB)
+                {
+                    if (buttons & XINPUT_GAMEPAD_B)
+                    {
+                    }
+                    else {
+                        oldB = false;
+                        ButtonStateImpulse(TranslateXtoMKB::Bmapping, false,1);//release
+                    }
+                }
+                else if (buttons & XINPUT_GAMEPAD_B)
+                {
+                    oldB = true;
+                    if (ScanThread::scanoption && modeMT != 2)
+                    {
+                        bool found = ScanThread::ButtonPressed(1);
+                        if (!found)
+                            ButtonStateImpulse(TranslateXtoMKB::Bmapping, true, 1);//down
+                    }
+                    else ButtonStateImpulse(TranslateXtoMKB::Bmapping, true, 1);//down
+                    TranslateXtoMKB::RefreshWindow = 2;
+                }
+
+
+                if (oldX)
+                {
+                    if (buttons & XINPUT_GAMEPAD_X)
+                    {
+                    }
+                    else {
+                        oldX = false;
+                        ButtonStateImpulse(TranslateXtoMKB::Xmapping, false, 2);//release
+                    }
+                }
+                else if (buttons & XINPUT_GAMEPAD_X)
+                {
+                    oldX = true;
+                    if (ScanThread::scanoption && modeMT != 2)
+                    {
+                        bool found = ScanThread::ButtonPressed(2);
+                        if (!found)
+                            ButtonStateImpulse(TranslateXtoMKB::Xmapping, true, 2);//down
+                    }
+                    else ButtonStateImpulse(TranslateXtoMKB::Xmapping, true, 2);//down
+                    TranslateXtoMKB::RefreshWindow = 2;
+                }
+
+
+                if (oldY)
+                {
+                    if (buttons & XINPUT_GAMEPAD_Y)
+                    {
+                    }
+                    else {
+                        oldY = false;
+                        ButtonStateImpulse(TranslateXtoMKB::Ymapping, false, 3);//release
+                    }
+                }
+                else if (buttons & XINPUT_GAMEPAD_Y)
+                {
+                    oldY = true;
+                    if (ScanThread::scanoption && modeMT != 2)
+                    {
+                        bool found = ScanThread::ButtonPressed(3);
+                        if (!found)
+                            ButtonStateImpulse(TranslateXtoMKB::Ymapping, true, 3);//down
+                    }
+                    else ButtonStateImpulse(TranslateXtoMKB::Ymapping, true, 3);//down
+                    TranslateXtoMKB::RefreshWindow = 2;
+                }
+
+
+                if (oldC)
+                {
+                    if (buttons & XINPUT_GAMEPAD_RIGHT_SHOULDER)
+                    {
+                    }
+                    else {
+                        oldC = false;
+                        ButtonStateImpulse(TranslateXtoMKB::RSmapping, false, 99); //release
+                    }
+                }
+                else if (buttons & XINPUT_GAMEPAD_RIGHT_SHOULDER)
+                {
+                    oldC = true;
+                    if (ScanThread::scanoption)
+                    {
+                        bool found = ScanThread::ButtonPressed(4);
+                        if (!found)
+                            ButtonStateImpulse(TranslateXtoMKB::RSmapping, true, 99); //down
+                    }
+                    else ButtonStateImpulse(TranslateXtoMKB::RSmapping, true, 99); //down
+                    TranslateXtoMKB::RefreshWindow = 10;
+                }
+
+
+                if (oldD)
+                {
+                    if (buttons & XINPUT_GAMEPAD_LEFT_SHOULDER)
+                    {
+                    }
+                    else {
+                        oldD = false;
+                        ButtonStateImpulse(TranslateXtoMKB::LSmapping, false, 99);//release
+                    }
+                }
+                else if (buttons & XINPUT_GAMEPAD_LEFT_SHOULDER)
+                {
+                    oldD = true;
+                    if (ScanThread::scanoption)
+                    {
+                        bool found = ScanThread::ButtonPressed(5);
+                        if (!found)
+                            ButtonStateImpulse(TranslateXtoMKB::LSmapping, true, 99);//down
+                    }
+                    else ButtonStateImpulse(TranslateXtoMKB::LSmapping, true, 99);//down
+                    TranslateXtoMKB::RefreshWindow = 10;
+                }
+
+
+                if (oldleft)
+                {
+                    if (buttons & XINPUT_GAMEPAD_DPAD_LEFT)
+                    {
+                    }
+                    else {
+                        oldleft = false;
+                        ButtonStateImpulse(TranslateXtoMKB::leftmapping, false, 99); //release
+                    }
+                }
+                else if (buttons & XINPUT_GAMEPAD_DPAD_LEFT)
+                {
+                    oldleft = true;
+                    ButtonStateImpulse(TranslateXtoMKB::leftmapping, true, 99);//down
+                }
+
+
+                if (oldright)
+                {
+                    if (buttons & XINPUT_GAMEPAD_DPAD_RIGHT)
+                    {
+                    }
+                    else {
+                        oldright = false;
+                        ButtonStateImpulse(TranslateXtoMKB::rightmapping, false, 99);//release
+                    }
+                }
+                else if (buttons & XINPUT_GAMEPAD_DPAD_RIGHT)
+                {
+                    oldright = true;
+                    ButtonStateImpulse(TranslateXtoMKB::rightmapping, true, 99);//down
+                }
+
+
+                if (oldup)
+                {
+                    if (buttons & XINPUT_GAMEPAD_DPAD_UP)
+                    {
+                    }
+                    else {
+                        oldup = false;
+                        ButtonStateImpulse(TranslateXtoMKB::upmapping, false, 99);//release
+                    }
+                }
+                else if (buttons & XINPUT_GAMEPAD_DPAD_UP)
+                {
+                    oldup = true;
+                    ButtonStateImpulse(TranslateXtoMKB::upmapping, true, 99);//down
+                }
+
+
+                if (olddown)
+                {
+                    if (buttons & XINPUT_GAMEPAD_DPAD_DOWN)
+                    {
+                    }
+                    else {
+                        olddown = false;
+                        ButtonStateImpulse(TranslateXtoMKB::downmapping, false, 99);//release
+                    }
+                }
+                else if (buttons & XINPUT_GAMEPAD_DPAD_DOWN)
+                {
+                    olddown = true;
+                    ButtonStateImpulse(TranslateXtoMKB::downmapping, true, 99);//down
+                }
+
+                if (oldstartoptions) //toggle fake cursor
+                {
+                    if (oldstart && oldoptions)
+                    {
                     }
                     else
                     {
-                        Xaxis = state.Gamepad.sThumbLX;
-                        Yaxis = state.Gamepad.sThumbLY;
-                        scrollXaxis = state.Gamepad.sThumbRX;
-                        scrollYaxis = state.Gamepad.sThumbRY;
+                        oldstartoptions = false;
                     }
-
-                    delta = CalculateUltimateCursorMove(
-                        Xaxis, Yaxis,
-                        radial_deadzone, axial_deadzone, max_threshold,
-                        curve_slope, curve_exponent,
-                        sensitivity, accel_multiplier
-                    );
-                    if (delta.x != 0 || delta.y != 0) {
-                        Xf += delta.x;
-                        Yf += delta.y;
-                        movedmouse = true;
-                    }
-                    if (movedmouse == true) //fake cursor move message
-                    {
-                        TranslateXtoMKB::SendMouseClick(delta.x, delta.y, 8);
-
-                        Proto::FakeCursor::NotifyUpdatedCursorPosition();
-
-                    }
-
-                    if (leftPressedold)
-                    {
-                        if (!leftPressed)
-                        {
-
-                            TranslateXtoMKB::SendMouseClick(Xf, Yf, 6); //double click
-                            leftPressedold = false;
-                        }
-                    }
-                    else if (leftPressed)
-                    {
-                        if (leftPressedold == false)
-                        {
-                            TranslateXtoMKB::SendMouseClick(Xf, Yf, 5); //4 skal vere 3
-                             leftPressedold = true;
-                        }
-                    }
-
-                    if (rightPressedold)
-                    {
-                        if (!rightPressed)
-                        {
-                            TranslateXtoMKB::SendMouseClick(Xf, Yf, 4);
-                            rightPressedold = false;
-                        }
-                    } //if rightpress
-                    else if (rightPressed)
-                    {
-                        if (rightPressedold == false)
-                        {
-                            TranslateXtoMKB::SendMouseClick(Xf, Yf, 3);
-                           rightPressedold = true;
-
-                        }
-                    }
-
-                    //buttons
-                    if (oldscrollleft)
-                    {
-                        if (scrollXaxis < AxisLeftsens) //left
-                        {
-                        }
-                        else {
-                            oldscrollleft = false;
-                            ButtonStateImpulse(TranslateXtoMKB::stickrightmapping, false);//down
-                        }
-                    }
-                    else if (scrollXaxis < AxisLeftsens) //left
-                    {
-                        oldscrollleft = true;
-                        
-                        ButtonStateImpulse(TranslateXtoMKB::stickrightmapping, true);//down
-                    }
-
-                    if (oldscrollright)
-                    {
-                        if (scrollXaxis > AxisRightsens) //left
-                        {
-                        }
-                        else {
-                            oldscrollright = false;
-                            ButtonStateImpulse(TranslateXtoMKB::stickleftmapping, false);//down
-                        }
-                    }
-                    else if (scrollXaxis > AxisRightsens) //left
-                    {
-                        oldscrollright = true;
-                        ButtonStateImpulse(TranslateXtoMKB::stickleftmapping, true);//down
-                    }
-
-                    if (oldscrollup)
-                    {
-                        if (scrollYaxis > AxisUpsens) //left
-                        {
-                        }
-                        else {
-                            oldscrollup = false;
-                            ButtonStateImpulse(TranslateXtoMKB::stickupmapping, false);//down
-                        }
-                    }
-                    else if (scrollYaxis > AxisUpsens) //left
-                    {
-                        oldscrollup = true;
-                        ButtonStateImpulse(TranslateXtoMKB::stickupmapping, true);//down
-                    }
-
-                    if (oldscrolldown)
-                    {
-                        if (scrollYaxis < AxisDownsens) //left
-                        {
-                        }
-                        else {
-                            oldscrolldown = false;
-                            ButtonStateImpulse(TranslateXtoMKB::stickdownmapping, false);//down
-                        }
-                    }
-                    else if (scrollYaxis < AxisDownsens) //left
-                    {
-                        oldscrolldown = true;
-                        ButtonStateImpulse(TranslateXtoMKB::stickdownmapping, true);//down
-                    }
-
-                    if (oldA)
-                    {
-                       if (buttons & XINPUT_GAMEPAD_A)
-                       {
-                       }
-                       else{
-                           oldA = false;
-
-                           ButtonStateImpulse(TranslateXtoMKB::Amapping, false);//release
-                       }
-                    }
-                    else if (buttons & XINPUT_GAMEPAD_A)
-                    {
-                        oldA = true;
-                        if (ScanThread::scanoption == 1)
-                        { 
-                        bool found = ScanThread::ButtonPressed(0);
-                        if (!found)
-                            ButtonStateImpulse(TranslateXtoMKB::Amapping, true);//down
-                        }
-                        else ButtonStateImpulse(TranslateXtoMKB::Amapping, true);
-                    }
-
-
-                    if (oldB)
-                    {
-                        if (buttons & XINPUT_GAMEPAD_B)
-                        {
-                        }
-                        else {
-                            oldB = false;
-                            ButtonStateImpulse(TranslateXtoMKB::Bmapping, false);//release
-                        }
-                    }
-                    else if (buttons & XINPUT_GAMEPAD_B)
-                    {
-                        oldB = true;
-                        if (ScanThread::scanoption == 1)
-                        {
-                            bool found = ScanThread::ButtonPressed(1);
-                            if (!found)
-                                ButtonStateImpulse(TranslateXtoMKB::Bmapping, true);//down
-                        }
-                        else ButtonStateImpulse(TranslateXtoMKB::Bmapping, true);//down
-                    }
-
-
-                    if (oldX)
-                    {
-                        if (buttons & XINPUT_GAMEPAD_X)
-                        {
-                        }
-                        else {
-                            oldX = false;
-                            ButtonStateImpulse(TranslateXtoMKB::Xmapping, false);//release
-                        }
-                    }
-                    else if (buttons & XINPUT_GAMEPAD_X)
-                    {
-                        oldX = true;
-                        if (ScanThread::scanoption == 1)
-                        {
-                            bool found = ScanThread::ButtonPressed(2);
-                            if (!found)
-                                ButtonStateImpulse(TranslateXtoMKB::Xmapping, true);//down
-                        }
-                        else ButtonStateImpulse(TranslateXtoMKB::Xmapping, true);//down
-                    }
-
-
-                    if (oldY)
-                    {
-                        if (buttons & XINPUT_GAMEPAD_Y)
-                        {
-                        }
-                        else {
-                            oldY = false;
-                            ButtonStateImpulse(TranslateXtoMKB::Ymapping, false);//release
-                        }
-                    }
-                    else if (buttons & XINPUT_GAMEPAD_Y)
-                    {
-                        oldY = true;
-                        if (ScanThread::scanoption == 1)
-                        {
-                            bool found = ScanThread::ButtonPressed(3);
-                            if (!found)
-                                ButtonStateImpulse(TranslateXtoMKB::Ymapping, true);//down
-                        }
-						else ButtonStateImpulse(TranslateXtoMKB::Ymapping, true);//down
-                    }
-
-
-                    if (oldC)
-                    {
-                        if (buttons & XINPUT_GAMEPAD_RIGHT_SHOULDER)
-                        {
-                        }
-                        else {
-                            oldC = false;
-                            ButtonStateImpulse(TranslateXtoMKB::RSmapping, false); //release
-                        }
-                    }
-                    else if (buttons & XINPUT_GAMEPAD_RIGHT_SHOULDER)
-                    {
-                        oldC = true;
-                        if (ScanThread::scanoption == 1)
-                        {
-                            bool found = ScanThread::ButtonPressed(4);
-                            if (!found)
-                                ButtonStateImpulse(TranslateXtoMKB::RSmapping, true); //down
-                        }
-                        else ButtonStateImpulse(TranslateXtoMKB::RSmapping, true); //down
-                    }
-
-
-                    if (oldD)
-                    {
-                        if (buttons & XINPUT_GAMEPAD_LEFT_SHOULDER)
-                        {
-                        }
-                        else {
-                            oldD = false;
-                            ButtonStateImpulse(TranslateXtoMKB::LSmapping, false);//release
-                        }
-                    }
-                    else if (buttons & XINPUT_GAMEPAD_LEFT_SHOULDER)
-                    {
-                        oldD = true;
-                        if (ScanThread::scanoption == 1)
-                        {
-                            bool found = ScanThread::ButtonPressed(5);
-                            if (!found)
-                                ButtonStateImpulse(TranslateXtoMKB::LSmapping, true);//down
-                        }
-						else ButtonStateImpulse(TranslateXtoMKB::LSmapping, true);//down
-                    }
-
-
-                    if (oldleft)
-                    {
-                        if (buttons & XINPUT_GAMEPAD_DPAD_LEFT)
-                        {
-                        }
-                        else {
-                            oldleft = false;
-                            ButtonStateImpulse(TranslateXtoMKB::leftmapping, false); //release
-                        }
-                    }
-                    else if (buttons & XINPUT_GAMEPAD_DPAD_LEFT)
-                    {
-                        oldleft = true;
-                        ButtonStateImpulse(TranslateXtoMKB::leftmapping, true);//down
-                    }
-
-
-                    if (oldright)
-                    {
-                        if (buttons & XINPUT_GAMEPAD_DPAD_RIGHT)
-                        {
-                        }
-                        else {
-                            oldright = false;
-                            ButtonStateImpulse(TranslateXtoMKB::rightmapping, false);//release
-                        }
-                    }
-                    else if (buttons & XINPUT_GAMEPAD_DPAD_RIGHT)
-                    {
-                        oldright = true;
-                        ButtonStateImpulse(TranslateXtoMKB::rightmapping, true);//down
-                    }
-
-
-                    if (oldup)
-                    {
-                        if (buttons & XINPUT_GAMEPAD_DPAD_UP)
-                        {
-                        }
-                        else {
-                            oldup = false;
-                            ButtonStateImpulse(TranslateXtoMKB::upmapping, false);//release
-                        }
-                    }
-                    else if (buttons & XINPUT_GAMEPAD_DPAD_UP)
-                    {
-                        oldup = true;
-                        ButtonStateImpulse(TranslateXtoMKB::upmapping, true);//down
-                    }
-
-
-                    if (olddown)
-                    {
-                        if (buttons & XINPUT_GAMEPAD_DPAD_DOWN)
-                        {
-                        }
-                        else {
-                            olddown = false;
-                            ButtonStateImpulse(TranslateXtoMKB::downmapping, false);//release
-                        }
-                    }
-                    else if (buttons & XINPUT_GAMEPAD_DPAD_DOWN)
-                    {
-                        olddown = true;
-						ButtonStateImpulse(TranslateXtoMKB::downmapping, true);//down
-                    }
-
-                    if (oldstartoptions) //toggle fake cursor
-                    {
-                        if (oldstart && oldoptions)
-                        {
-                        }
-                        else
-                        {
-                            oldstartoptions = false;
-                        }
-                    }
-					else if (oldstart && oldoptions)//fake cursor toggle
-                    {
-                        Proto::FakeCursor::SetCursorVisibility(!Proto::FakeCursor::GetCursorVisibility());
-                        oldstartoptions = true;
-                    }
-                    if (oldstart)
-                    {
-                        if (buttons & XINPUT_GAMEPAD_START)
-                        {
-                        }
-                        else {
-                            oldstart = false;
-                            ButtonStateImpulse(TranslateXtoMKB::startmapping, false);//release
-                        }
-                    }
-                    else if (buttons & XINPUT_GAMEPAD_START)
-                    {
-                        oldstart = true;
-                        ButtonStateImpulse(TranslateXtoMKB::startmapping, true);//down
-                    }
-
-                    if (oldoptions)
-                    {
-                        if (buttons & XINPUT_GAMEPAD_BACK)
-                        {
-                        }
-                        else {
-                            oldoptions = false;
-                            ButtonStateImpulse(TranslateXtoMKB::optionmapping, false);//release
-                        }
-                    }
-                    else if (buttons & XINPUT_GAMEPAD_BACK)
-                    {
-                        oldoptions = true;
-                        ButtonStateImpulse(TranslateXtoMKB::optionmapping, true);//down
-                    }
-
-                } //if mode above 0
-            } //if controller
-            else { //no controller
-                showmessageMT = 12;
-				EnterCriticalSection(&ScanThread::critical);
-                TranslateXtoMKB::showmessage = 12;
-				LeaveCriticalSection(&ScanThread::critical);
-            }
-            if (tick < updatewindowtick)
-                tick++;
-            else { //need to update hwnd and bounds periodically
-               // EnterCriticalSection(&ScanThread::critical);
-                Proto::HwndSelector::UpdateMainHwnd(false);
-                Proto::HwndSelector::UpdateWindowBounds();
-               // LeaveCriticalSection(&ScanThread::critical);
-                tick = 0;
-            }
-
-			EnterCriticalSection(&ScanThread::critical);
-            if (showmessageMT != 0) { //drawing messages or something
-                if (counter < 400) { //showmessage is critical
-                    counter++;
                 }
-                else {
-                    showmessageMT = 0;
-                    TranslateXtoMKB::showmessage = 0;
-                    counter = 0;
+                else if (oldstart && oldoptions)//fake cursor toggle
+                {
+                    Proto::FakeCursor::SetCursorVisibility(!Proto::FakeCursor::GetCursorVisibility());
+                    Proto::FakeCursor::Showmessage = 3;
+                    TranslateXtoMKB::RefreshWindow = 1;;
+                    tick = 0;
+                    oldstartoptions = true;
                 }
-            }
-			LeaveCriticalSection(&ScanThread::critical);
+                if (oldstart)
+                {
+                    if (buttons & XINPUT_GAMEPAD_START)
+                    {
+                    }
+                    else {
+                        oldstart = false;
+                        ButtonStateImpulse(TranslateXtoMKB::startmapping, false, 99);//release
+                    }
+                }
+                else if (buttons & XINPUT_GAMEPAD_START)
+                {
+                    oldstart = true;
+                    ButtonStateImpulse(TranslateXtoMKB::startmapping, true, 99);//down
+                }
 
-            if (modeMT > 0) {
-                Sleep(1);
+                if (oldoptions)
+                {
+                    if (buttons & XINPUT_GAMEPAD_BACK)
+                    {
+                    }
+                    else {
+                        oldoptions = false;
+                        ButtonStateImpulse(TranslateXtoMKB::optionmapping, false, 99);//release
+                    }
+                }
+                else if (buttons & XINPUT_GAMEPAD_BACK)
+                {
+                    oldoptions = true;
+                    ButtonStateImpulse(TranslateXtoMKB::optionmapping, true, 99);//down
+                }
+
+            } //if mode above 0
+        } //if controller
+        else { //no controller
+            Proto::FakeCursor::Showmessage = 1;
+            TranslateXtoMKB::RefreshWindow = 1;
+            tick = 0;
+        }
+        if (tick < updatewindowtick)
+            tick++;
+        else { //need to update hwnd and bounds periodically
+            // EnterCriticalSection(&ScanThread::critical);
+            Proto::HwndSelector::UpdateMainHwnd(false);
+            Proto::HwndSelector::UpdateWindowBounds();
+            tick = 0;
+        }
+
+        if (Proto::FakeCursor::Showmessage != 0) { //drawing messages or something
+            if (counter < 500) {
+                counter++;
             }
-            else Sleep(1);
-            if (showmessageMT == 99)
-                Sleep(1);
-        } //loop end but endless
+            else {
+                Proto::FakeCursor::Showmessage = 0;
+                TranslateXtoMKB::RefreshWindow = 1;
+                counter = 0;
+            }
+        }
+        if (!ScanThread::scanoption)
+        {
+           // Proto::FakeCursor::Showmessage = TranslateXtoMKB::showmessage;
+        }
+        if (modeMT > 0) {
+            Sleep(1);
+        }
+        else Sleep(10);
+
+
         return;
     }
 
     void TranslateXtoMKB::Initialize(HMODULE hModule)
     {
-            RawInput::Initialize();
-            g_hModule = hModule;
-            InstanceID = Proto::StateInfo::info.instanceIndex;
-            std::thread one(ThreadFunction, g_hModule);
-            one.detach();
-            return;
-    } 
+        RawInput::Initialize();
+        g_hModule = hModule;
+        InstanceID = Proto::StateInfo::info.instanceIndex;
+        Proto::AddThreadToACL(GetCurrentThreadId());
+        Sleep(50);
+        return;
+    }
 }

@@ -65,25 +65,7 @@ void HookManager::InstallHook(ProtoHookIDs hookID)
 		std::cerr << "Trying to install hook ID " << hookID << " which is out of range" << std::endl;
 	else
 	{
-		if (!RawInput::TranslateXinputtoMKB)
-			hookManagerInstance.hooks[hookID]->Install();
-		else  // skipping original protoinput hooks on experimental Xinput to MKB translation mode
-		{
-			if (hookID == 0) hookManagerInstance.hooks[hookID]->Install();
-			if (hookID == 1) hookManagerInstance.hooks[hookID]->Install();
-			if (hookID == 2) hookManagerInstance.hooks[hookID]->Install();
-			if (hookID == 3) hookManagerInstance.hooks[hookID]->Install();
-			if (hookID == 4) hookManagerInstance.hooks[hookID]->Install();
-			if (hookID == 5) hookManagerInstance.hooks[hookID]->Install();
-			if (hookID == 6) hookManagerInstance.hooks[hookID]->Install();
-			if (hookID == 7) hookManagerInstance.hooks[hookID]->Install();
-			if (hookID == 8) hookManagerInstance.hooks[hookID]->Install();
-			if (hookID == 9) hookManagerInstance.hooks[hookID]->Install();
-			if (hookID > 9 && hookID != 15)  //15 is block rawinput dont want that.
-			hookManagerInstance.hooks[hookID]->Install();
-
-		}
-
+		hookManagerInstance.hooks[hookID]->Install();
 	}
 }
 
@@ -93,21 +75,7 @@ void HookManager::UninstallHook(ProtoHookIDs hookID)
 		std::cerr << "Trying to uninstall hook ID " << hookID << " which is out of range" << std::endl;
 	else
 	{
-		if (!RawInput::TranslateXinputtoMKB)
-			hookManagerInstance.hooks[hookID]->Uninstall();
-		else 			
-		if (hookID == 0) hookManagerInstance.hooks[hookID]->Uninstall();
-		if (hookID == 1) hookManagerInstance.hooks[hookID]->Uninstall();
-		if (hookID == 2) hookManagerInstance.hooks[hookID]->Uninstall();
-		if (hookID == 3) hookManagerInstance.hooks[hookID]->Uninstall();
-		if (hookID == 4) hookManagerInstance.hooks[hookID]->Uninstall();
-		if (hookID == 5) hookManagerInstance.hooks[hookID]->Uninstall();
-		if (hookID == 6) hookManagerInstance.hooks[hookID]->Uninstall();
-		if (hookID == 7) hookManagerInstance.hooks[hookID]->Uninstall();
-		if (hookID == 8) hookManagerInstance.hooks[hookID]->Uninstall();
-		if (hookID == 9) hookManagerInstance.hooks[hookID]->Uninstall();
-		if (hookID > 9 && hookID != 15)  //15 is block rawinput dont want that.
-			hookManagerInstance.hooks[hookID]->Uninstall();
+		hookManagerInstance.hooks[hookID]->Uninstall();
 	}
 }
 

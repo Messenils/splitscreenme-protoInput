@@ -40,6 +40,8 @@ namespace Proto
 		unsigned int toggleVisibilityVkey = VK_HOME;
 
 		void DrawCursor();
+		void DrawMessage(HDC hdc, HWND window, HBRUSH Brush, int message);
+		void DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, POINT spotY, HWND window, HBRUSH Brush);
 
 public:
 	static FakeCursor state;
@@ -47,6 +49,7 @@ public:
 	void StartInternal();
 	void StartDrawLoopInternal();
 
+	static int Showmessage;
 	static bool& GetToggleVisilbityShorcutEnabled()
 	{
 		return state.toggleVisilbityShorcutEnabled;
@@ -90,7 +93,7 @@ public:
 	
 	static void EnableDisableFakeCursor(bool enable);
 
-	static void Initialise();
+	static void Initialise(HMODULE module);
 };
 
 }

@@ -35,7 +35,7 @@ namespace ScreenshotInput {
     //public
    // extern int drawfakecursor;
     int ScanThread::Aisstatic, ScanThread::Bisstatic, ScanThread::Xisstatic, ScanThread::Yisstatic;
-
+    bool ScanThread::UpdateWindow;
     int ScanThread::numphotoA, ScanThread::numphotoB, ScanThread::numphotoX, ScanThread::numphotoY;
     int ScanThread::numphotoC, ScanThread::numphotoD, ScanThread::numphotoE, ScanThread::numphotoF;
     int ScanThread::numphotoAbmps, ScanThread::numphotoBbmps, ScanThread::numphotoXbmps, ScanThread::numphotoYbmps;
@@ -46,10 +46,11 @@ namespace ScreenshotInput {
     std::vector<POINT> ScanThread::staticPointA, ScanThread::staticPointB, ScanThread::staticPointX, ScanThread::staticPointY;
     int ScanThread::scanAtype, ScanThread::scanBtype, ScanThread::scanXtype, ScanThread::scanYtype;
     int ScanThread::Ctype, ScanThread::Dtype, ScanThread::Etype, ScanThread::Ftype;
-    bool ScanThread::scanloop = true;
-    int ScanThread::scanoption;
+    bool ScanThread::scanloop = false;
+    bool ScanThread::scanoption;
     bool ScanThread::ShoulderNextBMP;
     int ScanThread::resize = 1; //support scaling
+    
     HWND hwndhandle;
 	POINT hwndres{ 0,0 };
     //private
@@ -159,21 +160,20 @@ namespace ScreenshotInput {
             Sleep(5);
             TranslateXtoMKB::SendMouseClick(X, Y, 4);
             Sleep(5);
-            TranslateXtoMKB::SendMouseClick(Xhold, Yhold, 8);
+            TranslateXtoMKB::SendMouseClick(-X, -Y, 8);
         }
     }
-
+	POINT Aprevious{ 0,0 }, Bprevious{ 0,0 }, Xprevious{ 0,0 }, Yprevious{ 0,0 };
+	int Awas; int Bwas; int Xwas; int Ywas;
     void Bmpfound(const char key[3], int X, int Y, int i, bool onlysearch, bool found, int store)
     {
         int input = 0;
+        //wait event
+        
         if (strcmp(key, "\\A") == 0)
         {
             if (found)
             {
-
-                EnterCriticalSection(&ScanThread::critical);
-                Proto::FakeCursor::NotifyUpdatedCursorPosition();
-                LeaveCriticalSection(&ScanThread::critical);
                 if (onlysearch)
                 {
                     EnterCriticalSection(&ScanThread::critical);
@@ -183,6 +183,9 @@ namespace ScreenshotInput {
                     ScanThread::staticPointA[i].y = Y;
                     ScanThread::PointA.x = X;
                     ScanThread::PointA.y = Y;
+					if (Awas != ScanThread::startsearchA)
+                        ScanThread::UpdateWindow = true;
+                    Awas = ScanThread::startsearchA;
                     LeaveCriticalSection(&ScanThread::critical);
                 }
                 else
@@ -206,6 +209,10 @@ namespace ScreenshotInput {
                     ScanThread::startsearchA = 0;
                     ScanThread::PointA.x = 0;
                     ScanThread::PointA.y = 0;
+                  //  if (Aprevious.x != X || Aprevious.y != Y)
+                   //     ScanThread::UpdateWindow = true;
+                  //  Aprevious.x = ScanThread::PointA.x;
+                  //  Aprevious.y = ScanThread::PointA.y;
                     LeaveCriticalSection(&ScanThread::critical);
                 }
             }
@@ -225,6 +232,9 @@ namespace ScreenshotInput {
                     ScanThread::staticPointB[i].x = X;
                     ScanThread::staticPointB[i].y = Y;
                     ScanThread::PointB.y = Y;
+                    if (Bwas != i)
+                        ScanThread::UpdateWindow = true;
+                    Bwas = i;
                     LeaveCriticalSection(&ScanThread::critical);
                 }
                 else
@@ -247,6 +257,10 @@ namespace ScreenshotInput {
                     ScanThread::startsearchB = 0;
                     ScanThread::PointB.x = 0;
                     ScanThread::PointB.y = 0;
+                  //  if (Bprevious.x != X || Bprevious.y != Y)
+                  //      ScanThread::UpdateWindow = true;
+                  //  Bprevious.x = ScanThread::PointB.x;
+                 //   Bprevious.y = ScanThread::PointB.y;
                     LeaveCriticalSection(&ScanThread::critical);
                 }
             }
@@ -266,6 +280,9 @@ namespace ScreenshotInput {
                     ScanThread::PointX.y = Y;
                     ScanThread::staticPointX[i].x = X;
                     ScanThread::staticPointX[i].y = Y;
+                    if (Xwas != i)
+                        ScanThread::UpdateWindow = true;
+                    Xwas = i;
                     LeaveCriticalSection(&ScanThread::critical);
                 }
                 else
@@ -289,6 +306,10 @@ namespace ScreenshotInput {
                     ScanThread::startsearchX = 0;
                     ScanThread::PointX.x = 0;
                     ScanThread::PointX.y = 0;
+                  //  if (Xprevious.x != X || Xprevious.y != Y)
+                  //      ScanThread::UpdateWindow = true;
+                  //  Xprevious.x = ScanThread::PointX.x;
+                  //  Xprevious.y = ScanThread::PointX.y;
                     LeaveCriticalSection(&ScanThread::critical);
                 }
             }
@@ -308,6 +329,9 @@ namespace ScreenshotInput {
                     ScanThread::staticPointY[i].y = Y;
                     ScanThread::PointY.x = X;
                     ScanThread::PointY.y = Y;
+                    if (Ywas != i)
+                        ScanThread::UpdateWindow = true;
+                    Ywas = i;
                     LeaveCriticalSection(&ScanThread::critical);
                 }
                 else
@@ -332,6 +356,10 @@ namespace ScreenshotInput {
                     //input = scanYtype;
                     ScanThread::PointY.x = 0;
                     ScanThread::PointY.y = 0;
+                  //  if (Yprevious.x != X || Yprevious.y != Y)
+                  //      ScanThread::UpdateWindow = true;
+                  //  Yprevious.x = ScanThread::PointY.x;
+                  //  Yprevious.y = ScanThread::PointY.y;
                     LeaveCriticalSection(&ScanThread::critical);
                 }
             }
@@ -572,7 +600,7 @@ namespace ScreenshotInput {
         return true;
     }
 
-    bool SaveWindow10x10BMP(HWND hwnd, std::wstring filename, int x, int y) {
+    bool ScanThread::SaveWindow10x10BMP(HWND hwnd, std::wstring filename, int x, int y) {
         HDC hdcWindow = GetDC(hwnd);
         HDC hdcMem = CreateCompatibleDC(hdcWindow);
 
@@ -794,6 +822,14 @@ namespace ScreenshotInput {
 
     bool ScanThread::enumeratebmps()
     {
+        ScanThread::numphotoA = 0;
+        ScanThread::startsearchA = 0;
+        ScanThread::numphotoB = 0;
+        ScanThread::startsearchB = 0;
+        ScanThread::numphotoX = 0;
+        ScanThread::startsearchX = 0;
+        ScanThread::numphotoY = 0;
+        ScanThread::startsearchY = 0;
         std::wstring path = WGetExecutableFolder() + L"\\A";
         ScanThread::numphotoA = HowManyBmps(path, true);
         ScanThread::numphotoAbmps = HowManyBmps(path, false);
@@ -827,9 +863,11 @@ namespace ScreenshotInput {
         POINT pt = { 0,0 };
         POINT noeder = { 0,0 };
         int numbmp = 0;
-        if (ModeScanThread != 2)
-        {
+        
+       // if (ModeScanThread != 2)
+       // {
             int numphoto = 0;
+			//MessageBoxA(NULL, "starting scan", "BMPs not found", MB_OK);
             if (checkarray == 1)
             { //always check static first?
                 noeder = CheckStatics(key, startsearch);
@@ -855,10 +893,13 @@ namespace ScreenshotInput {
                         }
                     }
                     std::string path = UGetExecutableFolder() + key + std::to_string(i) + ".bmp";
+                    
                     std::wstring wpath(path.begin(), path.end());
+                    //
                     // HDC soke;
                     if (LoadBMP24Bit(wpath.c_str(), smallPixels, smallW, smallH, strideSmall) && !found)
                     {
+                       // MessageBoxA(NULL, "loaded bmp.", "BMPs not found", MB_OK);
                         if (CaptureWindow24Bit(hwndhandle, screenSize, largePixels, strideLarge, false, ScanThread::resize))
                         {
                             if (onlysearch)
@@ -921,7 +962,7 @@ namespace ScreenshotInput {
             if (found == true)
                 return true;
             else return false;
-        }
+       // }
 
      //   if (mode == 2 && MainThread::showmessage == 0 && onlysearch == false) //mode 2 button mapping //showmessage var to make sure no double map or map while message
      //   {
@@ -939,14 +980,15 @@ namespace ScreenshotInput {
 
     DWORD WINAPI ScanThreadMain(LPVOID, int Aisstatic, int Bisstatic, int Xisstatic, int Yisstatic)
     {
+        ScanThread::scanloop = true;
         int scantick = 0;
         Sleep(3000);
         Astatic = Aisstatic;
         Bstatic = Bisstatic;
         Xstatic = Xisstatic;
         Ystatic = Yisstatic;
-        //scanrunning = true;
-        ScanThread::scanloop = true;
+        //
+        
         while (ScanThread::scanloop)
         {
             EnterCriticalSection(&ScanThread::critical);
@@ -963,7 +1005,7 @@ namespace ScreenshotInput {
             POINT PointXW = ScanThread::PointX;
             POINT PointYW = ScanThread::PointY;
 			ModeScanThread = TranslateXtoMKB::mode;
-            showmessageScanThread = TranslateXtoMKB::showmessage;
+            //showmessageScanThread = TranslateXtoMKB::showmessage;
             hwndhandle = (HWND)Proto::HwndSelector::GetSelectedHwnd();
             LeaveCriticalSection(&ScanThread::critical);
 
@@ -972,6 +1014,7 @@ namespace ScreenshotInput {
             else scantick = 0;
             if (PreScanningEnabled)
             {
+                
                 if (scantick == 0 && ScanThread::numphotoA > 0)
                 {
                     if (Astatic == 1)
@@ -1057,11 +1100,6 @@ namespace ScreenshotInput {
                 }
                 LeaveCriticalSection(&ScanThread::critical);
             }
-            if (ModeScanThread == 2 && showmessageScanThread != 11)
-            {
-                ScanThread::numphotoA++;
-                Sleep(500);
-            }
         }
         if (buttonFlagg == 1)
         {
@@ -1088,11 +1126,6 @@ namespace ScreenshotInput {
                     returnedvalue = true;
                 }
                 LeaveCriticalSection(&ScanThread::critical);
-            }
-            if (ModeScanThread == 2 && showmessageScanThread != 11)
-            {
-                ScanThread::numphotoB++;
-                Sleep(500);
             }
         }
         if (buttonFlagg == 2)
@@ -1122,11 +1155,6 @@ namespace ScreenshotInput {
 
                 }
                 LeaveCriticalSection(&ScanThread::critical);
-            }
-            if (ModeScanThread == 2 && showmessageScanThread != 11)
-            {
-                ScanThread::numphotoX++;
-                Sleep(500);
             }
         }
         if (buttonFlagg == 3)
@@ -1169,9 +1197,11 @@ namespace ScreenshotInput {
                 EnterCriticalSection(&ScanThread::critical);
                 returnedvalue = ButtonScanAction("\\C", ModeScanThread, ScanThread::numphotoC, ScanThread::startsearchC, false, { 0,0 }, false); //2 save bmps
                 LeaveCriticalSection(&ScanThread::critical);
+                //MessageBoxA(NULL, "ooonei", "A", MB_OK);
             }
             else if (ScanThread::ShoulderNextBMP)
             {
+                //MessageBoxA(NULL, "heisann2", "A", MB_OK);
                 EnterCriticalSection(&ScanThread::critical);
                 if (ScanThread::startsearchA < ScanThread::numphotoA - 1)
                     ScanThread::startsearchA++; //dont want it to update before input done
@@ -1184,12 +1214,6 @@ namespace ScreenshotInput {
                 else ScanThread::startsearchX = 0;
                 LeaveCriticalSection(&ScanThread::critical);
             }
-            if (ModeScanThread == 2 && showmessageScanThread != 11)
-            {
-                ScanThread::numphotoC++;
-                Sleep(500);
-            }
-
         }
         if (buttonFlagg == 5) //D
         {
@@ -1217,12 +1241,6 @@ namespace ScreenshotInput {
                 else ScanThread::startsearchY = ScanThread::numphotoY - 1;
                 LeaveCriticalSection(&ScanThread::critical);
             }
-            //else MessageBoxA(NULL, "heisann2", "A", MB_OK);
-            if (ModeScanThread == 2 && showmessageScanThread != 11)
-            {
-                ScanThread::numphotoD++;
-                Sleep(500);
-            }
 
         }
         if (buttonFlagg == 6) //E
@@ -1234,11 +1252,6 @@ namespace ScreenshotInput {
                 returnedvalue = ButtonScanAction("\\E", ModeScanThread, ScanThread::numphotoD, ScanThread::startsearchD, false, { 0,0 }, false); //2 save bmps
                 LeaveCriticalSection(&critical);
             }
-            if (ModeScanThread == 2 && showmessageScanThread != 11)
-            {
-                ScanThread::numphotoE++;
-                Sleep(500);
-            }
         }
         if (buttonFlagg == 7) //F
         {
@@ -1248,11 +1261,6 @@ namespace ScreenshotInput {
                 EnterCriticalSection(&critical);
                 returnedvalue = ButtonScanAction("\\F", ModeScanThread, ScanThread::numphotoF, ScanThread::startsearchF, false, { 0,0 }, false); //2 save bmps
                 LeaveCriticalSection(&critical);
-            }
-            if (ModeScanThread == 2 && showmessageScanThread != 11)
-            {
-                ScanThread::numphotoF++;
-                Sleep(500);
             }
         }
         return returnedvalue;

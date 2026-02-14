@@ -192,6 +192,11 @@ void XTranslateMenu()
 {
     if (!mappingrefreshed)
         XTranslatefreshmapping(true);
+    
+    ImGui::SliderInt("Sensitivity flat", (int*)&ScreenshotInput::TranslateXtoMKB::Sens, 1, 40, "%d", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::Separator();
+    ImGui::SliderInt("Sensitivity exponential", (int*)&ScreenshotInput::TranslateXtoMKB::Sensmult, 1, 20, "%d", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::Separator();
     {
         const auto XAString = VkToKeyName(X_A);
         ImGui::TextWrapped("A is mapped to: %s", (XAString.c_str()));
@@ -667,6 +672,20 @@ void XTranslateMenu()
     ImGui::Separator();
     ImGui::Checkbox("Shoulder Swap BMPs", &ScreenshotInput::ScanThread::ShoulderNextBMP); //
     ImGui::Separator();
+    ImGui::Text("Input actions for Scanoption. 0 is move+click. 1 is only move. 2 is only click");
+    ImGui::SliderInt("A coordinate", (int*)&ScreenshotInput::ScanThread::scanAtype, 0, 2, "%d", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::SliderInt("B coordinate", (int*)&ScreenshotInput::ScanThread::scanBtype, 0, 2, "%d", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::SliderInt("X coordinate", (int*)&ScreenshotInput::ScanThread::scanXtype, 0, 2, "%d", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::SliderInt("Y coordinate", (int*)&ScreenshotInput::ScanThread::scanYtype, 0, 2, "%d", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::Separator();
+    ImGui::Text("Save BMP mode. buttons XYAB will save a bmp on press at fake cursor coordinate when enabled. This option also force ScanOption to deactivate");
+    ImGui::Checkbox("Save BMP mode:", &ScreenshotInput::TranslateXtoMKB::SaveBmps); //
+    ImGui::Separator();
+    ImGui::Text("Scanoption will need a restart to discover new bmps.");
+    ImGui::Checkbox("ScanOption:", &ScreenshotInput::ScanThread::scanoption); //
+    ImGui::Separator();
+    if (!ScreenshotInput::ScanThread::scanoption)
+		ScreenshotInput::ScanThread::scanloop = false;
 }
 void HooksMenu()
 {

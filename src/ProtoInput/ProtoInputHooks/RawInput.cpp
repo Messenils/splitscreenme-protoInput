@@ -329,6 +329,7 @@ void RawInput::ProcessRawInput(HRAWINPUT rawInputHandle, bool inForeground, cons
 			if ((GetAsyncKeyState(VK_RCONTROL) & ~1) != 0 && (GetAsyncKeyState(VK_RMENU) & ~1) != 0)
 			// if ((GetAsyncKeyState(VK_LCONTROL) & ~1) != 0 && (GetAsyncKeyState(VK_LMENU) & ~1) != 0)
 			{
+				//FakeCursor::Showmessage = 2;
 				Proto::ToggleWindow();
 			}			
 		}
@@ -355,6 +356,7 @@ void RawInput::ProcessRawInput(HRAWINPUT rawInputHandle, bool inForeground, cons
 	{
 		printf(locked ? "Locking input\n" : "Unlocking input\n");
 		RawInput::ToggleLockInput();
+		//FakeCursor::Showmessage = 3;
 	}
 	
 	
