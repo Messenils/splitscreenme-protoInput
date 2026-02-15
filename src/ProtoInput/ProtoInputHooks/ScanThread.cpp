@@ -183,9 +183,10 @@ namespace ScreenshotInput {
                     ScanThread::staticPointA[i].y = Y;
                     ScanThread::PointA.x = X;
                     ScanThread::PointA.y = Y;
-					if (Awas != ScanThread::startsearchA)
+					if (Aprevious.x != X || Aprevious.y != Y)
                         ScanThread::UpdateWindow = true;
-                    Awas = ScanThread::startsearchA;
+                    Aprevious.x = X;
+                    Aprevious.y = Y;
                     LeaveCriticalSection(&ScanThread::critical);
                 }
                 else
@@ -209,10 +210,10 @@ namespace ScreenshotInput {
                     ScanThread::startsearchA = 0;
                     ScanThread::PointA.x = 0;
                     ScanThread::PointA.y = 0;
-                  //  if (Aprevious.x != X || Aprevious.y != Y)
-                   //     ScanThread::UpdateWindow = true;
-                  //  Aprevious.x = ScanThread::PointA.x;
-                  //  Aprevious.y = ScanThread::PointA.y;
+                    if (Aprevious.x != X || Aprevious.y != Y)
+                        ScanThread::UpdateWindow = true;
+                    Aprevious.x = X;
+                    Aprevious.y = Y;
                     LeaveCriticalSection(&ScanThread::critical);
                 }
             }
@@ -232,9 +233,10 @@ namespace ScreenshotInput {
                     ScanThread::staticPointB[i].x = X;
                     ScanThread::staticPointB[i].y = Y;
                     ScanThread::PointB.y = Y;
-                    if (Bwas != i)
+                    if (Bprevious.x != X || Bprevious.y != Y)
                         ScanThread::UpdateWindow = true;
-                    Bwas = i;
+                    Bprevious.x = X;
+                    Bprevious.y = Y;
                     LeaveCriticalSection(&ScanThread::critical);
                 }
                 else
@@ -257,10 +259,10 @@ namespace ScreenshotInput {
                     ScanThread::startsearchB = 0;
                     ScanThread::PointB.x = 0;
                     ScanThread::PointB.y = 0;
-                  //  if (Bprevious.x != X || Bprevious.y != Y)
-                  //      ScanThread::UpdateWindow = true;
-                  //  Bprevious.x = ScanThread::PointB.x;
-                 //   Bprevious.y = ScanThread::PointB.y;
+                    if (Bprevious.x != X || Bprevious.y != Y)
+                        ScanThread::UpdateWindow = true;
+                    Bprevious.x = X;
+                    Bprevious.y = Y;
                     LeaveCriticalSection(&ScanThread::critical);
                 }
             }
@@ -280,9 +282,10 @@ namespace ScreenshotInput {
                     ScanThread::PointX.y = Y;
                     ScanThread::staticPointX[i].x = X;
                     ScanThread::staticPointX[i].y = Y;
-                    if (Xwas != i)
+                    if (Xprevious.x != X || Xprevious.y != Y)
                         ScanThread::UpdateWindow = true;
-                    Xwas = i;
+                    Xprevious.x = X;
+                    Xprevious.y = Y;
                     LeaveCriticalSection(&ScanThread::critical);
                 }
                 else
@@ -306,10 +309,10 @@ namespace ScreenshotInput {
                     ScanThread::startsearchX = 0;
                     ScanThread::PointX.x = 0;
                     ScanThread::PointX.y = 0;
-                  //  if (Xprevious.x != X || Xprevious.y != Y)
-                  //      ScanThread::UpdateWindow = true;
-                  //  Xprevious.x = ScanThread::PointX.x;
-                  //  Xprevious.y = ScanThread::PointX.y;
+                    if (Xprevious.x != X || Xprevious.y != Y)
+                        ScanThread::UpdateWindow = true;
+                    Xprevious.x = ScanThread::PointX.x;
+                    Xprevious.y = ScanThread::PointX.y;
                     LeaveCriticalSection(&ScanThread::critical);
                 }
             }
@@ -329,9 +332,10 @@ namespace ScreenshotInput {
                     ScanThread::staticPointY[i].y = Y;
                     ScanThread::PointY.x = X;
                     ScanThread::PointY.y = Y;
-                    if (Ywas != i)
+                    if (Yprevious.x != X || Yprevious.y != Y)
                         ScanThread::UpdateWindow = true;
-                    Ywas = i;
+                    Yprevious.x = X;
+                    Yprevious.y = Y;
                     LeaveCriticalSection(&ScanThread::critical);
                 }
                 else
@@ -356,10 +360,10 @@ namespace ScreenshotInput {
                     //input = scanYtype;
                     ScanThread::PointY.x = 0;
                     ScanThread::PointY.y = 0;
-                  //  if (Yprevious.x != X || Yprevious.y != Y)
-                  //      ScanThread::UpdateWindow = true;
-                  //  Yprevious.x = ScanThread::PointY.x;
-                  //  Yprevious.y = ScanThread::PointY.y;
+                    if (Yprevious.x != X || Yprevious.y != Y)
+                        ScanThread::UpdateWindow = true;
+                    Yprevious.x = ScanThread::PointY.x;
+                    Yprevious.y = ScanThread::PointY.y;
                     LeaveCriticalSection(&ScanThread::critical);
                 }
             }

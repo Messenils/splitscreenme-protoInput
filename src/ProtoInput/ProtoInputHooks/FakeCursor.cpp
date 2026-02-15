@@ -130,10 +130,11 @@ void FakeCursor::DrawMessage(HDC hdc, HWND window, HBRUSH Brush, int message)
        // FillRect(hdc, &fill, Brush); // Note: window, not screen coordinates!
        RECT wholewindow;
        GetClientRect(pointerWindow, &wholewindow);
-
+       wholewindow.bottom = wholewindow.bottom / 2;
        FillRect(hdc, &wholewindow, Brush);
       // MessageBoxA(NULL, "Message Erased!", "Debug", MB_OK);
-      /// messageshown = false;
+       messageshown = false;
+       ScreenshotInput::TranslateXtoMKB::RefreshWindow = 1; //redraw cursor
     }
     if (!messageshown)
     { 
@@ -190,6 +191,7 @@ void FakeCursor::DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, 
 {
 	bool windowmoved = false;
     bool erasedA = false;
+    bool erased = false;
     bool erasedB = false;
     bool erasedX = false;
     bool erasedY = false;
@@ -201,89 +203,90 @@ void FakeCursor::DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, 
         windowmoved = true;
 		//MessageBoxA(NULL, "Window moved!", "Debug", MB_OK);
 	}
-    if (OldspotA.x != spotA.x)
+    if (OldspotA.x != spotA.x || OldspotA.y != spotA.y)
     {
         RECT wholewindow;
         GetClientRect(pointerWindow, &wholewindow);
 
         FillRect(hdc, &wholewindow, Brush);
-        erasedA = true;
-       // std::string text = "OldSpot:\nA = " + std::to_string(OldspotA.x) +
-       //     "\nNewspot = " + std::to_string(spotA.x);
-       // MessageBoxA(NULL, text.c_str(), "Two Integers", MB_OK);
+        erased = true;
+        ScreenshotInput::TranslateXtoMKB::RefreshWindow = 1; //redraw cursor
     }
 
     if (OldspotB.x != spotB.x || OldspotB.y != spotB.y) //|| windowmoved)
     {
-        RECT fill{ OldspotB.x - 20, OldspotB.y - 20, OldspotB.x + 20, OldspotB.y + 20 };
-        FillRect(hdc, &fill, Brush); // Note: window, not screen coordinates!
-        erasedB = true;
+        RECT wholewindow;
+        GetClientRect(pointerWindow, &wholewindow);
+
+        FillRect(hdc, &wholewindow, Brush);
+        erased = true;
+        ScreenshotInput::TranslateXtoMKB::RefreshWindow = 1; //redraw cursor
     }
     if (OldspotX.x != spotX.x || OldspotX.y != spotX.y) //|| windowmoved)
     {
-        RECT fill{ OldspotX.x - 20, OldspotX.y - 20, OldspotX.x + 20, OldspotX.y + 20 };
-        FillRect(hdc, &fill, Brush); // Note: window, not screen coordinates!
-        erasedX = true;
+        RECT wholewindow;
+        GetClientRect(pointerWindow, &wholewindow);
+
+        FillRect(hdc, &wholewindow, Brush);
+        erased = true;
+        ScreenshotInput::TranslateXtoMKB::RefreshWindow = 1; //redraw cursor
     }
     if (OldspotY.x != spotY.x || OldspotY.y != spotY.y) //|| windowmoved)
     {
-        RECT fill{ OldspotY.x - 20, OldspotY.y - 20, OldspotY.x + 20, OldspotY.y + 20 };
-        FillRect(hdc, &fill, Brush); // Note: window, not screen coordinates!
-        erasedY = true;
+        RECT wholewindow;
+        GetClientRect(pointerWindow, &wholewindow);
+
+        FillRect(hdc, &wholewindow, Brush);
+        erased = true;
+        ScreenshotInput::TranslateXtoMKB::RefreshWindow = 1; //redraw cursor
     }
 
     OldspotA.x = spotA.x;
-    OldspotB = spotB;
-    OldspotX = spotX;
-    OldspotY = spotY;
+    OldspotA.y = spotA.y;
 
+    OldspotB.x = spotB.x;
+    OldspotB.y = spotB.y;
 
+    OldspotX.x = spotX.x;
+    OldspotX.y = spotX.y;
 
+    OldspotY.x = spotY.x;
+    OldspotY.y = spotY.y;
 
-    if (spotA.x != 0 && spotA.y != 0 && erasedA == true)
+    if (spotA.x != 0 && spotA.y != 0 && erased == true)
     { 
         ClientToScreen(window, &spotA);
         DrawRedX(hdc, spotA.x, spotA.y);
 		//MessageBoxA(NULL, "Spot A drawn!", "Debug", MB_OK);
         erasedA = false;
     }
-    if (spotB.x != 0 && spotB.y != 0 && erasedB == true)
+    if (spotB.x != 0 && spotB.y != 0 && erased == true)
     {
         ClientToScreen(window, &spotB);
         DrawBlueCircle(hdc, spotB.x, spotB.y);
     }
-    if (spotX.x != 0 && spotX.y != 0 && erasedX == true)
+    if (spotX.x != 0 && spotX.y != 0 && erased == true)
     {
         ClientToScreen(window, &spotX);
         DrawGreenTriangle(hdc, spotX.x, spotX.y);
     }
-    if (spotY.x != 0 && spotY.y != 0 && erasedY == true)
+    if (spotY.x != 0 && spotY.y != 0 && erased == true)
     {
         ClientToScreen(window, &spotY);
         DrawPinkSquare(hdc, spotY.x, spotY.y);
     }
-
-
-
 	OldTestpos = testpos;
 }
-void FakeCursor::DrawCursor()
+
+void FakeCursor::DrawPointsandMessages()
 {
-
-    if (oldHadShowCursor) //erase cursor
-    {
-        RECT fill{ oldX, oldY, oldX + cursorWidth, oldY + cursorHeight };
-        FillRect(hdc, &fill, transparencyBrush); // Note: window, not screen coordinates!
-
-    }
-    
     if (ScreenshotInput::ScanThread::scanoption)
     {
         EnterCriticalSection(&ScreenshotInput::ScanThread::critical);
         selectorhwnd = (HWND)HwndSelector::GetSelectedHwnd();
-       // FakeCursor::Showmessage = ScreenshotInput::TranslateXtoMKB::showmessage;
+        // FakeCursor::Showmessage = ScreenshotInput::TranslateXtoMKB::showmessage;
         POINT Apos = { ScreenshotInput::ScanThread::PointA.x, ScreenshotInput::ScanThread::PointA.y };
-        POINT Bpos = { ScreenshotInput::ScanThread::PointB.x, ScreenshotInput::ScanThread::PointB.y }; 
+        POINT Bpos = { ScreenshotInput::ScanThread::PointB.x, ScreenshotInput::ScanThread::PointB.y };
         POINT Xpos = { ScreenshotInput::ScanThread::PointX.x, ScreenshotInput::ScanThread::PointX.y };
         POINT Ypos = { ScreenshotInput::ScanThread::PointY.x, ScreenshotInput::ScanThread::PointY.y };
         FakeCursor::DrawFoundSpots(hdc, Apos, Bpos, Xpos, Ypos, selectorhwnd, transparencyBrush);
@@ -293,11 +296,23 @@ void FakeCursor::DrawCursor()
     else if (RawInput::TranslateXinputtoMKB)
         DrawMessage(hdc, (HWND)HwndSelector::GetSelectedHwnd(), transparencyBrush, FakeCursor::Showmessage);
 
-    oldHadShowCursor = showCursor;
+}
+void FakeCursor::DrawCursor()
+{
 
     POINT pos = { FakeMouseKeyboard::GetMouseState().x,FakeMouseKeyboard::GetMouseState().y };
+
     ClientToScreen((HWND)HwndSelector::GetSelectedHwnd(), &pos);
     ScreenToClient(pointerWindow, &pos);
+
+    if (oldHadShowCursor) //erase cursor
+    {
+        RECT fill{ oldX, oldY, oldX + cursorWidth, oldY + cursorHeight };
+        FillRect(hdc, &fill, transparencyBrush); // Note: window, not screen coordinates!
+    }
+
+    oldHadShowCursor = showCursor;
+
 
     if (DrawFakeCursorFix)
     {
@@ -407,7 +422,9 @@ void FakeCursor::DrawCursor()
         }
     }
     else if (showCursor)
+    {
         DrawIcon(hdc, pos.x, pos.y, hCursor);
+    }
     oldX = pos.x;
     oldY = pos.y;
 }
@@ -442,6 +459,11 @@ void FakeCursor::StartDrawLoopInternal()
         }
         else {
             ScreenshotInput::TranslateXtoMKB::ThreadFunction();
+            if (ScreenshotInput::TranslateXtoMKB::RefreshPoint > 0)
+            {
+                DrawPointsandMessages();
+                ScreenshotInput::TranslateXtoMKB::RefreshPoint--;
+            }
             if (ScreenshotInput::TranslateXtoMKB::RefreshWindow > 0)
             {
                 DrawCursor();

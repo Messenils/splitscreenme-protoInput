@@ -45,6 +45,7 @@ namespace ScreenshotInput
     int InstanceID = 0; //InstanceID copy from stateinfo.h
 
     int TranslateXtoMKB::RefreshWindow;
+    int TranslateXtoMKB::RefreshPoint;
     //from tunnell
     int TranslateXtoMKB::controllerID;
     bool TranslateXtoMKB::rawinputhook; //registerrawinputhook
@@ -306,7 +307,7 @@ namespace ScreenshotInput
                 ScanThread::SaveWindow10x10BMP(hwndhere, wpath.c_str(), muusjn.x, muusjn.y);
                // MessageBoxW(nullptr, wpath.c_str(), L"Path", MB_OK);
 
-                TranslateXtoMKB::RefreshWindow ++;
+                TranslateXtoMKB::RefreshPoint ++;
                 counter = 0;
               }
         }
@@ -422,7 +423,7 @@ namespace ScreenshotInput
 
         EnterCriticalSection(&ScanThread::critical);
         if (ScanThread::UpdateWindow)
-            TranslateXtoMKB::RefreshWindow = 1;
+            TranslateXtoMKB::RefreshPoint = 1;
         LeaveCriticalSection(&ScanThread::critical);
         modeMT = 1;
         if (TranslateXtoMKB::SaveBmps) {
@@ -446,7 +447,7 @@ namespace ScreenshotInput
             Proto::ToggleWindow();
             oldGUIkey = true;
             Proto::FakeCursor::Showmessage = 2;
-            TranslateXtoMKB::RefreshWindow = 1;
+            TranslateXtoMKB::RefreshPoint = 1;
             tick = 0;
             if (TranslateXtoMKB::mode == 1) //modechange
             {
@@ -465,7 +466,7 @@ namespace ScreenshotInput
             if (Proto::FakeCursor::Showmessage == 1)
             {//remove disconnected message
                 Proto::FakeCursor::Showmessage = 0;
-                TranslateXtoMKB::RefreshWindow = 1;
+                TranslateXtoMKB::RefreshPoint = 1;
             }
             if (modeMT > 0)
             {
@@ -630,7 +631,7 @@ namespace ScreenshotInput
                             ButtonStateImpulse(TranslateXtoMKB::Amapping, true, 0);//down
                     }
                     else ButtonStateImpulse(TranslateXtoMKB::Amapping, true, 0);
-                    TranslateXtoMKB::RefreshWindow = 2;
+                    TranslateXtoMKB::RefreshPoint = 2;
                 }
 
 
@@ -654,7 +655,7 @@ namespace ScreenshotInput
                             ButtonStateImpulse(TranslateXtoMKB::Bmapping, true, 1);//down
                     }
                     else ButtonStateImpulse(TranslateXtoMKB::Bmapping, true, 1);//down
-                    TranslateXtoMKB::RefreshWindow = 2;
+                    TranslateXtoMKB::RefreshPoint = 2;
                 }
 
 
@@ -678,7 +679,7 @@ namespace ScreenshotInput
                             ButtonStateImpulse(TranslateXtoMKB::Xmapping, true, 2);//down
                     }
                     else ButtonStateImpulse(TranslateXtoMKB::Xmapping, true, 2);//down
-                    TranslateXtoMKB::RefreshWindow = 2;
+                    TranslateXtoMKB::RefreshPoint = 2;
                 }
 
 
@@ -702,7 +703,7 @@ namespace ScreenshotInput
                             ButtonStateImpulse(TranslateXtoMKB::Ymapping, true, 3);//down
                     }
                     else ButtonStateImpulse(TranslateXtoMKB::Ymapping, true, 3);//down
-                    TranslateXtoMKB::RefreshWindow = 2;
+                    TranslateXtoMKB::RefreshPoint = 2;
                 }
 
 
@@ -726,7 +727,7 @@ namespace ScreenshotInput
                             ButtonStateImpulse(TranslateXtoMKB::RSmapping, true, 99); //down
                     }
                     else ButtonStateImpulse(TranslateXtoMKB::RSmapping, true, 99); //down
-                    TranslateXtoMKB::RefreshWindow = 10;
+                    TranslateXtoMKB::RefreshPoint = 10;
                 }
 
 
@@ -750,7 +751,7 @@ namespace ScreenshotInput
                             ButtonStateImpulse(TranslateXtoMKB::LSmapping, true, 99);//down
                     }
                     else ButtonStateImpulse(TranslateXtoMKB::LSmapping, true, 99);//down
-                    TranslateXtoMKB::RefreshWindow = 10;
+                    TranslateXtoMKB::RefreshPoint = 10;
                 }
 
 
@@ -835,7 +836,7 @@ namespace ScreenshotInput
                 {
                     Proto::FakeCursor::SetCursorVisibility(!Proto::FakeCursor::GetCursorVisibility());
                     Proto::FakeCursor::Showmessage = 3;
-                    TranslateXtoMKB::RefreshWindow = 1;;
+                    TranslateXtoMKB::RefreshPoint = 1;
                     tick = 0;
                     oldstartoptions = true;
                 }
@@ -875,7 +876,7 @@ namespace ScreenshotInput
         } //if controller
         else { //no controller
             Proto::FakeCursor::Showmessage = 1;
-            TranslateXtoMKB::RefreshWindow = 1;
+            TranslateXtoMKB::RefreshPoint = 1;
             tick = 0;
         }
         if (tick < updatewindowtick)
@@ -884,6 +885,7 @@ namespace ScreenshotInput
             // EnterCriticalSection(&ScanThread::critical);
             Proto::HwndSelector::UpdateMainHwnd(false);
             Proto::HwndSelector::UpdateWindowBounds();
+            TranslateXtoMKB::RefreshPoint = 1;
             tick = 0;
         }
 
@@ -893,7 +895,7 @@ namespace ScreenshotInput
             }
             else {
                 Proto::FakeCursor::Showmessage = 0;
-                TranslateXtoMKB::RefreshWindow = 1;
+                TranslateXtoMKB::RefreshPoint = 1;
                 counter = 0;
             }
         }

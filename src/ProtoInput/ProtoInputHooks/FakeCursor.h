@@ -39,9 +39,11 @@ namespace Proto
 		bool toggleVisilbityShorcutEnabled = false;
 		unsigned int toggleVisibilityVkey = VK_HOME;
 
-		void DrawCursor();
 		void DrawMessage(HDC hdc, HWND window, HBRUSH Brush, int message);
 		void DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, POINT spotY, HWND window, HBRUSH Brush);
+		void DrawPointsandMessages();
+		void DrawCursor();
+
 
 public:
 	static FakeCursor state;

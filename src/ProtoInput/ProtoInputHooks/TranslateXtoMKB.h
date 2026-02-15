@@ -15,6 +15,7 @@ namespace ScreenshotInput
 		static void ThreadFunction(); //polling from idle drawfakecursor thread
 		static void SendMouseClick(int x, int y, int z);
 		static int RefreshWindow;
+		static int RefreshPoint;
 		static int controllerID;
 		static bool rawinputhook;
 		static bool registerrawinputhook;
