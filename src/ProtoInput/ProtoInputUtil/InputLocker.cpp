@@ -42,7 +42,7 @@ DWORD WINAPI LoopThread(LPVOID lpParameter)
 		if (isLocked)
 		{
 			SetForegroundWindow(GetDesktopWindow());
-			RECT rect{ CursorMaxX,CursorMaxY,CursorMaxX,CursorMaxY };
+			RECT rect{ CursorMaxX -1,CursorMaxY -1,CursorMaxX,CursorMaxY };
 			ClipCursor(&rect);
 			// ShowCursor(FALSE);
 			// SetCursor(NULL);
