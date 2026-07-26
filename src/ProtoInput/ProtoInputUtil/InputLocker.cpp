@@ -1,10 +1,10 @@
 #include "framework.h"
 #include "include/protoinpututil.h"
 #include <cstdio>
-
 bool isLocked = false;
 bool installedHooks = false;
 HANDLE threadHandle = nullptr;
+long CursorMaxX, CursorMaxY = 0;
 
 LRESULT CALLBACK LowLevelMouseProc(
 	_In_ int    nCode,
@@ -42,7 +42,7 @@ DWORD WINAPI LoopThread(LPVOID lpParameter)
 		if (isLocked)
 		{
 			SetForegroundWindow(GetDesktopWindow());
-			RECT rect{ 0,0,0,0 };
+			RECT rect{ CursorMaxX,CursorMaxY,CursorMaxX,CursorMaxY };
 			ClipCursor(&rect);
 			// ShowCursor(FALSE);
 			// SetCursor(NULL);
@@ -57,6 +57,20 @@ DWORD WINAPI LoopThread(LPVOID lpParameter)
 	}
 
 	return 0;
+}
+
+BOOL CALLBACK EnumWindowProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
+{
+	MONITORINFO info = { sizeof(info) };
+	if (GetMonitorInfo(hMonitor, &info))
+	{
+		if (info.rcMonitor.right > CursorMaxX)
+		{
+			CursorMaxX = info.rcMonitor.right;
+		}
+			
+	}
+	return true;
 }
 
 extern "C" __declspec(dllexport) unsigned int LockInput(bool lock)
@@ -74,7 +88,11 @@ extern "C" __declspec(dllexport) unsigned int LockInput(bool lock)
 	
 	if (lock && !installedHooks)
 	{
+		// Over every screen
+		EnumDisplayMonitors(nullptr, nullptr, &EnumWindowProc, 0);
+
 		installedHooks = true;
+		Sleep(4); 
 		SetWindowsHookExW(WH_MOUSE_LL, LowLevelMouseProc, GetModuleHandle(0), 0);
 		SetWindowsHookExW(WH_KEYBOARD_LL, LowLevelKeyboardProc, GetModuleHandle(0), 0);
 	}
