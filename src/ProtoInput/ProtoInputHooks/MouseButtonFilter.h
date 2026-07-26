@@ -16,7 +16,7 @@ public:
 		if (message == WM_LBUTTONDOWN || message == WM_LBUTTONUP || message == WM_LBUTTONDBLCLK ||
 			message == WM_RBUTTONDOWN || message == WM_RBUTTONUP || message == WM_RBUTTONDBLCLK ||
 			message == WM_MBUTTONDOWN || message == WM_MBUTTONUP || message == WM_MBUTTONDBLCLK ||
-			message == WM_XBUTTONDOWN || message == WM_MBUTTONUP || message == WM_XBUTTONDBLCLK)
+			message == WM_XBUTTONDOWN || message == WM_XBUTTONUP || message == WM_XBUTTONDBLCLK)
 		{
 			if ((*wparam & signature) != 0)
 			{
