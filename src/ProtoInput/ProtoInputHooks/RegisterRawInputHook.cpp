@@ -125,8 +125,6 @@ void RegisterRawInputHook::FindAlreadySubscribedWindows()
 		{ 
 			printf("Couldn't find a hwnd subscribed to raw input\n");
 			//assuming main window
-			if (RegisterRawInputHook::Reregisterinput)
-				AddWindowToForward((HWND)HwndSelector::GetSelectedHwnd(), usagesToForward);
 		}
 		else
 		{
@@ -238,6 +236,28 @@ void RegisterRawInputHook::ShowGuiStatus()
 
 }
 
+void RegisterRawInputHook::ReregisterRawInput()
+{
+	RAWINPUTDEVICE devs[2];
+
+	// Mouse
+	devs[0].usUsagePage = 0x01;   // HID_USAGE_PAGE_GENERIC
+	devs[0].usUsage = 0x02;   // HID_USAGE_GENERIC_MOUSE
+	devs[0].dwFlags = RIDEV_INPUTSINK;
+	devs[0].hwndTarget = NULL;
+
+	// Keyboard
+	devs[1].usUsagePage = 0x01;   // HID_USAGE_PAGE_GENERIC
+	devs[1].usUsage = 0x06;   // HID_USAGE_GENERIC_KEYBOARD
+	devs[1].dwFlags = RIDEV_INPUTSINK;
+	devs[1].hwndTarget = NULL;
+
+	if (!Hook_RegisterRawInputDevices(devs, 2, sizeof(RAWINPUTDEVICE)))
+	{
+		MessageBoxA(NULL, "Failed to Reregister raw input", "Error", MB_OK | MB_ICONERROR);
+	}
+}
+
 void RegisterRawInputHook::InstallImpl()
 {
 	std::bitset<9> usages{};
@@ -254,6 +274,10 @@ void RegisterRawInputHook::InstallImpl()
 	FindAlreadySubscribedWindows();
 	RawInput::UnregisterGameFromRawInput();
 	RawInput::RegisterProtoForRawInput();
+	if (RegisterRawInputHook::Reregisterinput)
+	{
+		RegisterRawInputHook::ReregisterRawInput();
+	}
 }
 
 void RegisterRawInputHook::UninstallImpl()
