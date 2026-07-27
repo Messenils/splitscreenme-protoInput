@@ -67,6 +67,7 @@ BOOL CALLBACK EnumWindowProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonit
 		if (info.rcMonitor.right > CursorMaxX)
 		{
 			CursorMaxX = info.rcMonitor.right;
+			CursorMaxY = info.rcMonitor.bottom;
 		}
 			
 	}
