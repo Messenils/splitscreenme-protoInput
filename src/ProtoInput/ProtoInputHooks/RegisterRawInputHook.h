@@ -18,6 +18,7 @@ private:
 	HookInfo hookInfo{};
 		
 	void FindAlreadySubscribedWindows();
+	void ReregisterRawInput();
 
 public:
 	static bool logCallsToRegisterRawInput;
