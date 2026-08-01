@@ -12,7 +12,7 @@
 #include "protoloader.h"
 #include "Profiles.h"
 #include "MessageList.h"
-
+#include <strsafe.h>
 namespace ProtoHost
 {
 
@@ -349,6 +349,15 @@ void SelectFirstIndex()
     }
 }
 
+std::string WideToUtf8(const wchar_t* w)
+{
+    if (!w || !*w) return {};
+    int size = WideCharToMultiByte(CP_UTF8, 0, w, -1, nullptr, 0, nullptr, nullptr);
+    std::string s(size, '\0');
+    WideCharToMultiByte(CP_UTF8, 0, w, -1, s.data(), size, nullptr, nullptr);
+    return s;
+}
+
 void InstancesWindow()
 {	
     // Current instances
@@ -484,57 +493,85 @@ void InstancesWindow()
         static HWND foregroundWindow = nullptr;
         static wchar_t windowNameBuffer[260];
         static std::wstring processName;
-
-        if (const auto h = GetForegroundWindow(); h != nullptr && h != protoHostHwnd && h != rawInputHwnd)
+		static HWND oldone = nullptr;
+        static wchar_t tempBuff[260];
+		static bool changed = false;
+        if (const auto h = GetForegroundWindow();
+            h != nullptr && h != protoHostHwnd && h != rawInputHwnd)
         {
-            wchar_t tempBuff[260];
-            GetWindowTextW(h, tempBuff, sizeof(tempBuff) / sizeof(wchar_t));
-
-
-            if (wcsstr(tempBuff, L"Cortana") == nullptr &&
-                wcsstr(tempBuff, L"Task Switching") == nullptr &&
-                wcsstr(tempBuff, L"Program Manager") == nullptr)
+            if (h != oldone)
             {
+                int len = GetWindowTextW(h, tempBuff, _countof(tempBuff));
 
-                DWORD tmpPid;
-                GetWindowThreadProcessId(h, &tmpPid);
-
-                const auto ph = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, tmpPid);
-
-                wchar_t processNameBuffer[260];
-                DWORD buffSize = sizeof(processNameBuffer) / sizeof(wchar_t);
-                QueryFullProcessImageNameW(ph, 0, processNameBuffer, &buffSize);
-
-                auto tmpProcessName = std::filesystem::path(processNameBuffer).filename().wstring();
-
-                if (tmpProcessName.find(L"explorer.exe") == std::string::npos &&
-                    tmpProcessName.find(L"SearchApp.exe") == std::string::npos)
+                if (len <= 0)
                 {
-                    processName = std::move(tmpProcessName);
-                    wcscpy(&windowNameBuffer[0], &tempBuff[0]);
-
-                    foregroundWindow = h;
-                    focusedPid = tmpPid;
-
-                    hasAlreadyAddedFocusedPid = false;
-                    for (const auto& instance : instances)
-                    {
-                        if (instance.runtime && instance.pid == focusedPid)
-                        {
-                            hasAlreadyAddedFocusedPid = true;
-                            break;
-                        }
-                    }
+                    tempBuff[0] = L'\0';
+                }
+                else
+                {
+                    tempBuff[_countof(tempBuff) - 1] = L'\0';
                 }
 
-                CloseHandle(ph);
+                oldone = h;
+                changed = true;
+            
+
+                if (wcsstr(tempBuff, L"Cortana") == nullptr &&
+                    wcsstr(tempBuff, L"Task Switching") == nullptr &&
+                    wcsstr(tempBuff, L"Program Manager") == nullptr)
+                {
+
+                    DWORD tmpPid;
+                    GetWindowThreadProcessId(h, &tmpPid);
+
+                    const auto ph = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, tmpPid);
+
+                    wchar_t processNameBuffer[260];
+                    DWORD buffSize = sizeof(processNameBuffer) / sizeof(wchar_t);
+                    QueryFullProcessImageNameW(ph, 0, processNameBuffer, &buffSize);
+
+                    auto tmpProcessName = std::filesystem::path(processNameBuffer).filename().wstring();
+
+                    if (tmpProcessName.find(L"explorer.exe") == std::string::npos &&
+                        tmpProcessName.find(L"SearchApp.exe") == std::string::npos)
+                    {
+                        processName = std::move(tmpProcessName);
+                        StringCchCopyW(windowNameBuffer, _countof(windowNameBuffer), tempBuff);
+
+                        foregroundWindow = h;
+                        focusedPid = tmpPid;
+
+                        hasAlreadyAddedFocusedPid = false;
+                        for (const auto& instance : instances)
+                        {
+                            if (instance.runtime && instance.pid == focusedPid)
+                            {
+                                hasAlreadyAddedFocusedPid = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    CloseHandle(ph);
+                }
             }
         }
 
         if (focusedPid != -1)
         {
-            if (wcslen(windowNameBuffer) != 0)
-                ImGui::TextWrapped(R"(Focused process: "%ws" (PID %d, Window "%ws"))", processName.c_str(), focusedPid, &windowNameBuffer[0]);
+			static std::string processNameUtf8{};
+            static std::string windowNameUtf8{};
+            if (changed == true)
+            {
+                processNameUtf8 = WideToUtf8(processName.c_str());
+                windowNameUtf8 = WideToUtf8(windowNameBuffer);
+                changed = false;
+            }
+            if (!windowNameUtf8.empty())
+            {
+                ImGui::TextWrapped("Focused process: \"%s\" (PID %d, Window \"%s\")",
+                    processNameUtf8.c_str(), focusedPid, windowNameUtf8.c_str());
+            }
             else
                 ImGui::TextWrapped(R"(Focused process: "%ws" (PID %d))", processName.c_str(), focusedPid);
 
