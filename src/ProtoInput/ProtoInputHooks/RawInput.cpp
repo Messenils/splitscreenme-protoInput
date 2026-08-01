@@ -59,6 +59,17 @@ HWND RawInput::rawInputHwnd = nullptr;
 
 void SearchAndSendInput(int X, int Y, int msg, WPARAM wparam, LPARAM lparam)
 {
+	if (msg == WM_MOUSEMOVE) //too frequent, no search
+	{
+		if (ChildselectedHwnd && IsWindow(ChildselectedHwnd))
+		{
+			POINT ptChild = { X, Y };
+			MapWindowPoints((HWND)HwndSelector::GetSelectedHwnd(), ChildselectedHwnd, &ptChild, 1);
+			LPARAM lp = MAKELPARAM(ptChild.x, ptChild.y);
+			PostMessageW(ChildselectedHwnd, msg, wparam, lp);
+			return;
+		}
+	}
 	ChildselectedHwnd = nullptr;
 	if (msg == WM_LBUTTONDOWN)
 	{ 

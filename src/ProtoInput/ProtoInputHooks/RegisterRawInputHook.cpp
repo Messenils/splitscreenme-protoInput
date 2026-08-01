@@ -143,7 +143,7 @@ void RegisterRawInputHook::AddWindowToForward(HWND hwnd, std::bitset<9> usages)
 
 	RawInput::AddWindowToForward(hwnd);
 }
-
+int telleverk = 0;
 void RegisterRawInputHook::ShowGuiStatus()
 {	//todo
 	//GetWindowTextA was very slow. better make sure its only done once.
@@ -173,14 +173,18 @@ void RegisterRawInputHook::ShowGuiStatus()
 	if (gotawindow == false)
 		ImGui::Text("No rawinput forwarded. ");
 
-	char windowTitleBuffer[60];
-	GetWindowTextA((HWND)HwndSelector::GetSelectedHwnd(), windowTitleBuffer, sizeof(windowTitleBuffer));
+	static char windowTitleBuffer[60];
+	telleverk++;
+	if (telleverk > 100)
+	{ 
+		telleverk = 0;
+		GetWindowTextA((HWND)HwndSelector::GetSelectedHwnd(), windowTitleBuffer, sizeof(windowTitleBuffer));
+	}
 	ImGui::Separator();
 	ImGui::Text("Main window is: %X %s", HwndSelector::GetSelectedHwnd(), windowTitleBuffer);
 	ImGui::Separator();
 	if (ImGui::Button("Force Main Window to forward list"))
 	{
-
 		RawInput::AddWindowToForward((HWND)HwndSelector::GetSelectedHwnd());
 	}
 

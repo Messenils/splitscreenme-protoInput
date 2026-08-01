@@ -34,14 +34,13 @@ UINT WINAPI Hook_GetRawInputData(
 
 		if (RawInput::TranslateXinputtoMKB2) // TranslateXinputtoMKB2 is just a copy of TranslateXinputtoMKB
 		{
-			if (pData == NULL) {
-				*pcbSize = sizeof(RAWINPUT);
-				return 0;
-			}
-
-			RAWINPUT* storedData = &RawInput::inputBuffer[RawInput::bufferCounter];
-			memcpy(pData, storedData, sizeof(RAWINPUT));
-			return sizeof(RAWINPUT);
+			UINT bufferIndex = ((UINT)(UINT_PTR)hRawInput) & 0x00FFFFFF;
+			if (bufferIndex >= RawInputBufferSize)
+				return GetRawInputData(hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+			if (pData == NULL) { *pcbSize = sizeof(RAWINPUT); return 0; }
+			const UINT copy = min(*pcbSize, (UINT)sizeof(RAWINPUT));
+			memcpy(pData, &RawInput::inputBuffer[bufferIndex], copy);
+			return copy;
 		}
 		// printf("$");
 

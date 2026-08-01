@@ -282,12 +282,13 @@ inline DWORD WINAPI XInputfromkbm(DWORD dwUserIndex, XINPUT_STATE* pState, bool 
 
 			oldright != IsKeyPressed(ScreenshotInput::TranslateXtoMKB::rightmapping);
 	}
+	static DWORD packetNumberT = 0;
 	if (changed)
 	{
-		static DWORD packetNumberT = 0;
-		pState->dwPacketNumber = packetNumberT++; //
+		packetNumberT++;
 		changed = false;
 	}
+	pState->dwPacketNumber = packetNumberT;
 
 	oldA = IsKeyPressed(ScreenshotInput::TranslateXtoMKB::Amapping);
 	oldB = IsKeyPressed(ScreenshotInput::TranslateXtoMKB::Bmapping);
@@ -621,7 +622,7 @@ void XinputHook::ShowGuiStatus()
 		ImGui::PushID(123896);
 		ImGui::Checkbox("", &TranslateMKBtoXinput);
 		ImGui::SameLine();
-		ImGui::TextWrapped("Enable KBM to Xinput. emulate Xinput gamepad on controllerindex 0");
+		ImGui::TextWrapped("Enable KBM to Xinput. emulate Xinput gamepad if controllerindex is 0(no controller)");
 		ImGui::PopID();
 	}
 	if (dinputDevice != nullptr)

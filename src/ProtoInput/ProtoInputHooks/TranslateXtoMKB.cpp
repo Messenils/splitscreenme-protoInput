@@ -23,7 +23,6 @@
 
 namespace ScreenshotInput
 {
-    int InstanceID = 0; //InstanceID copy from stateinfo.h
 
     int TranslateXtoMKB::RefreshWindow;
     int TranslateXtoMKB::RefreshPoint;
@@ -67,9 +66,6 @@ namespace ScreenshotInput
 
     int startbuttontimer, backbuttontimer;
 
-
-    HMODULE g_hModule = nullptr;
-
     bool loop = true;
     //int TranslateXtoMKB::showmessage = 0; //0 = no message, 1 = initializing, 2 = bmp mode, 3 = bmp and cursor mode, 4 = edit mode   
 
@@ -81,7 +77,6 @@ namespace ScreenshotInput
 
     POINT delta;
     //hooks
-
 
     //fake cursor
     int Xf = 0;

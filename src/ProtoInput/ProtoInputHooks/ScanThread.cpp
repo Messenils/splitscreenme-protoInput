@@ -339,8 +339,8 @@ namespace ScreenshotInput {
                         ScanThread::PointX.y = 0;
                         if (Xprevious.x != X || Xprevious.y != Y)
                             ScanThread::UpdateWindow = true;
-                        Xprevious.x = ScanThread::PointX.x;
-                        Xprevious.y = ScanThread::PointX.y;
+                        Xprevious.x = X;
+                        Xprevious.y = Y;
                         LeaveCriticalSection(&ScanThread::critical);
                     }
                 }
@@ -391,13 +391,12 @@ namespace ScreenshotInput {
                         Ynum = 0;
                         EnterCriticalSection(&ScanThread::critical);
                         ScanThread::startsearchY = 0;
-                        //input = scanYtype;
                         ScanThread::PointY.x = 0;
                         ScanThread::PointY.y = 0;
                         if (Yprevious.x != X || Yprevious.y != Y)
                             ScanThread::UpdateWindow = true;
-                        Yprevious.x = ScanThread::PointY.x;
-                        Yprevious.y = ScanThread::PointY.y;
+                        Yprevious.x = X;
+                        Yprevious.y = Y;
                         LeaveCriticalSection(&ScanThread::critical);
                     }
                 }
@@ -546,8 +545,7 @@ namespace ScreenshotInput {
             if (oldBmp)
             {
                 BitBlt(hdcMem, 0, 0, width, height, hdcWindow, 0, 0, SRCCOPY);
-
-                // Copy directly from DIB memory
+                //GdiFlush();
                 memcpy(pixels.data(), pBits, stride * height);
 
                 SelectObject(hdcMem, oldBmp);
