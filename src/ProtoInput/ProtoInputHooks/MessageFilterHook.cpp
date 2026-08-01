@@ -186,7 +186,7 @@ void MessageFilterHook::UninstallImpl()
 
 bool MessageFilterHook::IsKeyboardButtonFilterEnabled()
 {
-	return IsFilterEnabled<KeyboardButtonFilter>();
+	return *IsFilterEnabled<KeyboardButtonFilter>();
 }
 
 }

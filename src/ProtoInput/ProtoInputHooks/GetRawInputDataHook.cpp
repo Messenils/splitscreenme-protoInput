@@ -34,12 +34,6 @@ UINT WINAPI Hook_GetRawInputData(
 
 		if (RawInput::TranslateXinputtoMKB2) // TranslateXinputtoMKB2 is just a copy of TranslateXinputtoMKB
 		{
-			UINT handleValue = (UINT)(UINT_PTR)hRawInput;
-			UINT bufferIndex = handleValue & 0x00FFFFFF;
-			if (bufferIndex >= 20) {
-				return GetRawInputData(hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
-			}
-
 			if (pData == NULL) {
 				*pcbSize = sizeof(RAWINPUT);
 				return 0;

@@ -401,8 +401,8 @@ void InstancesWindow()
         if (instances.empty()) PopDisabled();
 
         // Always center this window when appearing
-        ImVec2 center(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f);
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+       // ImVec2 center(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f);
+       // ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
         if (ImGui::BeginPopupModal("Clear all instances?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
@@ -1394,8 +1394,8 @@ void OptionsMenu()
         }
 
         // Always center this window when appearing
-        ImVec2 center(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f);
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+       // ImVec2 center(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f);
+       // ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
         if (ImGui::BeginPopupModal("Overwrite existing", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {

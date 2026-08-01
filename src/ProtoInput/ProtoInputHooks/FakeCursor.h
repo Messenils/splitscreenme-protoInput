@@ -24,7 +24,6 @@ namespace Proto
 
 		// DrawFakeCursorFix. cursor offset scan and cursor size fix
 		HCURSOR oldhCursor = NULL;
-		POINT OldTestpos = { 0,0 };
 
 		// This is either on or off for a given game (ie. it doesn't change)
 		bool drawingEnabled = false;
@@ -44,7 +43,7 @@ namespace Proto
 		HWND selectorhwnd = nullptr; //copy of variable in TranslateXtoMKB to avoid accessing it multiple times with critical section in DrawCursor
 
 		void DrawMessage(HDC hdc, HWND window, HBRUSH Brush, int message);
-		void DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, POINT spotY, HWND window, HBRUSH Brush);
+		void DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, POINT spotY, HWND window);
 		void DrawPointsandMessages();
 		void DrawCursor();
 

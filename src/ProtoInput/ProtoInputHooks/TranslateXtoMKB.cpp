@@ -142,7 +142,7 @@ namespace ScreenshotInput
         ScanThread::initovector();
         if (ScanThread::scanoption)
         { //starting bmp continous scanner
-            ScanThread::StartScanThread(g_hModule, ScanThread::Aisstatic, ScanThread::Bisstatic, ScanThread::Xisstatic, ScanThread::Yisstatic, ScanThread::scanoption);
+            ScanThread::StartScanThread(ScanThread::Aisstatic, ScanThread::Bisstatic, ScanThread::Xisstatic, ScanThread::Yisstatic, ScanThread::scanoption);
             //  printf("BMP scanner started");
         }
         Sleep(20); //give time for ScanThread::scanloop toggle true
@@ -395,7 +395,7 @@ namespace ScreenshotInput
         //GUI
         if (oldGUIkey)
         {
-            if (IsKeyPressed(VK_RCONTROL) && IsKeyPressed(VK_RMENU) && IsKeyPressed(0x30 + InstanceID))
+            if (IsKeyPressed(VK_RCONTROL) && IsKeyPressed(VK_RMENU) && IsKeyPressed(0x30 + Proto::StateInfo::info.instanceIndex))
             {
             }
             else
@@ -404,7 +404,7 @@ namespace ScreenshotInput
                 ButtonStateImpulse(VK_HOME, false, 99);//down}
             }
         }
-        else if (IsKeyPressed(VK_RCONTROL) && IsKeyPressed(VK_RMENU) && IsKeyPressed(0x30 + InstanceID))//gui or fake cursor toggle
+        else if (IsKeyPressed(VK_RCONTROL) && IsKeyPressed(VK_RMENU) && IsKeyPressed(0x30 + Proto::StateInfo::info.instanceIndex))//gui or fake cursor toggle
         {
             Proto::ToggleWindow();
             oldGUIkey = true;
@@ -933,12 +933,4 @@ namespace ScreenshotInput
         return;
     }
 
-    void TranslateXtoMKB::Initialize(HMODULE hModule)
-    {
-        g_hModule = hModule;
-        InstanceID = Proto::StateInfo::info.instanceIndex;
-        Proto::AddThreadToACL(GetCurrentThreadId());
-        //Sleep(50);
-        return;
-    }
 }

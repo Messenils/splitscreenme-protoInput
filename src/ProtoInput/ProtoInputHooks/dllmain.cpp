@@ -43,9 +43,9 @@ DWORD WINAPI StartThread(LPVOID lpParameter)
 
     Proto::FocusMessageLoop::SetupThread(); //setfocus message spamming loop
 
-    Proto::FakeCursor::Initialise(Proto::hmodule); //create cursor drawing window. could be possible to create it later on first drawcursor enable
+    InitializeCriticalSection(&ScreenshotInput::ScanThread::critical);//must be placed before InitialiseRawInput and before FakeCursor::Initialise
 
-    InitializeCriticalSection(&ScreenshotInput::ScanThread::critical);//must be placed before InitialiseRawInput
+    Proto::FakeCursor::Initialise(Proto::hmodule); //create cursor drawing window. could be possible to create it later on first drawcursor enable
 
     Proto::RawInput::InitialiseRawInput(); //create raw input listening window
 

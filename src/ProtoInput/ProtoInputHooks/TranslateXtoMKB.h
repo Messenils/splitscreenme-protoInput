@@ -11,7 +11,6 @@ namespace ScreenshotInput
 	//	static bool usetraqnslation;
 
 	public:
-		static void Initialize(HMODULE g_hModule);
 		static void ThreadFunction(); //polling from idle drawfakecursor thread
 		static void SendMouseClick(int x, int y, int z);
 		static int RefreshWindow;

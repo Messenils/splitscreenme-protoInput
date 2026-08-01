@@ -22,7 +22,7 @@ namespace ScreenshotInput {
 
         static int resize;
         static int ignorerect;
-        static void StartScanThread(HMODULE hmodule, int Astatic, int Bstatic, int Xstatic, int Ystatic, bool prescan);
+        static void StartScanThread(int Astatic, int Bstatic, int Xstatic, int Ystatic, bool prescan);
 
         static bool SaveWindow10x10BMP(HWND hwnd, std::wstring filename, int x, int y);
         static bool enumeratebmps(); //false if no bmps found

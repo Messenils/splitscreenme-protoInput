@@ -31,7 +31,7 @@ void FakeCursor::setmonitorscale(int scale)
 
     cursorWidth = 0;
     cursorHeight = 0;
-    //25 scale = 10. 
+    //25 scale = 10.  
     // 40 size on 100% scale // 80 size on 200
     while (scale >= 25) 
     {
@@ -114,7 +114,7 @@ void FakeCursor::GetWindowDimensions(HWND pointerWindow)
             targetWidth,
             targetHeight,
             SWP_NOACTIVATE); 
-    }
+    }   
 }
 
 void DrawRedX(HDC hdc, int x, int y) //blue
@@ -135,25 +135,26 @@ void DrawRedX(HDC hdc, int x, int y) //blue
 void DrawBlueCircle(HDC hdc, int x, int y) //red
 {
     // Create a NULL brush (hollow fill)
+    HPEN hPen = CreatePen(PS_SOLID, 3, RGB(255, 0, 0));
     HBRUSH hBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
     HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
 
-    HPEN hPen = CreatePen(PS_SOLID, 3, RGB(255, 0, 0));
+    
     HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
 
     Ellipse(hdc, x - 15, y - 15, x + 15, y + 15);
 
-    SelectObject(hdc, hOldBrush);
     SelectObject(hdc, hOldPen);
+    SelectObject(hdc, hOldBrush);
     DeleteObject(hPen);
 }
 void DrawGreenTriangle(HDC hdc, int x, int y)
 {
     // Use a NULL brush for hollow
-    HBRUSH hBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
-    HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
 
     HPEN hPen = CreatePen(PS_SOLID, 3, RGB(0, 255, 0));
+    HBRUSH hBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
+    HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
     HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
 
     POINT pts[3];
@@ -163,25 +164,27 @@ void DrawGreenTriangle(HDC hdc, int x, int y)
 
     Polygon(hdc, pts, 3);
 
-    SelectObject(hdc, hOldBrush);
     SelectObject(hdc, hOldPen);
+    SelectObject(hdc, hOldBrush);
     DeleteObject(hPen);
 }
 
 void DrawPinkSquare(HDC hdc, int x, int y)
 {
     // Create a NULL brush (hollow fill)
+    HPEN hPen = CreatePen(PS_SOLID, 3, RGB(255, 192, 203));
     HBRUSH hBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
     HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
 
-    HPEN hPen = CreatePen(PS_SOLID, 3, RGB(255, 192, 203));
+
     HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
 
     // Draw hollow rectangle (square) 20x20
     Rectangle(hdc, x - 15, y - 15, x + 15, y + 15);
 
-    SelectObject(hdc, hOldBrush);
     SelectObject(hdc, hOldPen);
+    SelectObject(hdc, hOldBrush);
+
     DeleteObject(hPen);
 }
 
@@ -263,48 +266,65 @@ void FakeCursor::DrawMessage(HDC hdc, HWND window, HBRUSH Brush, int message)
     oldmessage = message;
 
 }
-void FakeCursor::DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, POINT spotY,HWND window, HBRUSH Brush)
+int teller = 0;
+POINT OldTestpos = { 0, 0 };
+void FakeCursor::DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, POINT spotY, HWND window)
 {
-	bool windowmoved = false;
     bool erasedA = false;
     bool erased = false;
     bool erasedB = false;
     bool erasedX = false;
     bool erasedY = false;
     //detect window change pos
-    POINT testpos;
-	ClientToScreen(window, &testpos);
-    if (testpos.x < OldTestpos.x || testpos.y < OldTestpos.y || testpos.x > OldTestpos.x || testpos.y > OldTestpos.y)
+    teller++;
+    POINT testpos = { 0, 0 };
+    if (teller > 100)
     {
-        erased = true;
+        teller = 0;
+        
+        ClientToScreen(window, &testpos);
+        if (testpos.x != OldTestpos.x || testpos.y != OldTestpos.y)
+        {
+            erased = true;
+        }
+        OldTestpos.x = testpos.x;
+        OldTestpos.y = testpos.y;
 	}
+
 
     //point coordinate changes
     if (OldspotA.x != spotA.x || OldspotA.y != spotA.y)
     {
+        ClientToScreen(window, &OldspotA);
         RECT fill{ OldspotA.x - 20, OldspotA.y - 20, OldspotA.x + 20, OldspotA.y + 20 };
         FillRect(hdc, &fill, transparencyBrush); // Note: window, not screen coordinates!
         erasedA = true;
+        ScreenToClient(window, &OldspotA);
     }
 
     if (OldspotB.x != spotB.x || OldspotB.y != spotB.y) //|| windowmoved)
     {
+        ClientToScreen(window, &OldspotB);
         RECT fill{ OldspotB.x - 20, OldspotB.y - 20, OldspotB.x + 20, OldspotB.y + 20 };
         FillRect(hdc, &fill, transparencyBrush); // Note: window, not screen coordinates!
         erasedB = true;
+        ScreenToClient(window, &OldspotB);
     }
     if (OldspotX.x != spotX.x || OldspotX.y != spotX.y) //|| windowmoved)
     {
+        ClientToScreen(window, &OldspotX);
         RECT fill{ OldspotX.x - 20, OldspotX.y - 20, OldspotX.x + 20, OldspotX.y + 20 };
         FillRect(hdc, &fill, transparencyBrush); // Note: window, not screen coordinates!
         erasedX = true;
+        ScreenToClient(window, &OldspotX);
     }
     if (OldspotY.x != spotY.x || OldspotY.y != spotY.y) //|| windowmoved)
     {
+        ClientToScreen(window, &OldspotY);
         RECT fill{ OldspotY.x - 20, OldspotY.y - 20, OldspotY.x + 20, OldspotY.y + 20 };
         FillRect(hdc, &fill, transparencyBrush); // Note: window, not screen coordinates!
         erasedY = true;
-        
+        ScreenToClient(window, &OldspotY);
     }
 
 
@@ -313,13 +333,13 @@ void FakeCursor::DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, 
         RECT wholewindow;
         GetClientRect(pointerWindow, &wholewindow);
 
-        FillRect(hdc, &wholewindow, Brush);
+        FillRect(hdc, &wholewindow, transparencyBrush);
 
         erasedA = true;
         erasedB = true;
         erasedX = true;
         erasedY = true;
-
+		erased = false;
         ScreenshotInput::TranslateXtoMKB::RefreshWindow = 1; //redraw cursor
     }
 
@@ -338,7 +358,7 @@ void FakeCursor::DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, 
 
 
     if (spotA.x != 0 && spotA.y != 0 && erasedA == true)
-    { 
+    {
         POINT drawthere = spotA;
         ClientToScreen(window, &drawthere); //A
         DrawRedX(hdc, drawthere.x, drawthere.y);
@@ -358,7 +378,7 @@ void FakeCursor::DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, 
         POINT drawthere = spotX;
         ClientToScreen(window, &drawthere); //A
         DrawPinkSquare(hdc, drawthere.x, drawthere.y);
-        
+
     }
 
 
@@ -368,7 +388,6 @@ void FakeCursor::DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, 
         ClientToScreen(window, &drawthere); //A
         DrawGreenTriangle(hdc, drawthere.x, drawthere.y);
     }
-	OldTestpos = testpos;
 }
 
 void FakeCursor::DrawPointsandMessages() //only on Xtranslate
@@ -382,7 +401,7 @@ void FakeCursor::DrawPointsandMessages() //only on Xtranslate
         POINT Bpos = { ScreenshotInput::ScanThread::PointB.x, ScreenshotInput::ScanThread::PointB.y };
         POINT Xpos = { ScreenshotInput::ScanThread::PointX.x, ScreenshotInput::ScanThread::PointX.y };
         POINT Ypos = { ScreenshotInput::ScanThread::PointY.x, ScreenshotInput::ScanThread::PointY.y };
-        FakeCursor::DrawFoundSpots(hdc, Apos, Bpos, Xpos, Ypos, selectorhwnd, transparencyBrush);
+        FakeCursor::DrawFoundSpots(hdc, Apos, Bpos, Xpos, Ypos, selectorhwnd);
         FakeCursor::DrawMessage(hdc, selectorhwnd, transparencyBrush, FakeCursor::Showmessage);
         LeaveCriticalSection(&ScreenshotInput::ScanThread::critical);
     }
@@ -456,8 +475,22 @@ void FakeCursor::DrawCursor()
                 if (offsetSET == 1 && hCursor != LoadCursorW(NULL, IDC_ARROW) && IsWindowVisible(pointerWindow)) //offset setting
                 {
                     HDC hdcMem = CreateCompatibleDC(hdc);
+                    if (!hdcMem)
+                        return;
                     HBITMAP hbmScreen = CreateCompatibleBitmap(hdc, cursorWidth, cursorHeight);
-                    SelectObject(hdcMem, hbmScreen);
+                    if (!hbmScreen)
+                    {
+                        DeleteDC(hdcMem);
+                        return;
+                    }
+
+                    HBITMAP oldBmp = (HBITMAP)SelectObject(hdcMem, hbmScreen);
+                    if (!oldBmp)
+                    {
+                        DeleteObject(hbmScreen);
+                        DeleteDC(hdcMem);
+                        return;
+                    }
                     BitBlt(hdcMem, 0, 0, cursorWidth, cursorHeight, hdc, pos.x, pos.y, SRCCOPY);
                     cursoroffsetx = -1;
                     cursoroffsety = -1;
@@ -510,8 +543,9 @@ void FakeCursor::DrawCursor()
                         cursoroffsety = 0;
                     }
                     offsetSET++; //offset set to 2 should do drawing only now
-                    DeleteDC(hdcMem);
+                    SelectObject(hdcMem, oldBmp);
                     DeleteObject(hbmScreen);
+                    DeleteDC(hdcMem);
 
 
 
@@ -528,17 +562,12 @@ void FakeCursor::DrawCursor()
                         {
                             cursorWidth = bitmap.bmWidth;
                             if (ii.hbmColor == NULL)
-                            {//For monochrome icons, the hbmMask is twice the height of the icon and hbmColor is NULL
-                                cursorHeight = bitmap.bmHeight / 2;
-                            }
+                                cursorHeight = bitmap.bmHeight / 2;   // monochrome cursor
                             else
-                            {
                                 cursorHeight = bitmap.bmHeight;
-                            }
-                            DeleteObject(ii.hbmColor);
-                            DeleteObject(ii.hbmMask);
                         }
-
+                        if (ii.hbmColor) DeleteObject(ii.hbmColor);
+                        if (ii.hbmMask)  DeleteObject(ii.hbmMask);
                     }
                     offsetSET++; //size set, doing offset next run                 
                 }
@@ -591,10 +620,6 @@ void FakeCursor::UpdatePointerWindowLoopInternal()
 void FakeCursor::StartDrawLoopInternal()
 {
     int tick = 1;
-
-    if (Proto::RawInput::TranslateXinputtoMKB)
-        ScreenshotInput::TranslateXtoMKB::Initialize(GetModuleHandle(NULL));
-
 	while (true)
 	{
         if (!Proto::RawInput::TranslateXinputtoMKB)
@@ -639,7 +664,7 @@ void FakeCursor::StartInternal()
 {
     Proto::AddThreadToACL(GetCurrentThreadId());
 
-        Sleep(1000);
+    Sleep(500);
 
     const auto hInstance = GetModuleHandle(NULL);
 

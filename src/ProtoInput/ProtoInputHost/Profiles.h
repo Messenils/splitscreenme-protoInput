@@ -110,13 +110,13 @@ struct Profile //Profile::hooks::ProtoHookIDs::RenameHandlesHookID
 	int XinputtoMKBdownkey = 0x28;
 	int XinputtoMKBstickR = 0x5A; //Z
 	int XinputtoMKBstickL = 0x4D; //M
-	int XinputtoMKBstickright = 0x41; //A
-	int XinputtoMKBstickleft = 0x44; //D
+	int XinputtoMKBstickright = 0x44; //D
+	int XinputtoMKBstickleft = 0x41; //A
 	int XinputtoMKBstickup = 0x57; //W
 	int XinputtoMKBstickdown = 0x53; //S
 	int XinputtoMKBoption = 0x1B; //
 	int XinputtoMKBstart = 0x0D;
-	int XinputtoMKBsens = 15;
+	int XinputtoMKBsens = 4;
 	int XinputtoMKBsensmult = 4;
 	int XinputtoMKBDeadzone = 2;
 	

@@ -64,7 +64,7 @@ void SearchAndSendInput(int X, int Y, int msg, WPARAM wparam, LPARAM lparam)
 	{ 
 		HwndSelector::allwindows.clear();
 		HwndSelector::GetAllProcessWindows();
-		Sleep(1);
+		//Sleep(1);
 	}
 	HWND parent = (HWND)HwndSelector::GetSelectedHwnd();
 	if (!parent)
@@ -80,7 +80,7 @@ void SearchAndSendInput(int X, int Y, int msg, WPARAM wparam, LPARAM lparam)
 	for (size_t i = 0; i < count; ++i)
 	{
 		HWND child = HwndSelector::allwindows[i];
-		if (!IsWindow(child))
+		if (!IsWindow(child) || child == parent)
 			continue;
 
 		RECT rc{};
@@ -103,6 +103,10 @@ void SearchAndSendInput(int X, int Y, int msg, WPARAM wparam, LPARAM lparam)
 			}
 
 		}
+	}
+	if (!bestHwnd) {
+		ChildselectedHwnd = nullptr; 
+		return; 
 	}
 	POINT ptChild = pt;
 	MapWindowPoints(parent, bestHwnd, &ptChild, 1);
@@ -242,13 +246,13 @@ void RawInput::SendInputMessages(const RAWMOUSE& data)
 			PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_XBUTTONDOWN, (mouseMkFlags | MK_XBUTTON2) | (XBUTTON2 << 16) | MouseButtonFilter::signature, mousePointLparam);
 		if ((data.usButtonFlags & RI_MOUSE_BUTTON_5_UP) != 0)
 			PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_XBUTTONUP, (mouseMkFlags | MK_XBUTTON2) | (XBUTTON2 << 16) | MouseButtonFilter::signature, mousePointLparam);
-		}
+	}
 
 	// WM_MOUSEMOVE
 	if (rawInputState.sendMouseMoveMessages)
 	{
-		//if (RawInput::MessageAllWindows)
-		//	SearchAndSendInput(FakeMouseKeyboard::GetMouseState().x, FakeMouseKeyboard::GetMouseState().y, WM_MOUSEMOVE, mouseMkFlags | MouseButtonFilter::signature, mousePointLparam);
+		if (RawInput::MessageAllWindows)
+			SearchAndSendInput(FakeMouseKeyboard::GetMouseState().x, FakeMouseKeyboard::GetMouseState().y, WM_MOUSEMOVE, mouseMkFlags | MouseButtonFilter::signature, mousePointLparam);
 		PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_MOUSEMOVE, mouseMkFlags, mousePointLparam);
 		if (SetWindowsHookHook::Messagehooked && SetWindowsHookHook::gameshookcallMessage != nullptr)
 			SetWindowsHookHook::FireFakeGetMessage(WM_MOUSEMOVE, mouseMkFlags, mousePointLparam);
@@ -379,7 +383,7 @@ void RawInput::SendKeyMessage(const RAWKEYBOARD& data, bool pressed)
 				MessageFilterHook::IsKeyboardButtonFilterEnabled() ? data.VKey | KeyboardButtonFilter::signature : data.VKey,
 				lparam);
 			if (ChildselectedHwnd != nullptr)
-				PostMessageW(ChildselectedHwnd, WM_KEYDOWN,
+				PostMessageW(ChildselectedHwnd, WM_KEYUP,
 					MessageFilterHook::IsKeyboardButtonFilterEnabled() ? data.VKey | KeyboardButtonFilter::signature : data.VKey,
 					lparam);
 		}
@@ -685,7 +689,7 @@ void RawInput::RefreshDevices()
 		}
 	}
 
-	// If any devices are unplugged, remove them
+	// If any devices are unplugged, remove them //mouse
 	for (int i = rawInputState.selectedMouseHandles.size() - 1; i >= 0; --i)
 	{
 		if (std::find(rawInputState.mouseHandles.begin(), rawInputState.mouseHandles.end(), rawInputState.selectedMouseHandles[i]) == rawInputState.mouseHandles.end())
@@ -696,11 +700,11 @@ void RawInput::RefreshDevices()
 		if (std::find(rawInputState.mouseHandles.begin(), rawInputState.mouseHandles.end(), rawInputState.deselectedMouseHandles[i]) == rawInputState.mouseHandles.end())
 			rawInputState.deselectedMouseHandles.erase(rawInputState.deselectedMouseHandles.begin() + i);
 	}
-
+	//keyboard
 	for (int i = rawInputState.selectedKeyboardHandles.size() - 1; i >= 0; --i)
 	{
 		if (std::find(rawInputState.keyboardHandles.begin(), rawInputState.keyboardHandles.end(), rawInputState.selectedKeyboardHandles[i]) == rawInputState.keyboardHandles.end())
-			rawInputState.selectedMouseHandles.erase(rawInputState.selectedMouseHandles.begin() + i);
+			rawInputState.selectedKeyboardHandles.erase(rawInputState.selectedKeyboardHandles.begin() + i);
 	}
 	for (int i = rawInputState.deselectedKeyboardHandles.size() - 1; i >= 0; --i)
 	{

@@ -225,6 +225,7 @@ inline DWORD WINAPI XInputfromkbm(DWORD dwUserIndex, XINPUT_STATE* pState, bool 
 		pState->Gamepad.sThumbLX = 0;
 		pState->Gamepad.sThumbRY = 0;
 		pState->Gamepad.sThumbRX = 0;
+		pState->dwPacketNumber = 0;
 		firstcall = true;
 	}
 
@@ -283,7 +284,8 @@ inline DWORD WINAPI XInputfromkbm(DWORD dwUserIndex, XINPUT_STATE* pState, bool 
 	}
 	if (changed)
 	{
-		pState->dwPacketNumber++;
+		static DWORD packetNumberT = 0;
+		pState->dwPacketNumber = packetNumberT++; //
 		changed = false;
 	}
 
@@ -302,7 +304,7 @@ inline DWORD WINAPI XInputfromkbm(DWORD dwUserIndex, XINPUT_STATE* pState, bool 
 	oldstart = IsKeyPressed(ScreenshotInput::TranslateXtoMKB::startmapping);
 	oldback = IsKeyPressed(ScreenshotInput::TranslateXtoMKB::optionmapping);
 	oldstickRB = IsKeyPressed(ScreenshotInput::TranslateXtoMKB::stickRpressmapping);
-	oldstickLB != IsKeyPressed(ScreenshotInput::TranslateXtoMKB::stickLpressmapping);
+	oldstickLB = IsKeyPressed(ScreenshotInput::TranslateXtoMKB::stickLpressmapping);
 
 	oldtriggerleft = IsKeyPressed(VK_RBUTTON);
 	oldtriggerright = IsKeyPressed(VK_LBUTTON);
@@ -331,7 +333,7 @@ inline DWORD WINAPI XInputGetStateDinput_Inline(DWORD dwUserIndex, XINPUT_STATE*
 	if (dinputDevice == nullptr)
 		return ERROR_DEVICE_NOT_CONNECTED;
 
-	//WORK TODO TO DO is this an error? it is supposed to increase on statechange. doesnt look correct now?
+	
 	static DWORD packetNumber = 0;
 	pState->dwPacketNumber = packetNumber++; //
 	memset(&(pState->Gamepad), 0, extended ? sizeof(XINPUT_GAMEPAD_EX) : sizeof(XINPUT_GAMEPAD));

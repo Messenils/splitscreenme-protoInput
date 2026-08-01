@@ -81,20 +81,38 @@ namespace ScreenshotInput {
         return ((width * 3 + 3) & ~3);
     }
 
-    bool LoadBMP24Bit(std::wstring filename, std::vector<BYTE>& pixels, int& width, int& height, int& stride) {
-        HBITMAP hbm = (HBITMAP)LoadImageW(NULL, filename.c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
-        if (!hbm) return false;
+    bool LoadBMP24Bit(const std::wstring& filename,
+        std::vector<BYTE>& pixels,
+        int& width, int& height, int& stride)
+    {
+        HBITMAP hbm = (HBITMAP)LoadImageW(
+            NULL, filename.c_str(),
+            IMAGE_BITMAP, 0, 0,
+            LR_LOADFROMFILE | LR_CREATEDIBSECTION);
 
-        //BITMAP scaledbmp;
-        BITMAP bmp;
-        GetObject(hbm, sizeof(BITMAP), &bmp);
-        width = bmp.bmWidth - 1;
-        height = bmp.bmHeight - 1;
-        stride = CalculateStride(width);
+        if (!hbm)
+            return false;
 
+        BITMAP bmp{};
+        if (!GetObject(hbm, sizeof(bmp), &bmp))
+        {
+            DeleteObject(hbm);
+            return false;
+        }
+
+        width = bmp.bmWidth;
+        height = bmp.bmHeight;
+
+        if (width <= 0 || height <= 0)
+        {
+            DeleteObject(hbm);
+            return false;
+        }
+
+        stride = ((width * 3 + 3) & ~3);
         pixels.resize(stride * height);
 
-        BITMAPINFO bmi = {};
+        BITMAPINFO bmi{};
         bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
         bmi.bmiHeader.biWidth = width;
         bmi.bmiHeader.biHeight = -height;
@@ -102,12 +120,22 @@ namespace ScreenshotInput {
         bmi.bmiHeader.biBitCount = 24;
         bmi.bmiHeader.biCompression = BI_RGB;
 
-        BYTE* pBits = nullptr;
-        HDC hdc = GetDC(NULL);
-        GetDIBits(hdc, hbm, 0, height, pixels.data(), &bmi, DIB_RGB_COLORS);
+        HDC hdc = CreateCompatibleDC(NULL);
+        if (!hdc)
+        {
+            DeleteObject(hbm);
+            return false;
+        }
 
-        if (hdc) DeleteDC(hdc);
-        if (hbm) DeleteObject(hbm);
+        if (!GetDIBits(hdc, hbm, 0, height, pixels.data(), &bmi, DIB_RGB_COLORS))
+        {
+            DeleteDC(hdc);
+            DeleteObject(hbm);
+            return false;
+        }
+
+        DeleteDC(hdc);
+        DeleteObject(hbm);
         return true;
     }
 
@@ -115,16 +143,9 @@ namespace ScreenshotInput {
     void BmpInputAction(int X, int Y, int type) //moveclickorboth
     {
         Proto::FakeMouseState muusjn = Proto::FakeMouseKeyboard::GetMouseState();
-        int Xhold = muusjn.x;
-        int Yhold = muusjn.y;
-        if (Xhold < X)
-            X = X - Xhold;
-        else 
-			X = X - Xhold;
-        if (Yhold < Y)
-            Y= Y - Yhold;
-        else
-            Y = Y - Yhold;
+        X = X - muusjn.x;
+        Y = Y - muusjn.y;
+
         if (type == 0) //click and move
         {
             
@@ -134,10 +155,12 @@ namespace ScreenshotInput {
             TranslateXtoMKB::SendMouseClick(X, Y, 3);
             Sleep(5);
             TranslateXtoMKB::SendMouseClick(X, Y, 4);
+            TranslateXtoMKB::RefreshWindow++; //refresh cursor
         }
         else if (type == 1) //only move
         {
             TranslateXtoMKB::SendMouseClick(X, Y, 8);
+            TranslateXtoMKB::RefreshWindow++;//refresh cursor
         }
         else if (type == 2) //only click
         {
@@ -152,6 +175,7 @@ namespace ScreenshotInput {
     }
 	POINT Aprevious{ 0,0 }, Bprevious{ 0,0 }, Xprevious{ 0,0 }, Yprevious{ 0,0 };
 	int Awas; int Bwas; int Xwas; int Ywas;
+	int Anum; int Bnum; int Xnum; int Ynum;
     void Bmpfound(const char key[3], int X, int Y, int i, bool onlysearch, bool found, int store)
     {
         int input = 0;
@@ -163,6 +187,7 @@ namespace ScreenshotInput {
             {
                 if (onlysearch)
                 {
+                    Anum = 0;
                     EnterCriticalSection(&ScanThread::critical);
                     ScanThread::startsearchA = i;
                     input = ScanThread::scanAtype;
@@ -191,17 +216,22 @@ namespace ScreenshotInput {
             }
             else
             {
-                if (onlysearch)
+                if (onlysearch) //not found
                 {
-                    EnterCriticalSection(&ScanThread::critical);
-                    ScanThread::startsearchA = 0;
-                    ScanThread::PointA.x = 0;
-                    ScanThread::PointA.y = 0;
-                    if (Aprevious.x != X || Aprevious.y != Y)
-                        ScanThread::UpdateWindow = true;
-                    Aprevious.x = X;
-                    Aprevious.y = Y;
-                    LeaveCriticalSection(&ScanThread::critical);
+					Anum++;
+                    if (Anum >= 2)
+                    { 
+                        Anum = 0;
+                        EnterCriticalSection(&ScanThread::critical);
+                        ScanThread::startsearchA = 0;
+                        ScanThread::PointA.x = 0;
+                        ScanThread::PointA.y = 0;
+                        if (Aprevious.x != X || Aprevious.y != Y)
+                            ScanThread::UpdateWindow = true;
+                        Aprevious.x = X;
+                        Aprevious.y = Y;
+                        LeaveCriticalSection(&ScanThread::critical);
+                    }
                 }
             }
         }
@@ -214,6 +244,7 @@ namespace ScreenshotInput {
                 //LeaveCriticalSection(&critical);
                 if (onlysearch)
                 {
+                    Bnum = 0;
                     EnterCriticalSection(&ScanThread::critical);
                     ScanThread::startsearchB = i;
                     ScanThread::PointB.x = X;
@@ -242,15 +273,20 @@ namespace ScreenshotInput {
             {
                 if (onlysearch)
                 {
-                    EnterCriticalSection(&ScanThread::critical);
-                    ScanThread::startsearchB = 0;
-                    ScanThread::PointB.x = 0;
-                    ScanThread::PointB.y = 0;
-                    if (Bprevious.x != X || Bprevious.y != Y)
-                        ScanThread::UpdateWindow = true;
-                    Bprevious.x = X;
-                    Bprevious.y = Y;
-                    LeaveCriticalSection(&ScanThread::critical);
+                    Bnum++;
+                    if (Bnum >= 2)
+                    {
+                        Bnum = 0;
+                        EnterCriticalSection(&ScanThread::critical);
+                        ScanThread::startsearchB = 0;
+                        ScanThread::PointB.x = 0;
+                        ScanThread::PointB.y = 0;
+                        if (Bprevious.x != X || Bprevious.y != Y)
+                            ScanThread::UpdateWindow = true;
+                        Bprevious.x = X;
+                        Bprevious.y = Y;
+                        LeaveCriticalSection(&ScanThread::critical);
+                    }
                 }
             }
         }
@@ -263,6 +299,7 @@ namespace ScreenshotInput {
                  //LeaveCriticalSection(&critical);
                 if (onlysearch)
                 {
+                    Xnum = 0;
                     EnterCriticalSection(&ScanThread::critical);
                     ScanThread::startsearchX = i;
                     ScanThread::PointX.x = X;
@@ -292,15 +329,20 @@ namespace ScreenshotInput {
             {
                 if (onlysearch)
                 {
-                    EnterCriticalSection(&ScanThread::critical);
-                    ScanThread::startsearchX = 0;
-                    ScanThread::PointX.x = 0;
-                    ScanThread::PointX.y = 0;
-                    if (Xprevious.x != X || Xprevious.y != Y)
-                        ScanThread::UpdateWindow = true;
-                    Xprevious.x = ScanThread::PointX.x;
-                    Xprevious.y = ScanThread::PointX.y;
-                    LeaveCriticalSection(&ScanThread::critical);
+                    Xnum++;
+                    if (Xnum >= 2)
+                    {
+                        Xnum = 0;
+                        EnterCriticalSection(&ScanThread::critical);
+                        ScanThread::startsearchX = 0;
+                        ScanThread::PointX.x = 0;
+                        ScanThread::PointX.y = 0;
+                        if (Xprevious.x != X || Xprevious.y != Y)
+                            ScanThread::UpdateWindow = true;
+                        Xprevious.x = ScanThread::PointX.x;
+                        Xprevious.y = ScanThread::PointX.y;
+                        LeaveCriticalSection(&ScanThread::critical);
+                    }
                 }
             }
         }
@@ -313,8 +355,9 @@ namespace ScreenshotInput {
             {
                 if (onlysearch)
                 {
+                    Ynum = 0;
                     EnterCriticalSection(&ScanThread::critical);
-                    ScanThread::startsearchX = i;
+                    ScanThread::startsearchY = i;
                     ScanThread::staticPointY[i].x = X;
                     ScanThread::staticPointY[i].y = Y;
                     ScanThread::PointY.x = X;
@@ -342,16 +385,21 @@ namespace ScreenshotInput {
             {
                 if (onlysearch)
                 {
-                    EnterCriticalSection(&ScanThread::critical);
-                    ScanThread::startsearchY = 0;
-                    //input = scanYtype;
-                    ScanThread::PointY.x = 0;
-                    ScanThread::PointY.y = 0;
-                    if (Yprevious.x != X || Yprevious.y != Y)
-                        ScanThread::UpdateWindow = true;
-                    Yprevious.x = ScanThread::PointY.x;
-                    Yprevious.y = ScanThread::PointY.y;
-                    LeaveCriticalSection(&ScanThread::critical);
+                    Ynum++;
+                    if (Ynum >= 2)
+                    {
+                        Ynum = 0;
+                        EnterCriticalSection(&ScanThread::critical);
+                        ScanThread::startsearchY = 0;
+                        //input = scanYtype;
+                        ScanThread::PointY.x = 0;
+                        ScanThread::PointY.y = 0;
+                        if (Yprevious.x != X || Yprevious.y != Y)
+                            ScanThread::UpdateWindow = true;
+                        Yprevious.x = ScanThread::PointY.x;
+                        Yprevious.y = ScanThread::PointY.y;
+                        LeaveCriticalSection(&ScanThread::critical);
+                    }
                 }
             }
         }
@@ -448,18 +496,32 @@ namespace ScreenshotInput {
         return pp;
     }
 
-    bool CaptureWindow24Bit(HWND hwnd, SIZE& capturedwindow, std::vector<BYTE>& pixels, int& strideOut, bool draw, bool stretchblt)
+    bool CaptureWindow24Bit(HWND hwnd, SIZE& capturedwindow, std::vector<BYTE>& pixels,
+        int& strideOut, bool draw, bool stretchblt)
     {
         if (PreScanningEnabled)
             EnterCriticalSection(&ScanThread::critical);
-        HDC hdcWindow = GetDC(hwnd);
-        HDC hdcMem = CreateCompatibleDC(hdcWindow);
 
+        HDC hdcWindow = GetDC(hwnd);
+        if (!hdcWindow)
+        {
+            if (PreScanningEnabled) LeaveCriticalSection(&ScanThread::critical);
+            return false;
+        }
+
+        HDC hdcMem = CreateCompatibleDC(hdcWindow);
+        if (!hdcMem)
+        {
+            ReleaseDC(hwnd, hdcWindow);
+            if (PreScanningEnabled) LeaveCriticalSection(&ScanThread::critical);
+            return false;
+        }
 
         RECT rcClient;
         GetClientRect(hwnd, &rcClient);
         int width = rcClient.right - rcClient.left;
         int height = rcClient.bottom - rcClient.top;
+
         capturedwindow.cx = width;
         capturedwindow.cy = height;
 
@@ -470,31 +532,38 @@ namespace ScreenshotInput {
         BITMAPINFO bmi = {};
         bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
         bmi.bmiHeader.biWidth = width;
-        bmi.bmiHeader.biHeight = -height; // top-down
+        bmi.bmiHeader.biHeight = -height;
         bmi.bmiHeader.biPlanes = 1;
         bmi.bmiHeader.biBitCount = 24;
         bmi.bmiHeader.biCompression = BI_RGB;
 
         BYTE* pBits = nullptr;
         HBITMAP hbm24 = CreateDIBSection(hdcWindow, &bmi, DIB_RGB_COLORS, (void**)&pBits, NULL, 0);
+
         if (hbm24)
         {
             HGDIOBJ oldBmp = SelectObject(hdcMem, hbm24);
-            BitBlt(hdcMem, 0, 0, width, height, hdcWindow, 0, 0, SRCCOPY);
-            GetDIBits(hdcMem, hbm24, 0, height, pixels.data(), &bmi, DIB_RGB_COLORS);
-            SelectObject(hdcMem, oldBmp);
+            if (oldBmp)
+            {
+                BitBlt(hdcMem, 0, 0, width, height, hdcWindow, 0, 0, SRCCOPY);
+
+                // Copy directly from DIB memory
+                memcpy(pixels.data(), pBits, stride * height);
+
+                SelectObject(hdcMem, oldBmp);
+            }
+
             DeleteObject(hbm24);
-            // hbm24 = nullptr;
+        }
 
-        } //hbm24 not null
-
-        if (hdcMem) DeleteDC(hdcMem);
-        if (hdcWindow) ReleaseDC(hwnd, hdcWindow);
+        DeleteDC(hdcMem);
+        ReleaseDC(hwnd, hdcWindow);
 
         if (PreScanningEnabled)
             LeaveCriticalSection(&ScanThread::critical);
+
         return true;
-    } //function end
+    }
 
     POINT CheckStatics(const char abc[3], int numtocheck)
     {
@@ -968,7 +1037,7 @@ namespace ScreenshotInput {
         return false;
     }
 
-    DWORD WINAPI ScanThreadMain(LPVOID, int Aisstatic, int Bisstatic, int Xisstatic, int Yisstatic)
+    DWORD WINAPI ScanThreadMain( int Aisstatic, int Bisstatic, int Xisstatic, int Yisstatic)
     {
         ScanThread::scanloop = true;
         int scantick = 0;
@@ -1051,7 +1120,7 @@ namespace ScreenshotInput {
                         else
                             Bmpfound("\\Y", ScanThread::staticPointY[startsearchYW].x, ScanThread::staticPointY[startsearchYW].y, startsearchYW, true, true, Ystatic);
                     }
-                    ButtonScanAction("\\Y", 1, ScanThread::numphotoY, startsearchYW, true, PointYW, Ystatic);
+                    else ButtonScanAction("\\Y", 1, ScanThread::numphotoY, startsearchYW, true, PointYW, Ystatic);
                 }
                 Sleep(10);
             }
@@ -1109,8 +1178,8 @@ namespace ScreenshotInput {
                         if (ScanThread::startsearchB < ScanThread::numphotoB - 1)
                             ScanThread::startsearchB++; //dont want it to update before input done
                         else ScanThread::startsearchB = 0;
-                        ScanThread::PointA.x = 0;
-                        ScanThread::PointA.y = 0;
+                        ScanThread::PointB.x = 0;
+                        ScanThread::PointB.y = 0;
                     }
                     BmpInputAction(Cpoint.x, Cpoint.y, ScanThread::scanBtype);
                     returnedvalue = true;
@@ -1239,7 +1308,7 @@ namespace ScreenshotInput {
             if (!PreScanningEnabled)
             {
                 EnterCriticalSection(&critical);
-                returnedvalue = ButtonScanAction("\\E", ModeScanThread, ScanThread::numphotoD, ScanThread::startsearchD, false, { 0,0 }, false); //2 save bmps
+                returnedvalue = ButtonScanAction("\\E", ModeScanThread, ScanThread::numphotoE, ScanThread::startsearchE, false, { 0,0 }, false); //2 save bmps
                 LeaveCriticalSection(&critical);
             }
         }
@@ -1258,9 +1327,9 @@ namespace ScreenshotInput {
     }
 
 
-    void ScanThread::StartScanThread(HMODULE hmodule, int Astatic, int Bstatic, int Xstatic, int Ystatic, bool prescan) {
+    void ScanThread::StartScanThread( int Astatic, int Bstatic, int Xstatic, int Ystatic, bool prescan) {
         PreScanningEnabled = prescan;
-        std::thread tree(ScanThreadMain, hmodule, Astatic, Bstatic, Xstatic, Ystatic);
+        std::thread tree(ScanThreadMain, Astatic, Bstatic, Xstatic, Ystatic);
         tree.detach();
     }
 
