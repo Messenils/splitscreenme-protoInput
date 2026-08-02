@@ -5,8 +5,7 @@
 #include <bitset>
 #include "RawInput.h"
 #include <imgui.h>
-#include "HwndSelector.h" //GtoMnK_RawInputHooks
-#include "GtoMnK_RawInputHooks.h" //GtoMnK_RawInputHooks
+#include "HwndSelector.h" 
 
 namespace Proto
 {
@@ -165,7 +164,7 @@ void RegisterRawInputHook::ShowGuiStatus()
 	bool gotawindow = false;
 	for (const auto& hwnd : RawInput::forwardingWindows)
 	{
-		char windowTitleBuffer[60]; //GetWindowTextA was so slow
+		//char windowTitleBuffer[60]; //GetWindowTextA was so slow
 		//GetWindowTextA((HWND)HwndSelector::GetSelectedHwnd(), windowTitleBuffer, sizeof(windowTitleBuffer));
 		ImGui::Text("Raw input to window: %X", hwnd);
 		gotawindow = true;

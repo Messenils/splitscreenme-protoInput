@@ -1,5 +1,4 @@
 #include "GtoMnK_RawInput.h"
-#include "GtoMnK_RawInputHooks.h"
 #include "HwndSelector.h"
 #include "RawInput.h"
 

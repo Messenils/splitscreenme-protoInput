@@ -85,7 +85,6 @@ POINT deltaR;
 bool oldA, oldB, oldX, oldY, oldtriggerleft, oldtriggerright, oldLS, oldRS, oldup, olddown, oldleft, oldright;
 bool oldstart, oldback, oldstickRB, oldstickLB;
 bool firstcall = false;
-DWORD fakedwpacketnumber = 0;
 bool changed;
 SHORT LaxisX, LaxisY, RaxisX, RaxisY;
 SHORT deadzone = 14000;
@@ -229,16 +228,14 @@ inline DWORD WINAPI XInputfromkbm(DWORD dwUserIndex, XINPUT_STATE* pState, bool 
 		firstcall = true;
 	}
 
-	RaxisX = axisvaluebutton(RaxisX, IsKeyPressed(ScreenshotInput::TranslateXtoMKB::stickleftmapping), IsKeyPressed(ScreenshotInput::TranslateXtoMKB::stickrightmapping));
+	RaxisX = axisvaluebutton(RaxisX, IsKeyPressed(ScreenshotInput::TranslateXtoMKB::stickrightmapping), IsKeyPressed(ScreenshotInput::TranslateXtoMKB::stickleftmapping));
 	RaxisY = axisvaluebutton(RaxisY, IsKeyPressed(ScreenshotInput::TranslateXtoMKB::stickupmapping), IsKeyPressed(ScreenshotInput::TranslateXtoMKB::stickdownmapping));
 
 	POINT mouseaxis = axisvaluemouse(LaxisX, LaxisY);
-	LaxisX = mouseaxis.x;
-	LaxisY = mouseaxis.y;
+	LaxisX = (SHORT)mouseaxis.x;
+	LaxisY = (SHORT)mouseaxis.y;
 
-
-
-	FillXbuttons(pState);
+	FillXbuttons(pState); 
 
 
 	//normal buttons 

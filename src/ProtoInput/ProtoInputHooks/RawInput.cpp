@@ -59,17 +59,6 @@ HWND RawInput::rawInputHwnd = nullptr;
 
 void SearchAndSendInput(int X, int Y, int msg, WPARAM wparam, LPARAM lparam)
 {
-	if (msg == WM_MOUSEMOVE) //too frequent, no search
-	{
-		if (ChildselectedHwnd && IsWindow(ChildselectedHwnd))
-		{
-			POINT ptChild = { X, Y };
-			MapWindowPoints((HWND)HwndSelector::GetSelectedHwnd(), ChildselectedHwnd, &ptChild, 1);
-			LPARAM lp = MAKELPARAM(ptChild.x, ptChild.y);
-			PostMessageW(ChildselectedHwnd, msg, wparam, lp);
-			return;
-		}
-	}
 	ChildselectedHwnd = nullptr;
 	if (msg == WM_LBUTTONDOWN)
 	{ 
@@ -279,7 +268,7 @@ void RawInput::ProcessMouseInput(const RAWMOUSE& data, HANDLE deviceHandle)
 
 	// Update fake mouse position
 	if ((data.usFlags & MOUSE_MOVE_ABSOLUTE) == MOUSE_MOVE_ABSOLUTE)
-	{
+	{ 
 		const bool isVirtualDesktop = (data.usFlags & MOUSE_VIRTUAL_DESKTOP) == MOUSE_VIRTUAL_DESKTOP;
 
 		// const int width = GetSystemMetrics(isVirtualDesktop ? SM_CXVIRTUALSCREEN : SM_CXSCREEN);

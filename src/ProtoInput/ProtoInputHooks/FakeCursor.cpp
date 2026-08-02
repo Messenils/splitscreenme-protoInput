@@ -415,18 +415,26 @@ int cursoroffsetx, cursoroffsety;
 int offsetSET = 0; //0:sizing 1:scanning 2:done, only drawing until cursor change, or nochange
 bool nochange = false; //if normal offset was found at first then assume all cursors got same offset
 bool symmetricdetected = false;
-bool symmetrysearch = false;
+bool symmetrysearch = true;
 
 extern "C" void __declspec(dllexport) __stdcall SetCursorOffset(int X, int Y)
 {
-    if (X == 543543) //enable symmetry search
+    symmetricdetected = false;
+    if (X == 543) //enable symmetry search
     { 
         symmetrysearch = true;
         nochange = false;
         return;
     }
+    if (Y == 543) //disable symmetry search
+    {
+        symmetrysearch = false;
+        nochange = false;
+        return;
+    }
     cursoroffsetx = X;
     cursoroffsety = Y;
+    
     nochange = true;
 }
 
@@ -513,7 +521,7 @@ void FakeCursor::DrawCursor()
                         if (leftcursoroffsety != -1) break;
                     }
 
-                    if (symmetrysearch) //disabled because it broke constant offset on some games
+                    if (symmetrysearch)
                     { 
                         for (int x = cursorWidth - 1; x >= 0; x--)
                         {
@@ -528,6 +536,7 @@ void FakeCursor::DrawCursor()
                     //Adjusting possible here if symmetric cursor is not found
                     if (leftcursoroffsetx == rightcursoroffsetx - 1 || leftcursoroffsetx == rightcursoroffsetx + 1 || leftcursoroffsetx == rightcursoroffsetx) //check for symmetric first only if Y offset is small
                     {
+                        //if any symmetric cursor then guess there are also cursors with 0.0 offset
                         cursoroffsety = cursorHeight / 2;
                         cursoroffsetx = cursorWidth / 2;
                         symmetricdetected = true;
@@ -536,7 +545,8 @@ void FakeCursor::DrawCursor()
                     {
                         cursoroffsetx = leftcursoroffsetx;
                         cursoroffsety = leftcursoroffsety;
-                        nochange = true;
+                        if (symmetricdetected != true)
+                            nochange = true;
                     }
                     else { //no offsets
                         cursoroffsetx = 0;
