@@ -267,8 +267,9 @@ void FakeCursor::DrawMessage(HDC hdc, HWND window, HBRUSH Brush, int message)
 
 }
 int teller = 0;
+//int tellerto = 0;
 POINT OldTestpos = { 0, 0 };
-void FakeCursor::DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, POINT spotY, HWND window)
+void FakeCursor::DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, POINT spotY, HWND window, bool redraw)
 {
     bool erasedA = false;
     bool erased = false;
@@ -278,7 +279,7 @@ void FakeCursor::DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, 
     //detect window change pos
     teller++;
     POINT testpos = { 0, 0 };
-    if (teller > 100)
+    if (teller > 1000)
     {
         teller = 0;
         
@@ -289,11 +290,12 @@ void FakeCursor::DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, 
         }
         OldTestpos.x = testpos.x;
         OldTestpos.y = testpos.y;
+        redraw = true;
 	}
 
 
     //point coordinate changes
-    if (OldspotA.x != spotA.x || OldspotA.y != spotA.y)
+    if (OldspotA.x != spotA.x || OldspotA.y != spotA.y || redraw)
     {
         ClientToScreen(window, &OldspotA);
         RECT fill{ OldspotA.x - 20, OldspotA.y - 20, OldspotA.x + 20, OldspotA.y + 20 };
@@ -302,7 +304,7 @@ void FakeCursor::DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, 
         ScreenToClient(window, &OldspotA);
     }
 
-    if (OldspotB.x != spotB.x || OldspotB.y != spotB.y) //|| windowmoved)
+    if (OldspotB.x != spotB.x || OldspotB.y != spotB.y || redraw) //|| windowmoved)
     {
         ClientToScreen(window, &OldspotB);
         RECT fill{ OldspotB.x - 20, OldspotB.y - 20, OldspotB.x + 20, OldspotB.y + 20 };
@@ -310,7 +312,7 @@ void FakeCursor::DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, 
         erasedB = true;
         ScreenToClient(window, &OldspotB);
     }
-    if (OldspotX.x != spotX.x || OldspotX.y != spotX.y) //|| windowmoved)
+    if (OldspotX.x != spotX.x || OldspotX.y != spotX.y || redraw) //|| windowmoved)
     {
         ClientToScreen(window, &OldspotX);
         RECT fill{ OldspotX.x - 20, OldspotX.y - 20, OldspotX.x + 20, OldspotX.y + 20 };
@@ -318,7 +320,7 @@ void FakeCursor::DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, 
         erasedX = true;
         ScreenToClient(window, &OldspotX);
     }
-    if (OldspotY.x != spotY.x || OldspotY.y != spotY.y) //|| windowmoved)
+    if (OldspotY.x != spotY.x || OldspotY.y != spotY.y || redraw) //|| windowmoved)
     {
         ClientToScreen(window, &OldspotY);
         RECT fill{ OldspotY.x - 20, OldspotY.y - 20, OldspotY.x + 20, OldspotY.y + 20 };
@@ -390,7 +392,7 @@ void FakeCursor::DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, 
     }
 }
 
-void FakeCursor::DrawPointsandMessages() //only on Xtranslate
+void FakeCursor::DrawPointsandMessages(bool redraw) //only on Xtranslate
 {
     if (ScreenshotInput::ScanThread::scanoption)
     {
@@ -401,7 +403,7 @@ void FakeCursor::DrawPointsandMessages() //only on Xtranslate
         POINT Bpos = { ScreenshotInput::ScanThread::PointB.x, ScreenshotInput::ScanThread::PointB.y };
         POINT Xpos = { ScreenshotInput::ScanThread::PointX.x, ScreenshotInput::ScanThread::PointX.y };
         POINT Ypos = { ScreenshotInput::ScanThread::PointY.x, ScreenshotInput::ScanThread::PointY.y };
-        FakeCursor::DrawFoundSpots(hdc, Apos, Bpos, Xpos, Ypos, selectorhwnd);
+        FakeCursor::DrawFoundSpots(hdc, Apos, Bpos, Xpos, Ypos, selectorhwnd, redraw);
         FakeCursor::DrawMessage(hdc, selectorhwnd, transparencyBrush, FakeCursor::Showmessage);
         LeaveCriticalSection(&ScreenshotInput::ScanThread::critical);
     }
@@ -645,10 +647,10 @@ void FakeCursor::StartDrawLoopInternal()
         }
         else 
         {
-            ScreenshotInput::TranslateXtoMKB::ThreadFunction();
+            bool redrawpoints = ScreenshotInput::TranslateXtoMKB::ThreadFunction();
             if (ScreenshotInput::TranslateXtoMKB::RefreshPoint > 0)
             {
-                DrawPointsandMessages();
+                DrawPointsandMessages(redrawpoints);
                 ScreenshotInput::TranslateXtoMKB::RefreshPoint--;
             }
             if (ScreenshotInput::TranslateXtoMKB::RefreshWindow > 0)

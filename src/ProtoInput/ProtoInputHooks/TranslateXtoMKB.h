@@ -11,7 +11,7 @@ namespace ScreenshotInput
 	//	static bool usetraqnslation;
 
 	public:
-		static void ThreadFunction(); //polling from idle drawfakecursor thread
+		static bool ThreadFunction(); //polling from idle drawfakecursor thread
 		static void SendMouseClick(int x, int y, int z);
 		static int RefreshWindow;
 		static int RefreshPoint;

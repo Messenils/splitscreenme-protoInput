@@ -39,6 +39,7 @@ class FakeMouseKeyboard
 {
 	static FakeMouseState mouseState;
 	static FakeKeyboardState keyboardState;
+	static void CursorRestriction(int dx, int dy, bool setpos);
 	
 public:
 	static const FakeMouseState& GetMouseState() { return mouseState; }

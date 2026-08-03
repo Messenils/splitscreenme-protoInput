@@ -11,11 +11,19 @@ bool FakeMouseKeyboard::PutMouseInsideWindow = false;
 bool FakeMouseKeyboard::DefaultTopLeftMouseBounds = false;
 bool FakeMouseKeyboard::DefaultBottomRightMouseBounds = false;
 
-void FakeMouseKeyboard::AddMouseDelta(int dx, int dy)
+void FakeMouseKeyboard::CursorRestriction(int dx, int dy, bool setpos)
 {
-	mouseState.x += dx;
-	mouseState.y += dy;
-
+	if (!setpos) //mousemove
+	{ 
+		mouseState.x += dx;
+		mouseState.y += dy;
+	}
+	else //setcursorpos call
+	{
+		mouseState.x = dx;
+		mouseState.y = dy;
+	}
+	
 	if (!mouseState.ignoreMouseBounds)
 	{
 		if (!PutMouseInsideWindow)
@@ -72,7 +80,7 @@ void FakeMouseKeyboard::AddMouseDelta(int dx, int dy)
 					mouseState.y = max;
 			}
 		}
-		
+
 		if (mouseState.hasClipCursor)
 		{
 			if (mouseState.x < mouseState.clipClientLeft)
@@ -87,6 +95,10 @@ void FakeMouseKeyboard::AddMouseDelta(int dx, int dy)
 				mouseState.y = mouseState.clipClientBottom;
 		}
 	}
+}
+void FakeMouseKeyboard::AddMouseDelta(int dx, int dy)
+{
+	FakeMouseKeyboard::CursorRestriction(dx, dy, false);
 
 	if (SetWindowsHookHook::LLMousehooked && SetWindowsHookHook::gameshookcallLLMouse != nullptr) //directly call HHOOK callback in game?
 	{
@@ -96,80 +108,7 @@ void FakeMouseKeyboard::AddMouseDelta(int dx, int dy)
 
 void FakeMouseKeyboard::SetMousePos(int x, int y)
 {
-	mouseState.x = x;
-	mouseState.y = y;
-
-	if (!mouseState.ignoreMouseBounds)
-	{
-		if (!PutMouseInsideWindow)
-		{
-			int min = mouseState.extendMouseBounds ? -100 : -1;
-			if (mouseState.x < min)
-				mouseState.x = min;
-			if (mouseState.y < min)
-				mouseState.y = min;
-		}
-		else if (PutMouseInsideWindow)
-		{
-			if (!DefaultTopLeftMouseBounds)
-			{
-				int min = mouseState.extendMouseBounds ? -100 : 0;
-				if (mouseState.x < min)
-					mouseState.x = min;
-				if (mouseState.y < min)
-					mouseState.y = min;
-			}
-			else if (DefaultTopLeftMouseBounds)
-			{
-				int min = mouseState.extendMouseBounds ? -100 : -1;
-				if (mouseState.x < min)
-					mouseState.x = min;
-				if (mouseState.y < min)
-					mouseState.y = min;
-			}
-		}
-
-		if (!PutMouseInsideWindow)
-		{
-			if (int max = mouseState.extendMouseBounds ? HwndSelector::windowWidth + 100 : HwndSelector::windowWidth; mouseState.x > max)
-				mouseState.x = max;
-
-			if (int max = mouseState.extendMouseBounds ? HwndSelector::windowHeight + 100 : HwndSelector::windowHeight; mouseState.y > max)
-				mouseState.y = max;
-		}
-		else if (PutMouseInsideWindow)
-		{
-			if (!DefaultBottomRightMouseBounds)
-			{
-				if (int max = mouseState.extendMouseBounds ? HwndSelector::windowWidth * 2 : HwndSelector::windowWidth; mouseState.x >= max)
-					mouseState.x = max - 1;
-				if (int max = mouseState.extendMouseBounds ? HwndSelector::windowHeight * 2 : HwndSelector::windowHeight; mouseState.y >= max)
-					mouseState.y = max - 1;
-			}
-			else if (DefaultBottomRightMouseBounds)
-			{
-				if (int max = mouseState.extendMouseBounds ? HwndSelector::windowWidth * 2 : HwndSelector::windowWidth; mouseState.x > max)
-					mouseState.x = max;
-
-				if (int max = mouseState.extendMouseBounds ? HwndSelector::windowHeight * 2 : HwndSelector::windowHeight; mouseState.y > max)
-					mouseState.y = max;
-			}
-		}
-
-		if (mouseState.hasClipCursor)
-		{
-			if (mouseState.x < mouseState.clipClientLeft)
-				mouseState.x = mouseState.clipClientLeft;
-			if (mouseState.y < mouseState.clipClientTop)
-				mouseState.y = mouseState.clipClientTop;
-
-			if (mouseState.x > mouseState.clipClientRight)
-				mouseState.x = mouseState.clipClientRight;
-
-			if (mouseState.y > mouseState.clipClientBottom)
-				mouseState.y = mouseState.clipClientBottom;
-		}
-	}
+	FakeMouseKeyboard::CursorRestriction(x, y, true);
 }
 
 void FakeMouseKeyboard::SetClipCursor(int clientLeft, int clientTop, int clientRight, int clientBottom)

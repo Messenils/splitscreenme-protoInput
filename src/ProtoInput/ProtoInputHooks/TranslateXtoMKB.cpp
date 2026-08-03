@@ -366,9 +366,10 @@ namespace ScreenshotInput
 
         return { integerDeltaX, -integerDeltaY };
     }
-
-    void TranslateXtoMKB::ThreadFunction()
+	
+    bool TranslateXtoMKB::ThreadFunction()
     {
+        bool threadreturn = false;
         if (ScanThread::scanoption && ScanThread::scanloop == false)
         {
 			//MessageBoxA(NULL, "Starting BMP scanner...", "Info", MB_OK);
@@ -679,6 +680,7 @@ namespace ScreenshotInput
                     oldC = true;
                     if (ScanThread::scanoption)
                     {
+                        threadreturn = true;
                         bool found = ScanThread::ButtonPressed(4);
                         if (!found)
                             ButtonStateImpulse(TranslateXtoMKB::RSmapping, true, 99); //down
@@ -703,6 +705,7 @@ namespace ScreenshotInput
                     oldD = true;
                     if (ScanThread::scanoption)
                     {
+                        threadreturn = true;
                         bool found = ScanThread::ButtonPressed(5);
                         if (!found)
                             ButtonStateImpulse(TranslateXtoMKB::LSmapping, true, 99);//down
@@ -925,7 +928,7 @@ namespace ScreenshotInput
         else Sleep(10);
 
 
-        return;
+        return threadreturn;
     }
 
 }

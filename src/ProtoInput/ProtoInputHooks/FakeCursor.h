@@ -43,8 +43,8 @@ namespace Proto
 		HWND selectorhwnd = nullptr; //copy of variable in TranslateXtoMKB to avoid accessing it multiple times with critical section in DrawCursor
 
 		void DrawMessage(HDC hdc, HWND window, HBRUSH Brush, int message);
-		void DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, POINT spotY, HWND window);
-		void DrawPointsandMessages();
+		void DrawFoundSpots(HDC hdc, POINT spotA, POINT spotB, POINT spotX, POINT spotY, HWND window, bool redraw);
+		void DrawPointsandMessages(bool redraw);
 		void DrawCursor();
 
 
