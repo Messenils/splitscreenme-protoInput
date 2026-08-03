@@ -738,7 +738,7 @@ namespace ScreenshotInput {
         int inistart = -1;
         while (x < 50 && inistart == -1)
         {
-            std::string iniPath = UGetExecutableFolder() + "\\GtoMnK.ini";
+            std::string iniPath = UGetExecutableFolder() + "\\ProtoInput.ini";
             std::string iniSettings = "Statics";
 
             std::string name(path.end() - 1, path.end());
@@ -759,7 +759,7 @@ namespace ScreenshotInput {
     }
     bool ScanThread::initovector()
     {
-        std::string iniPath = UGetExecutableFolder() + "\\GtoMnK.ini";
+        std::string iniPath = UGetExecutableFolder() + "\\ProtoInput.ini";
         std::string iniSettings = "Statics";
         std::string name = "A";
         int y = -1;
@@ -1258,7 +1258,6 @@ namespace ScreenshotInput {
             }
             else if (ScanThread::ShoulderNextBMP)
             {
-                //MessageBoxA(NULL, "heisann2", "A", MB_OK);
                 EnterCriticalSection(&ScanThread::critical);
                 if (ScanThread::startsearchA < ScanThread::numphotoA - 1)
                     ScanThread::startsearchA++; //dont want it to update before input done
