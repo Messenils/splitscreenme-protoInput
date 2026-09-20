@@ -207,6 +207,9 @@
     <ClInclude Include="INISettings.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="GetRawInputBufferHook.h">
+      <Filter>Source Files\Hooks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -370,6 +373,9 @@
     </ClCompile>
     <ClCompile Include="INISettings.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GetRawInputBufferHook.cpp">
+      <Filter>Source Files\Hooks</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

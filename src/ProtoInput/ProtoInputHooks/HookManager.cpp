@@ -25,6 +25,7 @@
 #include "SetWindowsHookHook.h"
 #include "RawInput.h"
 #include "TranslateXtoMKB.h"
+#include "GetRawInputBufferHook.h"
 
 namespace Proto
 {
@@ -57,7 +58,8 @@ HookManager::HookManager()
 	AddHook<AdjustWindowRectHook>(ProtoHookIDs::AdjustWindowRectHookID);//20
 	AddHook<RemoveBorderHook>(ProtoHookIDs::RemoveBorderHookID);//21
 	AddHook<GetCursorInfoHook>(ProtoHookIDs::GetCursorInfoHookID);//22
-	AddHook<SetWindowsHookHook>(ProtoHookIDs::SetWindowsHookHookID);//22
+	AddHook<SetWindowsHookHook>(ProtoHookIDs::SetWindowsHookHookID);//23 
+	AddHook<GetRawInputBufferHook>(ProtoHookIDs::GetRawInputBufferHookID);//24
 }
 
 void HookManager::InstallHook(ProtoHookIDs hookID)

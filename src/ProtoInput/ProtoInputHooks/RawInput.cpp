@@ -20,7 +20,6 @@
 #include "XinputHook.h"
 #include "WindowMsgHook.h"
 #include "SetWindowsHookHook.h"
-
 namespace Proto
 {
 
@@ -32,14 +31,22 @@ bool RawInput::MessageAllWindows = false;
 bool RawInput::PointerInMouse; 
 bool RawInput::lockInputToggleEnabled = false;
 bool RawInput::rawInputBypass = false;
+
+size_t RawInput::BufferCounter = 0;
 RAWINPUT RawInput::inputBuffer[RawInputBufferSize]{};
-std::vector<RAWINPUT> RawInput::rawinputs{};
+
 bool RawInput::TranslateXinputtoMKB;
 bool RawInput::TranslateXinputtoMKB2; //copy to prevent crash
 bool RawInput::locked = false;
 bool RawInput::alreadyAddToACL = false;
 
-size_t RawInput::bufferCounter = 0;
+//header copies for X to MKB
+RAWINPUT RawInput::FakeMouseDevice;
+RAWINPUT RawInput::FakeKbDevice;
+bool gotheaderm, gotheaderk = false;
+
+// getrawinputbuffer
+bool RawInput::InputQ = false; 
 
 HWND ChildselectedHwnd = nullptr;
 
@@ -257,10 +264,7 @@ void RawInput::SendInputMessages(const RAWMOUSE& data)
 		if (SetWindowsHookHook::Messagehooked && SetWindowsHookHook::gameshookcallMessage != nullptr)
 			SetWindowsHookHook::FireFakeGetMessage(WM_MOUSEMOVE, mouseMkFlags, mousePointLparam);
 	}
-	//MessageBoxA(NULL, "jo", "a", MB_OK);
 	FakeCursor::NotifyUpdatedCursorPosition();
-	
-
 }
 
 void RawInput::ProcessMouseInput(const RAWMOUSE& data, HANDLE deviceHandle)
@@ -451,6 +455,24 @@ void RawInput::ProcessRawInput(HRAWINPUT rawInputHandle, bool inForeground, cons
 
 	const int index = StateInfo::info.instanceIndex;
 	
+	//fake input injection headers. for XtoMKB
+	if (gotheaderm == false)
+	{ 
+		if (rawinput.header.dwType == RIM_TYPEMOUSE)
+		{
+			RawInput::FakeMouseDevice.header = rawinput.header;
+			gotheaderm = true;
+		}
+	}
+	if (gotheaderk == false)
+	{
+		if (rawinput.header.dwType == RIM_TYPEKEYBOARD)
+		{
+			RawInput::FakeKbDevice.header = rawinput.header;
+			gotheaderk = true;
+		}
+	}
+
 	// Shortcut to open UI (doesn't care about what keyboard is attached)
 	if (rawinput.header.dwType == RIM_TYPEKEYBOARD && index >= 1 && index <= 9 && (rawinput.data.keyboard.VKey == 0x30 + index))
 	{
@@ -537,24 +559,28 @@ void RawInput::ProcessRawInput(HRAWINPUT rawInputHandle, bool inForeground, cons
 			if ((allowMouse && usages[HID_USAGE_GENERIC_MOUSE]) || (allowKeyboard && usages[HID_USAGE_GENERIC_KEYBOARD]))
 			// if ((allowMouse) || (allowKeyboard))
 			{
+				// The game is going to lag behind the data we get by a few times, so store in an array and pass the index as a message parameter
+				static size_t inputBufferCounter = 0;
+				inputBufferCounter = (inputBufferCounter + 1) % RawInputBufferSize;
+				inputBuffer[inputBufferCounter] = rawinput;
+				const LPARAM x = (inputBufferCounter) | 0xAB000000;
 
+				//EnterCriticalSection(&RawInput::criticalSection);
+
+				RawInput::BufferCounter = inputBufferCounter; // after copy. the number is set. to be used by rawinputbufferhook
+				RawInput::InputQ = true;
+
+				//LeaveCriticalSection(&RawInput::criticalSection);
+				if (!XinputHook::TranslateMKBtoXinput && HookManager::IsInstalled(GetRawInputDataHookID))
+				{
 					for (const auto& hwnd : RawInput::forwardingWindows)
 					{
-						static size_t inputBufferCounter = 0;
-	
-						// The game is going to lag behind the data we get by a few times, so store in an array and pass the index as a message parameter
-					
-						inputBufferCounter = (inputBufferCounter + 1) % RawInputBufferSize;
-						inputBuffer[inputBufferCounter] = rawinput;
-	
-						const LPARAM x = (inputBufferCounter) | 0xAB000000;
-						if (!XinputHook::TranslateMKBtoXinput)
 							PostMessageW(hwnd, WM_INPUT, RIM_INPUT, x);
 					}
+				}
 			}
 		}
 	}
-
 }
 
 LRESULT WINAPI RawInputWindowWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -757,23 +783,39 @@ std::bitset<9> RawInput::GetUsageBitField()
 }
 
 bool initializedrawinput = false; //for X to MKB translation
-void RawInput::InjectFakeRawInput(const RAWINPUT& fakeInput) {
-	
-	bufferCounter = (bufferCounter + 1) % 20;
-	RawInput::inputBuffer[bufferCounter] = fakeInput;
+void RawInput::InjectFakeRawInput(RAWINPUT& fakeInput) {
 
-	const LPARAM magicLParam = (bufferCounter) | 0xAB000000;
-	for (const auto& hwnd : RawInput::forwardingWindows)
- 	{
-		//bypassing rawinputhwnd, game windows direct
- 		PostMessageW(hwnd, WM_INPUT, RIM_INPUT, magicLParam);
- 	}
+	if (fakeInput.header.dwType == RIM_TYPEMOUSE)
+	{ 
+		fakeInput.header = RawInput::FakeMouseDevice.header;
+	}
+	else if (fakeInput.header.dwType == RIM_TYPEKEYBOARD)
+	{
+		fakeInput.header = RawInput::FakeKbDevice.header;
+	}
+	else fakeInput.header.wParam = RIM_INPUT; // Sent in the foreground
+
+	static size_t Counter = (Counter + 1) % 1024;
+	RawInput::inputBuffer[Counter] = fakeInput;
+	
+	RawInput::BufferCounter = Counter;
+	RawInput::InputQ = true;
+
+	if (HookManager::IsInstalled(GetRawInputDataHookID))
+	{
+		const LPARAM magicLParam = (Counter) | 0xAB000000;
+		for (const auto& hwnd : RawInput::forwardingWindows)
+		{
+			PostMessageW(hwnd, WM_INPUT, RIM_INPUT, magicLParam);
+		}
+	}
 }
 
 void RawInput::InitialiseRawInput()
 {
 	if (!initializedrawinput) //initalizeonlyonce
 	{ 
+		//InitializeCriticalSection(&RawInput::criticalSection);
 		RefreshDevices();
 
 		HANDLE hThread = CreateThread(nullptr, 0,

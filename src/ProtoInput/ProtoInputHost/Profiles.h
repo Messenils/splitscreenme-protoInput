@@ -57,7 +57,8 @@ struct Profile //Profile::hooks::ProtoHookIDs::RenameHandlesHookID
 		{ "Dinput Order", false, "Dinput Order", ProtoHookIDs::DinputOrderHookID },
 		{ "Xinput", false, "Xinput", ProtoHookIDs::XinputHookID },
 		{ "GetCursorInfo", false, "GetCursorInfo", ProtoHookIDs::GetCursorInfoHookID },
-		{ "SetWindowsHookHook", false, "SetWindowsHookHook", ProtoHookIDs::SetWindowsHookHookID }
+		{ "SetWindowsHookHook", false, "SetWindowsHookHook", ProtoHookIDs::SetWindowsHookHookID },
+		{ "GetRawInputBufferHook", false, "GetRawInputBufferHook", ProtoHookIDs::GetRawInputBufferHookID }
 	};
 
 	std::vector<ProfileOption> messageFilters

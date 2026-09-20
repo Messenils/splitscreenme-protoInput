@@ -50,7 +50,7 @@ public:
 	static void SendInputMessages(const RAWMOUSE& data);
 	static void SendKeyMessage(const RAWKEYBOARD& data, bool pressed);
 	static void ToggleLockInput();
-	static void InjectFakeRawInput(const RAWINPUT& fakeInput);
+	static void InjectFakeRawInput(RAWINPUT& fakeInput);
 	static std::vector<HWND> forwardingWindows;
 	static RawInputState rawInputState;
 	static HWND rawInputHwnd;
@@ -59,16 +59,16 @@ public:
 	static bool TranslateXinputtoMKB;
 	static bool TranslateXinputtoMKB2;
 	static bool MessageAllWindows;
-	//static bool TranslateMKBtoXinput; //in XinputHook
 
-	static size_t bufferCounter;
+	static bool InputQ; //getrawinputbuffer
 
+	static RAWINPUT FakeMouseDevice;
+	static RAWINPUT FakeKbDevice;
 	// Passes input from all devices to the game. Proto Input doesn't process anything
 	static bool rawInputBypass;
 
 	//Reregisters devices to game then reactivates registerinput hook. called from dllmain
-	
-	static std::vector<RAWINPUT> rawinputs;
+	static size_t BufferCounter;
 	static RAWINPUT inputBuffer[RawInputBufferSize];
 
 	static bool lockInputToggleEnabled;

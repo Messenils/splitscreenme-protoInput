@@ -224,6 +224,8 @@ bool Launch()
     	
         if (hookEnabled(SetWindowsHookHookID))             InstallHook(instanceHandle, SetWindowsHookHookID);
 
+        if (hookEnabled(GetRawInputBufferHookID))             InstallHook(instanceHandle, GetRawInputBufferHookID);
+
         if (filterEnabled(RawInputFilterID))            EnableMessageFilter(instanceHandle, RawInputFilterID);
         if (filterEnabled(MouseMoveFilterID))           EnableMessageFilter(instanceHandle, MouseMoveFilterID);
         if (filterEnabled(MouseActivateFilterID))       EnableMessageFilter(instanceHandle, MouseActivateFilterID);

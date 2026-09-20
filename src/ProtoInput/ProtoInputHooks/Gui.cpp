@@ -1062,8 +1062,7 @@ DWORD WINAPI GuiThread(LPVOID lpParameter)
 {
     std::cout << "Starting gui thread\n";
 
-    Proto::AddThreadToACL(GetCurrentThreadId());
-
+    
     Proto::ShowGuiImpl();
 
     return 0;
@@ -1072,7 +1071,7 @@ void StartGUIThread()
 { 
     HANDLE hGuiThread = CreateThread(nullptr, 0,
         (LPTHREAD_START_ROUTINE)GuiThread, Proto::hmodule, CREATE_SUSPENDED, &Proto::GuiThreadID);
-
+    Proto::AddThreadToACL(Proto::GuiThreadID); //TODO. problem, already hooked?. start gui thread earlier?
     ResumeThread(hGuiThread);
 
     if (hGuiThread != nullptr)

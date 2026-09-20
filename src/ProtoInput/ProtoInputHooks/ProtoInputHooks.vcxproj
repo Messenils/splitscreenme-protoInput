@@ -212,6 +212,7 @@
     <ClInclude Include="GetCursorPosHook.h" />
     <ClInclude Include="GetKeyboardStateHook.h" />
     <ClInclude Include="GetKeyStateHook.h" />
+    <ClInclude Include="GetRawInputBufferHook.h" />
     <ClInclude Include="GetRawInputDataHook.h" />
     <ClInclude Include="GtoMnK_RawInput.h" />
     <ClInclude Include="Gui.h" />
@@ -279,6 +280,7 @@
     <ClCompile Include="GetCursorPosHook.cpp" />
     <ClCompile Include="GetKeyboardStateHook.cpp" />
     <ClCompile Include="GetKeyStateHook.cpp" />
+    <ClCompile Include="GetRawInputBufferHook.cpp" />
     <ClCompile Include="GetRawInputDataHook.cpp" />
     <ClCompile Include="GtoMnK_RawInput.cpp" />
     <ClCompile Include="Gui.cpp" />
