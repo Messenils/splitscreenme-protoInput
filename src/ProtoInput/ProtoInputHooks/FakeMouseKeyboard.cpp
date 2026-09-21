@@ -2,6 +2,7 @@
 #include "FakeMouseKeyboard.h"
 #include "HwndSelector.h"
 #include "SetWindowsHookHook.h"
+#include "RawInput.h"
 namespace Proto
 {
 
@@ -106,9 +107,15 @@ void FakeMouseKeyboard::AddMouseDelta(int dx, int dy)
 	}
 }
 
-void FakeMouseKeyboard::SetMousePos(int x, int y)
+void FakeMouseKeyboard::SetMousePos(int x, int y, bool sendmessage)
 {
 	FakeMouseKeyboard::CursorRestriction(x, y, true);
+	if (sendmessage)
+	{ 
+		const unsigned int mouseMkFlags = FakeMouseKeyboard::GetMouseMkFlags();
+		const unsigned int mousePointLparam = MAKELPARAM(FakeMouseKeyboard::GetMouseState().x, FakeMouseKeyboard::GetMouseState().y);
+		PostMessageW((HWND)HwndSelector::GetSelectedHwnd(), WM_MOUSEMOVE, mouseMkFlags, mousePointLparam);
+	}
 }
 
 void FakeMouseKeyboard::SetClipCursor(int clientLeft, int clientTop, int clientRight, int clientBottom)

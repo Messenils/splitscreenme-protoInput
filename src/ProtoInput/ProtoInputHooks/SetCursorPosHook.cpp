@@ -10,6 +10,7 @@ namespace Proto
 {
 
 bool SetCursorPosHook::blockSettingCursorPos = false;
+bool SetCursorPosHook::MessageCursorPosSet = false; //also send mousemove with new coordinates after hook call
 POINT SetCursorPosHook::mousesethere;
 BOOL WINAPI Hook_SetCursorPos(int X, int Y)
 {
@@ -29,7 +30,7 @@ BOOL WINAPI Hook_SetCursorPos(int X, int Y)
 			SetCursorPosHook::mousesethere.y = p.y;
 		}
 		else
-			FakeMouseKeyboard::SetMousePos(p.x, p.y);
+			FakeMouseKeyboard::SetMousePos(p.x, p.y, SetCursorPosHook::MessageCursorPosSet);
 
 		FakeCursor::NotifyUpdatedCursorPosition();
 	}
@@ -40,6 +41,8 @@ void SetCursorPosHook::ShowGuiStatus()
 {
 	ImGui::TextWrapped("Enable this to prevent Set Cursor calls from setting the 'fake' cursor (i.e. the calls do nothing)");
 	ImGui::Checkbox("Block calls", &blockSettingCursorPos);
+	ImGui::TextWrapped("Enable this to send cursor pos message to game with new coordinates each call. Can fix mouse always moving problem)");
+	ImGui::Checkbox("Send Mousemove on call", &SetCursorPosHook::MessageCursorPosSet);
 }
 
 void SetCursorPosHook::InstallImpl()

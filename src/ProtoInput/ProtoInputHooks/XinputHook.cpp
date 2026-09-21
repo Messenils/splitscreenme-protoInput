@@ -105,7 +105,7 @@ POINT axisvaluemouse(SHORT currentX, SHORT currentY)
 		else if (currentY + dy< -32767) currentY = -32767;
 		else currentY += dy;
 		changed = true;
-		FakeMouseKeyboard::SetMousePos(100, 100);
+		FakeMouseKeyboard::SetMousePos(100, 100, false);
 	}
 
 	POINT returnaxis;
@@ -219,7 +219,7 @@ inline DWORD WINAPI XInputfromkbm(DWORD dwUserIndex, XINPUT_STATE* pState, bool 
 
 	if (!firstcall)
 	{
-		FakeMouseKeyboard::SetMousePos(100, 100);
+		FakeMouseKeyboard::SetMousePos(100, 100, false);
 		pState->Gamepad.sThumbLY = 0;
 		pState->Gamepad.sThumbLX = 0;
 		pState->Gamepad.sThumbRY = 0;

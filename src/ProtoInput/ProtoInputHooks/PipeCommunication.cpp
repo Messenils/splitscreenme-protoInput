@@ -30,6 +30,7 @@
 #include "TranslateXtoMKB.h"
 #include "ScanThread.h"
 #include "WindowMsgHook.h"
+#include "SetCursorPosHook.h"
 
 namespace Proto
 {
@@ -352,6 +353,15 @@ DWORD WINAPI PipeThread(LPVOID lpParameter)
 				printf("Received message to %s fake cursor with offset fix\n", body->enable ? "enable" : "disable");
 
 				FakeCursor::DrawFakeCursorFix = body->enable;
+				break;
+			}
+			case ProtoPipe::PipeMessageType::SetSetCursorPosHookMessages: //does not enable drawing
+			{
+				const auto body = reinterpret_cast<ProtoPipe::PipeMessageSetSetCursorPosHookMessages*>(messageBuffer);
+
+				printf("Received message to %s window messaging with SetCursorPos Hook\n", body->enable ? "enable" : "disable");
+
+				SetCursorPosHook::MessageCursorPosSet = body->enable;
 				break;
 			}
 			case ProtoPipe::PipeMessageType::SetExternalFreezeFakeInput:

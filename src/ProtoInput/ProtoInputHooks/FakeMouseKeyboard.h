@@ -45,7 +45,7 @@ public:
 	static const FakeMouseState& GetMouseState() { return mouseState; }
 	//static const FakeKeyboardState& GetKeyBoardState() { return keyboardState; }
 	static void AddMouseDelta(int dx, int dy);
-	static void SetMousePos(int x, int y);
+	static void SetMousePos(int x, int y, bool sendmessage);
 	
 	static void SetClipCursor(int clientLeft, int clientTop, int clientRight, int clientBottom);
 	static void RemoveClipCursor();

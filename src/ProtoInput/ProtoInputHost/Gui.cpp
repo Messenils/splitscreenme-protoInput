@@ -260,6 +260,8 @@ bool Launch()
         SetDrawFakeCursor(instanceHandle, currentProfile.drawFakeMouseCursor);
 
         SetDrawFakeCursorFix(instanceHandle, currentProfile.drawFakeCursorFix);
+
+        SetSetCursorPosHookMessages(instanceHandle, currentProfile.SetCursorPosHookMessages);
     	
         AllowFakeCursorOutOfBounds(instanceHandle, currentProfile.allowMouseOutOfBounds, currentProfile.extendMouseBounds);
 
@@ -1537,7 +1539,13 @@ void OptionsMenu()
         {
             ImGui::Checkbox("RegisterRawInput: ReRegister", &currentProfile.Reregisterinput);
         }
-        else currentProfile.dinputToXinputRedirection = false;
+        else currentProfile.Reregisterinput = false;
+
+        if (IsHookEnabled(currentProfile, ProtoHookIDs::SetCursorPosHookID))
+        {
+            ImGui::Checkbox("SetCursorPos Message Pos", &currentProfile.SetCursorPosHookMessages);
+        }
+        else currentProfile.SetCursorPosHookMessages = false;
 
         if (IsHookEnabled(currentProfile, ProtoHookIDs::ClipCursorHookID))
         {

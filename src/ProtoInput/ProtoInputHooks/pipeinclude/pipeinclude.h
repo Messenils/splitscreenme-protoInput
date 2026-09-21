@@ -20,6 +20,7 @@ enum class PipeMessageType
 	SetupMessagesToSend,
 	SetDrawFakeCursor,
 	SetDrawFakeCursorFix,
+	SetSetCursorPosHookMessages,
 	SetExternalFreezeFakeInput,
 	AddHandleToRename,
 	SetControllerIndex,
@@ -134,6 +135,10 @@ struct PipeMessageSetDrawFakeCursor
 	bool enable;
 };
 struct PipeMessageSetDrawFakeCursorFix
+{
+	bool enable;
+};
+struct PipeMessageSetSetCursorPosHookMessages
 {
 	bool enable;
 };

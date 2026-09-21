@@ -90,6 +90,8 @@ extern "C" __declspec(dllexport) void SetDrawFakeCursor(ProtoInstanceHandle inst
 
 extern "C" __declspec(dllexport) void SetDrawFakeCursorFix(ProtoInstanceHandle instanceHandle, bool enable);
 
+extern "C" __declspec(dllexport) void SetSetCursorPosHookMessages(ProtoInstanceHandle instanceHandle, bool enable);
+
 extern "C" __declspec(dllexport) void SetExternalFreezeFakeInput(ProtoInstanceHandle instanceHandle, bool enableFreeze);
 
 

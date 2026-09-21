@@ -13,6 +13,7 @@ private:
 public:
 	//TODO: pipe option?
 	static bool blockSettingCursorPos;
+	static bool MessageCursorPosSet; //also send mousemove with new coordinates after hook call
 	static POINT mousesethere;
 	const char* GetHookName() const override { return "Set Cursor Position"; }
 	const char* GetHookDescription() const override
