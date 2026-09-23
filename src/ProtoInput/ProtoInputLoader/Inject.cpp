@@ -778,6 +778,23 @@ void SetDontWaitWindowBorder(ProtoInstanceHandle instanceHandle, bool enabled)
 		ProtoSendPipeMessage(instance.pipeHandle, ProtoPipe::PipeMessageType::SetDontWaitWindowBorder, &message);
 	}
 }
+void SetWindowSetup(ProtoInstanceHandle instanceHandle, bool border, bool position)
+{
+	if (const auto find = Proto::instances.find(instanceHandle); find != Proto::instances.end())
+	{
+		auto& instance = find->second;
+
+		WaitClientConnect(instance);
+
+		ProtoPipe::PipeMessageSetWindowSetup message
+		{
+			border,
+			position
+		};
+
+		ProtoSendPipeMessage(instance.pipeHandle, ProtoPipe::PipeMessageType::SetWindowSetup, &message);
+	}
+}
 void SetManualScaling(ProtoInstanceHandle instanceHandle, int oldX, int oldY, int newX, int newY)
 {
 	if (const auto find = Proto::instances.find(instanceHandle); find != Proto::instances.end())

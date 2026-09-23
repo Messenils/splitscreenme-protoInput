@@ -31,9 +31,6 @@
     <Filter Include="Source Files\TranslateXtoMKB">
       <UniqueIdentifier>{a0d1a945-2bce-40dd-88b8-54724cf1b678}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\TranslateMKBtoX">
-      <UniqueIdentifier>{2852b253-94b1-4a59-954e-55b28a17010b}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -210,6 +207,9 @@
     <ClInclude Include="GetRawInputBufferHook.h">
       <Filter>Source Files\Hooks</Filter>
     </ClInclude>
+    <ClInclude Include="WindowSetup.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -376,6 +376,9 @@
     </ClCompile>
     <ClCompile Include="GetRawInputBufferHook.cpp">
       <Filter>Source Files\Hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowSetup.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

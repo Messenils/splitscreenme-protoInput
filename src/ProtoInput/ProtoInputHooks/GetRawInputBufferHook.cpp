@@ -66,10 +66,10 @@ namespace Proto
 				return WAIT_OBJECT_0 + nCount;  // Set result to indicate raw input is available
 			}
 		}
-		else //thread not same. may be imgui thread
-		{
-			return MsgWaitForMultipleObjects(nCount, pHandles, fWaitAll, dwMilliseconds, dwWakeMask);
-		}
+		//else //thread not same. may be imgui thread
+		//{
+		return MsgWaitForMultipleObjects(nCount, pHandles, fWaitAll, dwMilliseconds, dwWakeMask);
+		//}
 	}
 
 	UINT Hook_GetRawInputBuffer( //last call

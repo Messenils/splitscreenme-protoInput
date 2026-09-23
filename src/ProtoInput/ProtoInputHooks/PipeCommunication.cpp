@@ -31,6 +31,7 @@
 #include "ScanThread.h"
 #include "WindowMsgHook.h"
 #include "SetCursorPosHook.h"
+#include "WindowSetup.h"
 
 namespace Proto
 {
@@ -613,8 +614,6 @@ DWORD WINAPI PipeThread(LPVOID lpParameter)
 				MoveWindowHook::posy = body->posy;
 				MoveWindowHook::width = body->width;
 				MoveWindowHook::height = body->height;
-				MoveWindowHook::RemoveBorders();
-				MoveWindowHook::SetPosition();
 
 				break;
 			}
@@ -658,6 +657,24 @@ DWORD WINAPI PipeThread(LPVOID lpParameter)
 				printf("Received DontWaitWindowBorder, enabled = %d\n", body->DontWaitWindowBorder);
 
 				RemoveBorderHook::DontWaitWindowBorder = body->DontWaitWindowBorder;
+
+				break;
+			}
+			case ProtoPipe::PipeMessageType::SetWindowSetup:
+			{
+				const auto body = reinterpret_cast<ProtoPipe::PipeMessageSetWindowSetup*>(messageBuffer);
+
+				printf("Received WindowSetup settings. border =  %d. position = %d\n", body->border, body->position);
+
+				if (body->border)
+				{ 
+					WindowSetup::RemoveBorders();
+				}
+
+				if (body->position)
+				{
+					WindowSetup::SetPosition();
+				}
 
 				break;
 			}

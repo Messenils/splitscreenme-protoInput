@@ -163,6 +163,8 @@ extern "C" __declspec(dllexport) void SetAdjustWindowRectSettings(ProtoInstanceH
 
 extern "C" __declspec(dllexport) void SetDontWaitWindowBorder(ProtoInstanceHandle instanceHandle, bool enabled);
 
+extern "C" __declspec(dllexport) void SetWindowSetup(ProtoInstanceHandle instanceHandle, bool border, bool position);
+
 extern "C" __declspec(dllexport) void SetManualScaling(ProtoInstanceHandle instanceHandle, int oldX,  int oldY, int newX, int newY);
 
 extern "C" __declspec(dllexport) void SetXinputtoMKBkeys(ProtoInstanceHandle instanceHandle, int XinputtoMKBAkey, int XinputtoMKBBkey, int XinputtoMKBXkey, int XinputtoMKBYkey, int XinputtoMKBRSkey, int XinputtoMKBLSkey, int XinputtoMKBrightkey, int XinputtoMKBleftkey, int XinputtoMKBupkey, int XinputtoMKBdownkey, int XinputtoMKBstickR, int XinputtoMKBstickL, int XinputtoMKBstickright, int XinputtoMKBstickleft, int XinputtoMKBstickup, int XinputtoMKBstickdown, int XinputtoMKBoption, int XinputtoMKBstart, int XinputtoMKBsens, int XinputtoMKBsensmult, int XinputtoMKBDeadzone);

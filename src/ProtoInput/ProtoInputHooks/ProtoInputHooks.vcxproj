@@ -247,6 +247,7 @@
     <ClInclude Include="TranslateXtoMKB.h" />
     <ClInclude Include="WindowActivateAppFilter.h" />
     <ClInclude Include="WindowActivateFilter.h" />
+    <ClInclude Include="WindowSetup.h" />
     <ClInclude Include="WindowStyleHook.h" />
     <ClInclude Include="WindowMsgHook.h" />
     <ClInclude Include="XinputHook.h" />
@@ -304,6 +305,7 @@
     <ClCompile Include="SetWindowsHookHook.cpp" />
     <ClCompile Include="StateInfo.cpp" />
     <ClCompile Include="TranslateXtoMKB.cpp" />
+    <ClCompile Include="WindowSetup.cpp" />
     <ClCompile Include="WindowStyleHook.cpp" />
     <ClCompile Include="WindowMsgHook.cpp" />
     <ClCompile Include="XinputHook.cpp" />
