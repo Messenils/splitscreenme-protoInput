@@ -84,6 +84,23 @@ BOOL WINAPI Hook_SetForegroundWindow(HWND hWnd)
 	return true;
 }
 
+BOOL WINAPI Hook_IsTopLevelWindow(HWND hWnd)
+{
+	return true;
+}
+
+BOOL Hook_GetWindowInfo(
+	HWND        hwnd,
+	PWINDOWINFO pwi
+) {
+	if (GetWindowInfo(hwnd, pwi))
+	{
+		pwi->dwWindowStatus = WS_ACTIVECAPTION;
+		return TRUE;
+	}
+	else return FALSE;
+}
+
 void FocusHook::ShowGuiStatus()
 {	
 	if (IsInstalled() && needReinstalling)
@@ -102,6 +119,9 @@ void FocusHook::ShowGuiStatus()
 	if (ImGui::Button("Find new main window"))
 		HwndSelector::UpdateMainHwnd();
 	
+	//GetWindowInfo
+	//GetTopLevelWindow
+	//GetTopWindow
 	HookCheckbox("GetForegroundWindow", &enabledHookGetForegroundWindow);
 	HookCheckbox("WindowFromPoint", &enabledHookWindowFromPoint);
 	HookCheckbox("GetActiveWindow", &enabledHookGetActiveWindow);
@@ -113,12 +133,13 @@ void FocusHook::ShowGuiStatus()
 	HookCheckbox("ReleaseCapture", &enabledHookReleaseCapture);
 	HookCheckbox("SetFocus", &enabledHookSetFocus);
 	HookCheckbox("SetForegroundWindow", &enabledHookSetForegroundWindow);
+	HookCheckbox("IsTopLevelHwnd", &enabledHookIsTopLevelWindow);
 }
 
 void FocusHook::InstallImpl()
 {
 	needReinstalling = false;
-	
+	//InstallNamedHook(L"user32", "GetWindowInfo", Hook_GetWindowInfo));
 	if (enabledHookGetForegroundWindow) hookInfoGetForegroundWindow = std::get<1>(InstallNamedHook(L"user32", "GetForegroundWindow", Hook_GetForegroundWindow));
 	if (enabledHookWindowFromPoint) hookInfoWindowFromPoint = std::get<1>(InstallNamedHook(L"user32", "WindowFromPoint", Hook_WindowFromPoint));
 	if (enabledHookGetActiveWindow) hookInfoGetActiveWindow = std::get<1>(InstallNamedHook(L"user32", "GetActiveWindow", Hook_GetActiveWindow));
@@ -130,6 +151,7 @@ void FocusHook::InstallImpl()
 	if (enabledHookSetActiveWindow) hookInfoSetActiveWindow = std::get<1>(InstallNamedHook(L"user32", "SetActiveWindow", Hook_SetActiveWindow));
 	if (enabledHookSetFocus) hookInfoSetFocus = std::get<1>(InstallNamedHook(L"user32", "SetFocus", Hook_SetFocus));
 	if (enabledHookSetForegroundWindow) hookInfoSetForegroundWindow = std::get<1>(InstallNamedHook(L"user32", "SetForegroundWindow", Hook_SetForegroundWindow));
+	if (enabledHookIsTopLevelWindow) hookInfoIsTopLevelWindow = std::get<1>(InstallNamedHook(L"user32", "IsTopLevelWindow", Hook_IsTopLevelWindow));
 }
 
 void FocusHook::UninstallImpl()
@@ -145,6 +167,7 @@ void FocusHook::UninstallImpl()
 	UninstallHook(&hookInfoSetActiveWindow 	  );
 	UninstallHook(&hookInfoSetFocus			  );
 	UninstallHook(&hookInfoSetForegroundWindow);
+	UninstallHook(&hookInfoIsTopLevelWindow);
 }
 
 }

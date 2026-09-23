@@ -19,6 +19,9 @@ namespace Proto
 		static bool MoveWindowDontResize;
 		static bool MoveWindowDontReposition;
 
+		static void RemoveBorders();
+		static void SetPosition();
+
 		const char* GetHookName() const override { return "Move Window"; }
 		const char* GetHookDescription() const override
 		{

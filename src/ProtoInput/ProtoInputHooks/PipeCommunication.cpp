@@ -613,6 +613,8 @@ DWORD WINAPI PipeThread(LPVOID lpParameter)
 				MoveWindowHook::posy = body->posy;
 				MoveWindowHook::width = body->width;
 				MoveWindowHook::height = body->height;
+				MoveWindowHook::RemoveBorders();
+				MoveWindowHook::SetPosition();
 
 				break;
 			}

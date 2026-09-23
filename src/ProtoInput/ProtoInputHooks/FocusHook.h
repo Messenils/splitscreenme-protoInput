@@ -19,6 +19,7 @@ private:
 	HookInfo hookInfoSetActiveWindow{};
 	HookInfo hookInfoSetFocus{};
 	HookInfo hookInfoSetForegroundWindow{};
+	HookInfo hookInfoIsTopLevelWindow{};
 
 	bool needReinstalling = false;
 	
@@ -32,7 +33,8 @@ private:
 	bool enabledHookReleaseCapture { true };
 	bool enabledHookSetActiveWindow { true };
 	bool enabledHookSetFocus { true };
-	bool enabledHookSetForegroundWindow { true };
+	bool enabledHookSetForegroundWindow { true }; 
+	bool enabledHookIsTopLevelWindow{ false }; //new. undocumented and doubt any game use it
 
 private:
 	void HookCheckbox(const char* label, bool* enabled)
