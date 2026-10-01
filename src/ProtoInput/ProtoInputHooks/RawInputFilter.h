@@ -9,7 +9,7 @@ namespace Proto
 class RawInputFilter : public Proto::MessageFilterBase<ProtoMessageFilterIDs::RawInputFilterID, WM_INPUT>
 {
 public:
-	static bool Filter(unsigned int message, unsigned int* lparam, unsigned int* wparam, intptr_t hwnd)
+	static bool Filter(unsigned int* message, unsigned int* lparam, unsigned int* wparam, intptr_t hwnd)
 	{
 		*wparam = RIM_INPUT;
 		return true;

@@ -17,14 +17,13 @@
 #include "ScanThread.h" 
 #include "GtoMnK_RawInput.h" 
 #include "XinputHook.h" 
-#include "WindowMsgHook.h" 
+#include "InputMsgTranslator.h" 
 
 
 namespace Proto
 {
 intptr_t ConsoleHwnd;
 
-bool PointerInMouseold = false;
 
 static void HelpMarker(const char* desc)
 {
@@ -826,11 +825,7 @@ void RawInputMenu()
 	
     ImGui::Separator();
     
-    ImGui::Checkbox("Translate mouse messages to Pointermessages", &RawInput::PointerInMouse);
-
-    if (PointerInMouseold != RawInput::PointerInMouse)
-        WindowMsgHook::PointerInMouse(RawInput::PointerInMouse);
-    PointerInMouseold = RawInput::PointerInMouse;
+    ImGui::Checkbox("Translate mouse messages to Pointermessages in the MessageFilters", &InputMsgTranslator::PointerMessages);
     ImGui::Checkbox("Send mouse movement messages", &RawInput::rawInputState.sendMouseMoveMessages);
     ImGui::Checkbox("Send mouse button messages", &RawInput::rawInputState.sendMouseButtonMessages);
     ImGui::Checkbox("Send mouse wheel messages", &RawInput::rawInputState.sendMouseWheelMessages);

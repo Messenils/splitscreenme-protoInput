@@ -11,7 +11,7 @@ class KeyboardButtonFilter : public MessageFilterBase<ProtoMessageFilterIDs::Key
 public:
 	static constexpr unsigned int signature = 0x10000000;
 
-	static bool Filter(unsigned int message, unsigned int* lparam, unsigned int* wparam, intptr_t hwnd)
+	static bool Filter(unsigned int* message, unsigned int* lparam, unsigned int* wparam, intptr_t hwnd)
 	{
 		if ((*wparam & signature) != 0)
 		{

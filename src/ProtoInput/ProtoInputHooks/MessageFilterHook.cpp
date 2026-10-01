@@ -16,9 +16,9 @@ bool* IsFilterEnabled()
 }
 
 template<typename X, typename... T>
-bool MessageFilterAllow(unsigned int message, unsigned int* lparam, unsigned int* wparam, intptr_t hwnd)
+bool MessageFilterAllow(unsigned int* message, unsigned int* lparam, unsigned int* wparam, intptr_t hwnd)
 {
-	bool a = (!*IsFilterEnabled<X>() || message < X::MessageMin() || message > X::MessageMax() || X::Filter(message, lparam, wparam, hwnd));
+	bool a = (!*IsFilterEnabled<X>() || *message < X::MessageMin() || *message > X::MessageMax() || X::Filter(message, lparam, wparam, hwnd));
 	
 	if constexpr (sizeof...(T) != 0)
 		return a && MessageFilterAllow<T...>(message, lparam, wparam, hwnd);
@@ -31,7 +31,7 @@ inline BOOL FilterMessage(MSG* lpMsg)
 	lpMsg->pt.x = FakeMouseKeyboard::GetMouseState().x;
 	lpMsg->pt.y = FakeMouseKeyboard::GetMouseState().y;
 	
-	if (!MessageFilterAllow<PROTO_MESSAGE_FILTERS>(lpMsg->message, (unsigned int*)&lpMsg->lParam, (unsigned int*)&lpMsg->wParam, (intptr_t)lpMsg->hwnd)
+	if (!MessageFilterAllow<PROTO_MESSAGE_FILTERS>((unsigned int*)&lpMsg->message, (unsigned int*)&lpMsg->lParam, (unsigned int*)&lpMsg->wParam, (intptr_t)lpMsg->hwnd)
 		|| MessageList::IsBlocked(lpMsg->message))
 	{
 		//Massive performance benefits for returning a successful WM_NULL compared to causing an error in the application.
@@ -138,6 +138,7 @@ void MessageFilterHook::FilterGui()
 
 		ImGui::EndGroup();
 	}
+	
 }
 
 BOOL WINAPI Hook_GetMessageA(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)

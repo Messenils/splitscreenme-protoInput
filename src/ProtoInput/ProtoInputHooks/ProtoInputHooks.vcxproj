@@ -249,7 +249,7 @@
     <ClInclude Include="WindowActivateFilter.h" />
     <ClInclude Include="WindowSetup.h" />
     <ClInclude Include="WindowStyleHook.h" />
-    <ClInclude Include="WindowMsgHook.h" />
+    <ClInclude Include="InputMsgTranslator.h" />
     <ClInclude Include="XinputHook.h" />
   </ItemGroup>
   <ItemGroup>
@@ -307,7 +307,7 @@
     <ClCompile Include="TranslateXtoMKB.cpp" />
     <ClCompile Include="WindowSetup.cpp" />
     <ClCompile Include="WindowStyleHook.cpp" />
-    <ClCompile Include="WindowMsgHook.cpp" />
+    <ClCompile Include="InputMsgTranslator.cpp" />
     <ClCompile Include="XinputHook.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

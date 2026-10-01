@@ -2,6 +2,8 @@
 #include <WinUser.h>
 #include "MessageFilterBase.h"
 #include "protoloader.h"
+#include "RawInput.h"
+#include "InputMsgTranslator.h"
 
 namespace Proto
 {
@@ -12,11 +14,22 @@ public:
 	static constexpr unsigned int protoInputSignature = 0x100;
 
 	
-	static bool Filter(unsigned int message, unsigned int* lparam, unsigned int* wparam, intptr_t hwnd)
+	static bool Filter(unsigned int* message, unsigned int* lparam, unsigned int* wparam, intptr_t hwnd)
 	{
 		if ((*wparam & protoInputSignature) != 0)
 		{
 			*wparam = (*wparam) & (~protoInputSignature);
+			if (InputMsgTranslator::PointerMessages)
+			{ 
+				*message = WM_POINTERWHEEL;
+				if (InputMsgTranslator::IsFirstTouch())
+					*wparam += 0x00000001;
+				// else work only on mouse left down maybe need to erase and rebuild whole wparam
+			}
+			if (InputMsgTranslator::ScalingEnabled || InputMsgTranslator::PointerMessages)
+			{
+				*lparam = InputMsgTranslator::ProcessedLparam(*lparam, (HWND)hwnd, InputMsgTranslator::PointerMessages && !RawInput::rawInputState.sendMouseDblClkMessages, InputMsgTranslator::ScalingEnabled);
+			}
 			return true;
 		}
 		

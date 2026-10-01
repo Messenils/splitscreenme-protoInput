@@ -9,7 +9,7 @@ namespace Proto
 class WindowActivateAppFilter : public Proto::MessageFilterBase<ProtoMessageFilterIDs::WindowActivateAppFilterID, WM_ACTIVATEAPP>
 {
 public:
-	static bool Filter(unsigned int message, unsigned int* lparam, unsigned int* wparam, intptr_t hwnd)
+	static bool Filter(unsigned int* message, unsigned int* lparam, unsigned int* wparam, intptr_t hwnd)
 	{
 		*wparam = TRUE;
 		*lparam = 0;

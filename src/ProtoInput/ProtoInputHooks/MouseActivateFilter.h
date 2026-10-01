@@ -11,10 +11,13 @@ namespace Proto
 class MouseActivateFilter : public Proto::MessageFilterBase<ProtoMessageFilterIDs::MouseActivateFilterID, WM_MOUSEACTIVATE>
 {
 public:
-	static bool Filter(unsigned int message, unsigned int* lparam, unsigned int* wparam, intptr_t hwnd)
+	static bool Filter(unsigned int *message, unsigned int* lparam, unsigned int* wparam, intptr_t hwnd)
 	{
 		*wparam = HwndSelector::GetSelectedHwnd();
-		*lparam = 1;
+		*lparam = 1; //HTCLIENT
+
+		if (InputMsgTranslator::PointerMessages)
+			*message = WM_POINTERACTIVATE;
 		return true;
 	}
 

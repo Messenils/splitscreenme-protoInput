@@ -18,7 +18,6 @@
 #include "MessageFilterHook.h"
 #include "TranslateXtoMKB.h"
 #include "XinputHook.h"
-#include "WindowMsgHook.h"
 #include "SetWindowsHookHook.h"
 namespace Proto
 {
@@ -28,7 +27,6 @@ std::bitset<9> RawInput::usages{};
 std::vector<HWND> RawInput::forwardingWindows{};
 bool RawInput::forwardRawInput = true; 
 bool RawInput::MessageAllWindows = false;
-bool RawInput::PointerInMouse; 
 bool RawInput::lockInputToggleEnabled = false;
 bool RawInput::rawInputBypass = false;
 

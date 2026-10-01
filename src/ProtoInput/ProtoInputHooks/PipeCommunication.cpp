@@ -29,7 +29,7 @@
 #include "RemoveBorderHook.h"
 #include "TranslateXtoMKB.h"
 #include "ScanThread.h"
-#include "WindowMsgHook.h"
+#include "InputMsgTranslator.h"
 #include "SetCursorPosHook.h"
 #include "WindowSetup.h"
 
@@ -551,8 +551,8 @@ DWORD WINAPI PipeThread(LPVOID lpParameter)
 			{
 				const auto body = reinterpret_cast<ProtoPipe::PipeMessageSetPointerInMouse*>(messageBuffer);
 				printf("Received PointerInMouse, PointerInMouse enabled = %d\n", body->enabled);
-				Proto::WindowMsgHook::PointerInMouse(body->enabled);
-				RawInput::PointerInMouse = body->enabled; //for runtime GUI
+				InputMsgTranslator::PointerInMouse(body->enabled);
+				//InputMsgTranslator::PointerInMouse = body->enabled; //for runtime GUI
 				break;
 			}
 			case ProtoPipe::PipeMessageType::SetSendMessagesToSubWindows:
@@ -684,7 +684,7 @@ DWORD WINAPI PipeThread(LPVOID lpParameter)
 
 				printf("Received SetManualScaling with settings.from res (%d, %d), to (%d,%d)\n", body->oldX, body->oldY, body->newX, body->newY);
 
-				WindowMsgHook::Settings(body->oldX, body->oldY, body->newX, body->newY);
+				InputMsgTranslator::Settings(body->oldX, body->oldY, body->newX, body->newY);
 
 				break;
 			}

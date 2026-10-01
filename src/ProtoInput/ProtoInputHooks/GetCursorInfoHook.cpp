@@ -1,7 +1,7 @@
 #include "GetCursorInfoHook.h"
 #include "FakeMouseKeyboard.h"
 #include "HwndSelector.h"
-#include "WindowMsgHook.h"
+#include "InputMsgTranslator.h"
 namespace Proto
 {
 
@@ -13,8 +13,8 @@ namespace Proto
 			const auto& state = FakeMouseKeyboard::GetMouseState();
 			POINT clientPos = { state.x, state.y };
 
-			//any scaling?
-			clientPos = WindowMsgHook::getfactor(clientPos);
+			if (InputMsgTranslator::ScalingEnabled)
+				clientPos = InputMsgTranslator::getfactor(clientPos);
 
 			ClientToScreen((HWND)HwndSelector::GetSelectedHwnd(), &clientPos);
 			pci->ptScreenPos.x = clientPos.x;

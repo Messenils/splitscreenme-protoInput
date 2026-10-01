@@ -11,7 +11,6 @@
 #include "RawInput.h"
 #include "HookManager.h"
 #include "protoloader.h"
-#include "WindowMsgHook.h"
 #include "PipeCommunication.h"
 #include "HwndSelector.h"
 #include "FocusMessageLoop.h"

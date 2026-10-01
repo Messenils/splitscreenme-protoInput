@@ -4,7 +4,6 @@
 #include "FakeMouseKeyboard.h"
 #include "FakeCursor.h"
 #include "XinputHook.h"
-#include "WindowMsgHook.h"
 
 namespace Proto
 {

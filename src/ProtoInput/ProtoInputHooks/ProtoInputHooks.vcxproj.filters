@@ -22,14 +22,14 @@
     <Filter Include="Source Files\Hooks">
       <UniqueIdentifier>{962a1f72-14be-43ee-b2eb-e4b50ae17607}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\MessageFilters">
-      <UniqueIdentifier>{017a2168-ac43-4ded-a945-1ef32899ea5e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\openxinput">
       <UniqueIdentifier>{14e41680-f011-4d2c-b31b-3fd2d6ae9a52}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\TranslateXtoMKB">
       <UniqueIdentifier>{a0d1a945-2bce-40dd-88b8-54724cf1b678}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Message Filters + Translators">
+      <UniqueIdentifier>{017a2168-ac43-4ded-a945-1ef32899ea5e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -106,28 +106,28 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="RawInputFilter.h">
-      <Filter>Source Files\MessageFilters</Filter>
+      <Filter>Source Files\Message Filters + Translators</Filter>
     </ClInclude>
     <ClInclude Include="MouseMoveFilter.h">
-      <Filter>Source Files\MessageFilters</Filter>
+      <Filter>Source Files\Message Filters + Translators</Filter>
     </ClInclude>
     <ClInclude Include="MouseActivateFilter.h">
-      <Filter>Source Files\MessageFilters</Filter>
+      <Filter>Source Files\Message Filters + Translators</Filter>
     </ClInclude>
     <ClInclude Include="WindowActivateFilter.h">
-      <Filter>Source Files\MessageFilters</Filter>
+      <Filter>Source Files\Message Filters + Translators</Filter>
     </ClInclude>
     <ClInclude Include="WindowActivateAppFilter.h">
-      <Filter>Source Files\MessageFilters</Filter>
+      <Filter>Source Files\Message Filters + Translators</Filter>
     </ClInclude>
     <ClInclude Include="MouseWheelFilter.h">
-      <Filter>Source Files\MessageFilters</Filter>
+      <Filter>Source Files\Message Filters + Translators</Filter>
     </ClInclude>
     <ClInclude Include="FocusMessageLoop.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="MouseButtonFilter.h">
-      <Filter>Source Files\MessageFilters</Filter>
+      <Filter>Source Files\Message Filters + Translators</Filter>
     </ClInclude>
     <ClInclude Include="Cleanup.h">
       <Filter>Source Files</Filter>
@@ -151,7 +151,7 @@
       <Filter>Source Files\Hooks</Filter>
     </ClInclude>
     <ClInclude Include="KeyboardButtonFilter.h">
-      <Filter>Source Files\MessageFilters</Filter>
+      <Filter>Source Files\Message Filters + Translators</Filter>
     </ClInclude>
     <ClInclude Include="OpenXinputWrapper.h">
       <Filter>Source Files\openxinput</Filter>
@@ -195,9 +195,6 @@
     <ClInclude Include="GetCursorInfoHook.h">
       <Filter>Source Files\Hooks</Filter>
     </ClInclude>
-    <ClInclude Include="WindowMsgHook.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="SetWindowsHookHook.h">
       <Filter>Source Files\Hooks</Filter>
     </ClInclude>
@@ -209,6 +206,9 @@
     </ClInclude>
     <ClInclude Include="WindowSetup.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InputMsgTranslator.h">
+      <Filter>Source Files\Message Filters + Translators</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -365,9 +365,6 @@
     <ClCompile Include="GetCursorInfoHook.cpp">
       <Filter>Source Files\Hooks</Filter>
     </ClCompile>
-    <ClCompile Include="WindowMsgHook.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SetWindowsHookHook.cpp">
       <Filter>Source Files\Hooks</Filter>
     </ClCompile>
@@ -379,6 +376,9 @@
     </ClCompile>
     <ClCompile Include="WindowSetup.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InputMsgTranslator.cpp">
+      <Filter>Source Files\Message Filters + Translators</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
