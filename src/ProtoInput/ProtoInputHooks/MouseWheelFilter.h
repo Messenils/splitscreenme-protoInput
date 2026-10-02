@@ -22,9 +22,11 @@ public:
 			if (InputMsgTranslator::PointerMessages)
 			{ 
 				*message = WM_POINTERWHEEL;
-				if (InputMsgTranslator::IsFirstTouch())
-					*wparam += 0x00000001;
-				// else work only on mouse left down maybe need to erase and rebuild whole wparam
+				int zDelta = GET_WHEEL_DELTA_WPARAM(*wparam);
+
+				if (zDelta == -120)
+					*wparam = 0xFF880001;
+				else *wparam = 0x00780001;
 			}
 			if (InputMsgTranslator::ScalingEnabled || InputMsgTranslator::PointerMessages)
 			{
