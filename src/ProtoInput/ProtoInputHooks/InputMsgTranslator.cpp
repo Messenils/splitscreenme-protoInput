@@ -122,7 +122,7 @@ namespace Proto
 
     POINT InputMsgTranslator::getfactor(POINT pp)
     {
-        if (pp.x != 0 && pp.y != 0)
+        if (pp.x != 0 && pp.y != 0 && InputMsgTranslator::ScalingEnabled)
         { 
             float scalex = float(origwidth) / float(scalewidth);
             float scaley = float(origheight) / float(scaleheight);
